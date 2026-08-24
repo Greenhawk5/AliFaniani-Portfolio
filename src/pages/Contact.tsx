@@ -104,7 +104,7 @@ export default function Contact() {
       }
       turnstileWidgetIdRef.current = null
     }
-  }, [])
+  }, [status])
 
   const resetTurnstile = () => {
     if (turnstileWidgetIdRef.current && window.turnstile) {
@@ -221,6 +221,16 @@ export default function Contact() {
                   variant="outline"
                   size="sm"
                   onClick={() => {
+                    setForm({
+                      firstName: '',
+                      lastName: '',
+                      email: '',
+                      phone: '',
+                      message: '',
+                      company: '',
+                    })
+                    setErrors({})
+                    setServerError('')
                     resetTurnstile()
                     setStatus('idle')
                   }}
