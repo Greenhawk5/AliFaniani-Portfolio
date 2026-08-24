@@ -31,6 +31,15 @@ function fail(error: string, status = 400) {
   return json({ ok: false, error }, status)
 }
 
+function escapeHtml(value: string | undefined): string {
+  return (value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;')
+}
+
 function isRateLimited(ip: string): boolean {
   const now = Date.now()
   const bucket = (rateBuckets.get(ip) ?? []).filter((t) => now - t < MAX_WINDOW_MS)
@@ -61,6 +70,12 @@ async function verifyTurnstile(token: string, secret: string, ip: string): Promi
 
 async function sendEmail(env: Env, body: ContactBody, ip: string): Promise<void> {
   if (!env.RESEND_API_KEY || !env.EMAIL_TO) return
+  const firstName = escapeHtml(body.firstName)
+  const lastName = escapeHtml(body.lastName)
+  const email = escapeHtml(body.email)
+  const phone = escapeHtml(body.phone)
+  const message = escapeHtml(body.message).replaceAll('\n', '<br />')
+  const websiteUrl = 'https://alifaniani.ir'
   await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
@@ -82,11 +97,28 @@ async function sendEmail(env: Env, body: ContactBody, ip: string): Promise<void>
       ]
         .filter(Boolean)
         .join('\n'),
+      html: `
+        <div style="margin:0;background:#0b0f14;padding:32px 16px;font-family:Arial,sans-serif;color:#e8eef5">
+          <div style="max-width:600px;margin:0 auto;background:#121922;border:1px solid #263342;border-radius:16px;overflow:hidden">
+            <div style="padding:24px 28px;border-bottom:1px solid #263342;color:#39ff8b;font-size:20px;font-weight:700">AF <span style="color:#e8eef5;font-weight:400">New contact message</span></div>
+            <div style="padding:28px">
+              <p style="margin:0 0 20px;color:#aab8c7;font-size:13px;text-transform:uppercase;letter-spacing:2px">Portfolio contact</p>
+              <div style="padding:16px;background:#0b0f14;border-radius:10px;font-size:14px;line-height:1.7">
+                <strong style="color:#39ff8b">${firstName} ${lastName}</strong><br />
+                <a href="mailto:${email}" style="color:#e8eef5">${email}</a>${phone ? `<br />${phone}` : ''}
+              </div>
+              <h2 style="margin:28px 0 12px;font-size:16px;color:#e8eef5">Message</h2>
+              <div style="padding:18px;background:#18222d;border-radius:10px;color:#c8d3de;font-size:15px;line-height:1.7">${message}</div>
+              <a href="mailto:${email}" style="display:inline-block;margin-top:24px;padding:12px 18px;background:#39ff8b;color:#08100c;text-decoration:none;border-radius:8px;font-weight:700">Reply to ${firstName}</a>
+            </div>
+          </div>
+        </div>
+      `,
     }),
   })
 
   try {
-    await fetch('https://api.resend.com/emails', {
+    const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${env.RESEND_API_KEY}`,
@@ -97,15 +129,24 @@ async function sendEmail(env: Env, body: ContactBody, ip: string): Promise<void>
         to: body.email,
         reply_to: env.EMAIL_TO,
         subject: 'Thanks for contacting Ali Faniani',
+        text: `Hi ${body.firstName},\n\nThanks for reaching out. I received your message and usually reply within a day.\n\nVisit ${websiteUrl}\n\nBest regards,\nAli Faniani`,
         html: `
-          <p>Hi ${body.firstName},</p>
-          <p>Thanks for reaching out. I received your message and will review it shortly.</p>
-          <p>I usually reply within a day.</p>
-          <p>You can also visit <a href="https://alifaniani.ir">alifaniani.ir</a>.</p>
-          <p>Best regards,<br />Ali Faniani</p>
+          <div style="margin:0;background:#0b0f14;padding:32px 16px;font-family:Arial,sans-serif;color:#e8eef5">
+            <div style="max-width:600px;margin:0 auto;background:#121922;border:1px solid #263342;border-radius:16px;overflow:hidden">
+              <div style="padding:24px 28px;border-bottom:1px solid #263342;color:#39ff8b;font-size:24px;font-weight:700">AF <span style="color:#e8eef5;font-size:14px;font-weight:400">Ali Faniani</span></div>
+              <div style="padding:32px 28px;line-height:1.7;font-size:15px">
+                <p style="margin:0 0 18px">Hi ${firstName},</p>
+                <p style="margin:0 0 16px;color:#c8d3de">Thanks for reaching out. I received your message and will review it shortly.</p>
+                <p style="margin:0 0 24px;color:#c8d3de">I usually reply within a day.</p>
+                <a href="${websiteUrl}" style="display:inline-block;padding:12px 20px;background:#39ff8b;color:#08100c;text-decoration:none;border-radius:8px;font-weight:700">Visit alifaniani.ir</a>
+              </div>
+              <div style="padding:20px 28px;border-top:1px solid #263342;color:#8292a3;font-size:12px">Best regards,<br /><strong style="color:#e8eef5">Ali Faniani</strong><br /><a href="${websiteUrl}" style="color:#39ff8b">alifaniani.ir</a></div>
+            </div>
+          </div>
         `,
       }),
     })
+    if (!response.ok) throw new Error(`Resend confirmation request failed (${response.status})`)
   } catch (error) {
     console.error('Visitor confirmation email failed:', error)
   }

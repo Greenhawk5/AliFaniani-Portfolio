@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useDocumentMeta } from '@/hooks/useDocumentMeta'
 import { PageTransition } from '@/components/ui/PageTransition'
 import { PageContainer } from '@/components/ui/Section'
@@ -13,8 +13,10 @@ import { sendContactMessage, type ContactFormData } from '@/services/contactServ
 
 declare global {
   interface Window {
-    onTurnstileVerify?: (token: string) => void
-    turnstile?: { reset: (container?: string) => void }
+    turnstile?: {
+      render: (container: HTMLElement, options: Record<string, unknown>) => string
+      reset: (widgetId?: string) => void
+    }
   }
 }
 
@@ -56,22 +58,60 @@ export default function Contact() {
   const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
   const [serverError, setServerError] = useState<string>('')
   const [turnstileToken, setTurnstileToken] = useState('')
+  const turnstileContainerRef = useRef<HTMLDivElement>(null)
+  const turnstileWidgetIdRef = useRef<string | null>(null)
 
   useEffect(() => {
     if (!TURNSTILE_SITE_KEY) return
-    window.onTurnstileVerify = (token) => setTurnstileToken(token)
-    if (!document.querySelector('script[data-turnstile="true"]')) {
+    let cancelled = false
+    const renderTurnstile = () => {
+      if (
+        cancelled ||
+        !turnstileContainerRef.current ||
+        !window.turnstile ||
+        turnstileWidgetIdRef.current
+      ) {
+        return
+      }
+      turnstileWidgetIdRef.current = window.turnstile.render(turnstileContainerRef.current, {
+        sitekey: TURNSTILE_SITE_KEY,
+        action: 'contact',
+        theme: 'dark',
+        callback: (token: string) => setTurnstileToken(token),
+        'expired-callback': () => setTurnstileToken(''),
+        'error-callback': () => setTurnstileToken(''),
+      })
+    }
+
+    const existingScript = document.querySelector<HTMLScriptElement>('script[data-turnstile="true"]')
+    if (existingScript) {
+      existingScript.addEventListener('load', renderTurnstile)
+      renderTurnstile()
+    } else {
       const script = document.createElement('script')
-      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js'
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'
       script.async = true
       script.defer = true
       script.dataset.turnstile = 'true'
+      script.addEventListener('load', renderTurnstile)
       document.head.appendChild(script)
     }
     return () => {
-      delete window.onTurnstileVerify
+      cancelled = true
+      existingScript?.removeEventListener('load', renderTurnstile)
+      if (turnstileWidgetIdRef.current && window.turnstile) {
+        window.turnstile.reset(turnstileWidgetIdRef.current)
+      }
+      turnstileWidgetIdRef.current = null
     }
   }, [])
+
+  const resetTurnstile = () => {
+    if (turnstileWidgetIdRef.current && window.turnstile) {
+      window.turnstile.reset(turnstileWidgetIdRef.current)
+    }
+    setTurnstileToken('')
+  }
 
   const update = (field: keyof ContactFormData) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -98,16 +138,14 @@ export default function Contact() {
     setServerError('')
     try {
       await sendContactMessage(form, turnstileToken || undefined)
+      resetTurnstile()
       setStatus('success')
-      setTurnstileToken('')
-      window.turnstile?.reset()
     } catch (err) {
       setStatus('error')
       setServerError(
         err instanceof Error ? err.message : 'Something went wrong. Please try again.'
       )
-      window.turnstile?.reset()
-      setTurnstileToken('')
+      resetTurnstile()
     }
   }
 
@@ -179,7 +217,14 @@ export default function Contact() {
                 <p className="max-w-sm text-sm text-mist">
                   Thanks for reaching out — I will get back to you shortly.
                 </p>
-                <Button variant="outline" size="sm" onClick={() => setStatus('idle')}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    resetTurnstile()
+                    setStatus('idle')
+                  }}
+                >
                   Send another message
                 </Button>
               </div>
@@ -245,13 +290,7 @@ export default function Contact() {
                 />
 
                 {TURNSTILE_SITE_KEY && (
-                  <div
-                    className="cf-turnstile"
-                    data-sitekey={TURNSTILE_SITE_KEY}
-                    data-action="contact"
-                    data-callback="onTurnstileVerify"
-                    data-theme="dark"
-                  />
+                  <div ref={turnstileContainerRef} aria-label="Security verification" />
                 )}
 
                 {status === 'error' && (
