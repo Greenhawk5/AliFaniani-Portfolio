@@ -59,7 +59,7 @@ export const projects: Project[] = [
     description:
       'An AI-powered web application for black-and-white image colorization using CNN, GAN, and diffusion-based deep learning approaches through a FastAPI backend.',
     category: 'AI · Computer Vision',
-    year: 2025,
+    year: 2026,
     banner: bannerGreenhawk,
     bannerConfig: { objectPosition: '50% 35%', scale: 1.05 },
     screenshots: [
@@ -97,7 +97,7 @@ export const projects: Project[] = [
     description:
       'A Fortnite Save The World mission tracking platform using React, TypeScript, Cloudflare serverless technologies, APIs, and automation.',
     category: 'Web · Cloud',
-    year: 2025,
+    year: 2026,
     banner: bannerHawkbucksWeb,
     screenshots: [
       { src: shotWebHome, caption: 'Mission dashboard' },
@@ -135,7 +135,7 @@ export const projects: Project[] = [
     description:
       'A Telegram automation bot with scheduled jobs, mission data processing, reminders, image generation, and persistent user management.',
     category: 'Automation · Telegram',
-    year: 2025,
+    year: 2026,
     banner: bannerHawkbucksBot,
     screenshots: [
       { src: shotBotInChat, caption: 'Daily mission message in chat' },

@@ -15,14 +15,19 @@ import {
 } from '@/components/ui/icons'
 import { getAdjacentProjects, getProjectBySlug } from '@/data/projects'
 
-/** Fixed aspect-ratio banner container with per-project crop configuration. */
+/**
+ * Reusable banner presentation for designed artwork.
+ * Uses object-contain inside a fixed responsive aspect ratio so the full
+ * banner (logos, text, key visuals) is always visible without cropping.
+ * A subtle gradient backdrop fills any letterbox space so it feels intentional.
+ */
 function ProjectBanner({ banner, bannerConfig }: { banner: string; bannerConfig?: { objectPosition?: string; scale?: number } }) {
   return (
-    <div className="mt-10 aspect-[21/9] overflow-hidden rounded-2xl border border-edge max-md:aspect-[16/10]">
+    <div className="mt-10 aspect-[21/9] overflow-hidden rounded-2xl border border-edge bg-gradient-to-br from-accent/10 via-panel to-violet/10 max-md:aspect-[16/10]">
       <img
         src={banner}
         alt="Project banner"
-        className="h-full w-full object-cover"
+        className="h-full w-full object-contain"
         style={{
           objectPosition: bannerConfig?.objectPosition ?? 'center',
           transform: `scale(${bannerConfig?.scale ?? 1})`,

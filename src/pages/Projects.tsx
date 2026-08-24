@@ -39,13 +39,13 @@ export default function Projects() {
               {/* Banner */}
               <Link
                 to={`/projects/${project.slug}`}
-                className="relative block aspect-[16/9] overflow-hidden border-b border-edge"
+                className="relative block aspect-[16/9] overflow-hidden border-b border-edge bg-gradient-to-br from-accent/10 via-panel to-violet/10"
               >
                 <img
                   src={project.banner}
                   alt={`${project.title} banner`}
                   loading="lazy"
-                  className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  className="h-full w-full object-contain transition-transform duration-700 group-hover:scale-105"
                 />
                 <span className="absolute inset-0 bg-gradient-to-t from-void/80 via-transparent to-transparent" />
                 <span className="absolute top-3 left-3">
