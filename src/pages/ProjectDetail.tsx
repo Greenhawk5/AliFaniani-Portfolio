@@ -15,6 +15,23 @@ import {
 } from '@/components/ui/icons'
 import { getAdjacentProjects, getProjectBySlug } from '@/data/projects'
 
+/** Fixed aspect-ratio banner container with per-project crop configuration. */
+function ProjectBanner({ banner, bannerConfig }: { banner: string; bannerConfig?: { objectPosition?: string; scale?: number } }) {
+  return (
+    <div className="mt-10 aspect-[21/9] overflow-hidden rounded-2xl border border-edge max-md:aspect-[16/10]">
+      <img
+        src={banner}
+        alt="Project banner"
+        className="h-full w-full object-cover"
+        style={{
+          objectPosition: bannerConfig?.objectPosition ?? 'center',
+          transform: `scale(${bannerConfig?.scale ?? 1})`,
+        }}
+      />
+    </div>
+  )
+}
+
 export default function ProjectDetail() {
   const { slug } = useParams<{ slug: string }>()
   const project = getProjectBySlug(slug ?? '')
@@ -93,18 +110,7 @@ export default function ProjectDetail() {
         </header>
 
         {/* Banner */}
-        <div className="mt-10 overflow-hidden rounded-2xl border border-edge">
-          <img
-            src={project.banner}
-            alt={`${project.title} banner`}
-            className="w-full object-cover"
-          />
-        </div>
-
-        {/* Gallery */}
-        <Section title="Gallery" subtitle="Screenshots">
-          <ProjectGallery images={project.screenshots} />
-        </Section>
+        <ProjectBanner banner={project.banner} bannerConfig={project.bannerConfig} />
 
         {/* Overview */}
         <Section title="Overview" subtitle="What & why">
@@ -180,6 +186,11 @@ export default function ProjectDetail() {
               </a>
             )}
           </div>
+        </Section>
+
+        {/* Gallery — final content section */}
+        <Section title="Gallery" subtitle="Screenshots">
+          <ProjectGallery images={project.screenshots} />
         </Section>
 
         <nav

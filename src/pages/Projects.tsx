@@ -49,7 +49,7 @@ export default function Projects() {
                 />
                 <span className="absolute inset-0 bg-gradient-to-t from-void/80 via-transparent to-transparent" />
                 <span className="absolute top-3 left-3">
-                  <Badge tone="accent">{project.category}</Badge>
+                  <Badge tone="glass">{project.category}</Badge>
                 </span>
               </Link>
 

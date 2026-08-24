@@ -3,6 +3,9 @@ import { cn } from '@/lib/cn'
 
 const tones = {
   accent: 'bg-accent/10 text-accent border-accent/25',
+  /** Premium glass style for overlays on imagery: high contrast + soft green glow. */
+  glass:
+    'border-accent/40 bg-void/60 text-accent backdrop-blur-md shadow-[0_0_16px_-4px_rgba(57,255,139,0.45)]',
   violet: 'bg-violet/10 text-violet border-violet/25',
   cyan: 'bg-cyan/10 text-cyan border-cyan/25',
   amber: 'bg-amber/10 text-amber border-amber/25',

@@ -24,6 +24,14 @@ export interface TechGroup {
   items: string[]
 }
 
+/** Optional per-project banner crop configuration. */
+export interface BannerConfig {
+  /** CSS object-position, e.g. '50% 30%'. Defaults to center. */
+  objectPosition?: string
+  /** Zoom level, 1 = no zoom. Defaults to 1. */
+  scale?: number
+}
+
 export interface Project {
   slug: string
   title: string
@@ -32,6 +40,7 @@ export interface Project {
   category: string
   year: number
   banner: string
+  bannerConfig?: BannerConfig
   screenshots: { src: string; caption: string }[]
   technologies: string[]
   techGroups: TechGroup[]
@@ -52,6 +61,7 @@ export const projects: Project[] = [
     category: 'AI · Computer Vision',
     year: 2025,
     banner: bannerGreenhawk,
+    bannerConfig: { objectPosition: '50% 35%', scale: 1.05 },
     screenshots: [
       { src: shotGreenhawkHome, caption: 'Home interface' },
       { src: shotGreenhawkModels, caption: 'AI models overview' },
