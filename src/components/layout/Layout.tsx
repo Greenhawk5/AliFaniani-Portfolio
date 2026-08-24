@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { Navbar } from './Navbar'
 import { Footer } from './Footer'
+import { BackToTop } from './BackToTop'
 import { SettingsPanel } from './SettingsPanel'
 import { useUiStore } from '@/stores/uiStore'
 
@@ -49,6 +50,7 @@ export function Layout() {
         <Outlet />
       </main>
       {!isHome && <Footer />}
+      {!isHome && <BackToTop />}
       <SettingsPanel />
     </div>
   )

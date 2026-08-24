@@ -42,6 +42,39 @@ export function MailIcon({ className }: IconProps) {
   )
 }
 
+export function TelegramIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+      <path d="M11.94 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm4.96 6.03-1.79 8.49c-.13.6-.49.74-.99.46l-2.72-2.02-1.31 1.27c-.15.15-.27.27-.55.27l.19-2.77 5.05-4.57c.22-.19-.05-.3-.34-.11l-6.24 3.94-2.69-.84c-.58-.19-.6-.58.12-.86l10.5-4.05c.49-.18.91.11.77.79Z" />
+    </svg>
+  )
+}
+
+export function HuggingFaceIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+      <path d="M12.02 1.5c-5.8 0-10.5 4.7-10.5 10.5s4.7 10.5 10.5 10.5 10.5-4.7 10.5-10.5S17.82 1.5 12.02 1.5ZM8.6 8.4c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1Zm6.8 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1Zm-3.38 4.2c2.36 0 4.36.9 5.06 2.14.28.5-.06 1.06-.6 1.06-.24 0-.5-.12-.66-.38-.5-.82-2.02-1.42-3.8-1.42s-3.3.6-3.8 1.42c-.16.26-.42.38-.66.38-.54 0-.88-.56-.6-1.06.7-1.24 2.7-2.14 5.06-2.14Z" />
+    </svg>
+  )
+}
+
+export function ArrowUpIcon({ className }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M12 19V5m-6 6 6-6 6 6" />
+    </svg>
+  )
+}
+
 export function GearIcon({ className }: IconProps) {
   return (
     <svg
