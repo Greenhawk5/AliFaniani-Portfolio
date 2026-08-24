@@ -37,16 +37,18 @@ export default function About() {
                   View projects <ArrowRightIcon className="h-4 w-4" />
                 </Button>
               </Link>
-              <a href={socialLinks[3].href}>
+              <a href={socialLinks[4].href}>
                 <Button variant="outline">Get in touch</Button>
               </a>
             </div>
           </div>
           <div className="justify-self-center md:justify-self-end">
             <div className="relative flex h-44 w-44 items-center justify-center rounded-3xl border border-accent/30 bg-gradient-to-br from-accent/15 via-panel to-violet/15 shadow-[0_0_60px_-18px_rgba(57,255,139,0.5)] md:h-56 md:w-56">
-              <span className="font-mono text-6xl font-bold text-accent text-glow">
-                {profile.hero.avatarInitials}
-              </span>
+              <img
+                src={profile.hero.avatarSrc}
+                alt={`${profile.hero.name} profile`}
+                className="h-full w-full rounded-3xl object-cover"
+              />
               <span className="absolute -top-2 -right-2 h-3 w-3 animate-pulse-soft rounded-full bg-accent shadow-[0_0_12px_rgba(57,255,139,0.9)]" />
             </div>
           </div>
@@ -70,21 +72,32 @@ export default function About() {
                   {group.label}
                 </h3>
                 <ul className="space-y-3.5">
-                  {group.skills.map((skill) => (
-                    <li key={skill.name}>
-                      <div className="mb-1.5 flex items-center justify-between text-sm">
-                        <span className="text-frost/90">{skill.name}</span>
-                        <span className="font-mono text-[11px] text-mist">{skill.level}%</span>
-                      </div>
-                      <div className="h-1.5 overflow-hidden rounded-full bg-edge">
-                        <div
-                          className="h-full rounded-full bg-gradient-to-r from-accent-dim to-accent shadow-[0_0_10px_rgba(57,255,139,0.4)]"
-                          style={{ width: `${skill.level}%` }}
-                        />
-                      </div>
-                    </li>
+                    {group.skills.map((skill) => (
+                      <li key={skill} className="text-sm text-frost/90">
+                        {skill}
+                      </li>
                   ))}
                 </ul>
+              </Card>
+            ))}
+          </div>
+        </Section>
+
+        <Section title="Focus" subtitle="What I build">
+          <div className="flex flex-wrap gap-3">
+            {profile.focus.map((item) => <Badge key={item} tone="accent">{item}</Badge>)}
+          </div>
+        </Section>
+
+        <Section title="Projects" subtitle="Selected work">
+          <div className="space-y-4">
+            {profile.projects.map((project) => (
+              <Card key={project.title} className="p-6">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <h3 className="text-lg font-semibold">{project.title}</h3>
+                  <a href={project.href} target="_blank" rel="noreferrer" className="text-sm text-accent">Repository</a>
+                </div>
+                <p className="mt-4 text-sm leading-relaxed text-frost/75">{project.description}</p>
               </Card>
             ))}
           </div>

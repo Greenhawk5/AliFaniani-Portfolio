@@ -1,12 +1,12 @@
 export const SITE = {
   name: 'Ali Faniani',
   shortName: 'AF',
-  role: 'Full-Stack & Creative Developer',
-  tagline: 'I build interactive digital experiences.',
-  url: 'https://alifaniani.dev',
-  email: 'hello@alifaniani.dev',
-  location: 'Available worldwide · Remote',
-  availability: 'Open to freelance & full-time opportunities',
+  role: 'Computer Science Graduate | Software Developer | AI, Backend & Web Development',
+  tagline: 'Building practical software systems with AI and modern web technologies.',
+  url: 'https://alifaniani.ir',
+  email: 'ali.faniani@gmail.com',
+  location: 'Jahrom County, Fars Province, Iran',
+  availability: 'Open to freelance and full-time opportunities · Remote / Worldwide',
 } as const
 
 export const NAV_LINKS = [

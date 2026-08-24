@@ -12,7 +12,7 @@ export default function Projects() {
   useDocumentMeta({
     title: 'Projects',
     description:
-      'Selected projects by Ali Faniani — WebGL experiences, AI platforms, realtime systems and developer tools.',
+      'Selected projects by Ali Faniani — AI, backend, web development, and automation projects.',
   })
 
   return (

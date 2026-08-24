@@ -1,90 +1,35 @@
 export const profile = {
   hero: {
     name: 'Ali Faniani',
-    role: 'Full-Stack & Creative Developer',
-    intro:
-      'I design and build interactive digital products — from real-time 3D web experiences to AI-powered platforms. I care about the details users feel but never notice.',
+    role: 'Computer Science Graduate | Software Developer | AI, Backend & Web Development',
+    intro: 'I build practical software systems at the intersection of Artificial Intelligence, backend engineering, web technologies, and automation.',
     avatarInitials: 'AF',
+    avatarSrc: '/docs/profile/pic2.jpg',
   },
   about: [
-    'I am a full-stack developer with a strong focus on frontend engineering, interactive interfaces and the WebGL ecosystem. I enjoy working at the intersection of engineering and design, where technical decisions directly shape how a product feels.',
-    'My background spans building production web applications, training and deploying machine-learning models, and crafting real-time 3D experiences in the browser. I gravitate toward hard problems: performance budgets, animation systems, state synchronization and developer experience.',
-    'Outside of client work I build tools I use daily, contribute to open source, and constantly explore new corners of the web platform. This portfolio — an interactive 3D room built entirely in code — is the best example of how I think about software.',
+    'I am a Computer Science graduate and software developer interested in building practical software systems at the intersection of Artificial Intelligence, backend engineering, web technologies, and automation.',
+    'My development experience includes Python, FastAPI, REST APIs, React, TypeScript, JavaScript, Tailwind CSS, and cloud/serverless technologies including Cloudflare Workers, D1, and KV.',
   ],
+  focus: ['Artificial Intelligence', 'Deep Learning', 'Computer Vision', 'Backend Development', 'Web Applications', 'Automation'],
   education: {
-    degree: 'BSc in Computer Engineering',
-    school: 'University — Computer Engineering Department',
+    degree: 'B.Sc. in Computer Science',
+    school: 'Shahid Chamran University of Ahvaz',
     period: 'Graduated',
-    notes:
-      'Focused on software engineering, computer graphics and machine learning. Final project explored real-time rendering techniques on the web.',
+    notes: 'Focused on software development, Artificial Intelligence, and practical software systems.',
   },
   skillGroups: [
-    {
-      label: 'Frontend',
-      skills: [
-        { name: 'React', level: 95 },
-        { name: 'TypeScript', level: 92 },
-        { name: 'Three.js / WebGL', level: 85 },
-        { name: 'TailwindCSS', level: 90 },
-        { name: 'Next.js', level: 80 },
-      ],
-    },
-    {
-      label: 'Backend & Cloud',
-      skills: [
-        { name: 'Node.js', level: 85 },
-        { name: 'REST & WebSocket APIs', level: 88 },
-        { name: 'Cloudflare Workers', level: 82 },
-        { name: 'PostgreSQL', level: 78 },
-        { name: 'Docker', level: 75 },
-      ],
-    },
-    {
-      label: 'AI & Data',
-      skills: [
-        { name: 'Python', level: 85 },
-        { name: 'PyTorch', level: 78 },
-        { name: 'Machine Learning', level: 80 },
-        { name: 'Computer Vision', level: 72 },
-      ],
-    },
+    { label: 'AI & Data', skills: ['Python', 'PyTorch', 'OpenCV', 'Computer Vision', 'Deep Learning'] },
+    { label: 'Backend & Cloud', skills: ['FastAPI', 'REST APIs', 'Cloudflare Workers', 'D1', 'KV', 'SQL'] },
+    { label: 'Web & Tools', skills: ['React', 'TypeScript', 'JavaScript', 'Tailwind CSS', 'Git', 'GitHub'] },
   ],
-  certificates: [
-    {
-      title: 'Meta Front-End Developer',
-      provider: 'Meta · Coursera',
-      date: '2024',
-      href: '#',
-    },
-    {
-      title: 'Three.js Journey',
-      provider: 'Bruno Simon',
-      date: '2024',
-      href: '#',
-    },
-    {
-      title: 'Machine Learning Specialization',
-      provider: 'DeepLearning.AI',
-      date: '2025',
-      href: '#',
-    },
+  projects: [
+    { title: 'GreenHawk AI', description: 'An AI-powered web application for black-and-white image colorization using CNN, GAN, and diffusion-based deep learning approaches through a FastAPI backend and web interface.', href: 'https://github.com/Greenhawk5/GreenHawk-AI' },
+    { title: 'HawkBucks', description: 'A Fortnite Save The World mission platform with a React and TypeScript web application, Cloudflare serverless backend, data processing, API integration, persistent storage, and automated workflows.', href: 'https://github.com/Greenhawk5/HawkBucks-Web' },
+    { title: 'HawkBucks Bot', description: 'A Telegram automation system featuring scheduled jobs, mission data processing, image generation, reminders, webhooks, and persistent user and group management.', href: 'https://github.com/Greenhawk5/HawkBucks-Bot' },
   ],
-  experience: [
-    {
-      role: 'Freelance Full-Stack Developer',
-      org: 'Independent',
-      period: '2023 — Present',
-      summary:
-        'Designing and shipping web products for clients: interactive marketing sites, dashboards and AI integrations. Own the full cycle from architecture to deployment.',
-    },
-    {
-      role: 'Frontend Developer',
-      org: 'Product Studio',
-      period: '2022 — 2023',
-      summary:
-        'Built and maintained React applications used by thousands of daily users. Led the migration to TypeScript and introduced a component design system.',
-    },
-  ],
+  technologies: ['Python', 'FastAPI', 'PyTorch', 'OpenCV', 'Computer Vision', 'Deep Learning', 'React', 'TypeScript', 'JavaScript', 'Tailwind CSS', 'Cloudflare Workers', 'D1', 'KV', 'Git', 'GitHub', 'REST APIs', 'SQL'],
+  certificates: [] as { title: string; provider: string; date: string; href: string }[],
+  experience: [] as { role: string; org: string; period: string; summary: string }[],
 } as const
 
 export type SkillGroup = (typeof profile.skillGroups)[number]
