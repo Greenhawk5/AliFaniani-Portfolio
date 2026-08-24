@@ -65,11 +65,11 @@ function SkillBar({ skill, index }: { skill: SkillItem; index: number }) {
 
 /**
  * Shared styling for the Focus card decorative number layer.
- * Anchored to the bottom-right corner with a fixed safe inset so it never
- * touches the card border, regardless of card height or breakpoint.
+ * Small, subtle, anchored bottom-right with fixed safe insets.
+ * Absolutely positioned and aria-hidden, so it never affects card sizing.
  */
 const FOCUS_NUMBER_CLASSES =
-  'pointer-events-none absolute right-4 bottom-3 select-none font-mono font-bold leading-none tracking-tighter text-accent/[0.06] transition-colors duration-300 group-hover:text-accent/[0.12] text-5xl md:text-6xl'
+  'pointer-events-none absolute right-4 bottom-3 select-none font-mono font-bold leading-none tracking-tighter text-accent/[0.06] transition-colors duration-300 group-hover:text-accent/[0.12] text-3xl md:text-4xl'
 
 /**
  * Decorative background number for a Focus card.
@@ -86,7 +86,7 @@ function FocusNumber({ index }: { index: number }) {
 /** Glass card used in the "Areas of focus" grid: title top-left, number bottom-right. */
 function FocusCard({ title, index }: { title: string; index: number }) {
   return (
-    <div className="group relative flex min-h-32 items-start overflow-hidden rounded-2xl border border-edge bg-panel/60 p-5 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-accent/50 hover:shadow-[0_0_30px_-10px_rgba(57,255,139,0.4)]">
+    <div className="group relative overflow-hidden rounded-2xl border border-edge bg-panel/60 p-5 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-accent/50 hover:shadow-[0_0_30px_-10px_rgba(57,255,139,0.4)]">
       <FocusNumber index={index} />
       <div className="relative">
         <span className="mb-3 block h-px w-8 bg-accent/60 transition-all duration-300 group-hover:w-14" />
