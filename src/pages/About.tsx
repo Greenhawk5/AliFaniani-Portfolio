@@ -63,6 +63,39 @@ function SkillBar({ skill, index }: { skill: SkillItem; index: number }) {
   )
 }
 
+/**
+ * Shared styling for the Focus card decorative number layer.
+ * Positioned with transform-based vertical centering (top-1/2 -translate-y-1/2)
+ * so it stays balanced at every breakpoint without per-breakpoint offsets.
+ */
+const FOCUS_NUMBER_CLASSES =
+  'pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 select-none font-mono font-bold leading-none tracking-tighter text-accent/[0.06] transition-colors duration-300 group-hover:text-accent/[0.12] text-6xl md:text-7xl'
+
+/**
+ * Decorative background number for a Focus card.
+ * Purely presentational: absolutely positioned, aria-hidden, no layout impact.
+ */
+function FocusNumber({ index }: { index: number }) {
+  return (
+    <span aria-hidden className={FOCUS_NUMBER_CLASSES}>
+      {String(index + 1).padStart(2, '0')}
+    </span>
+  )
+}
+
+/** Glass card used in the "Areas of focus" grid. */
+function FocusCard({ title, index }: { title: string; index: number }) {
+  return (
+    <div className="group relative flex min-h-28 items-start overflow-hidden rounded-2xl border border-edge bg-panel/60 p-5 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-accent/50 hover:shadow-[0_0_30px_-10px_rgba(57,255,139,0.4)]">
+      <FocusNumber index={index} />
+      <div className="relative">
+        <span className="mb-3 block h-px w-8 bg-accent/60 transition-all duration-300 group-hover:w-14" />
+        <p className="text-sm font-medium text-frost/90">{title}</p>
+      </div>
+    </div>
+  )
+}
+
 function ProjectCarousel() {
   const projects = profile.projects
   const [index, setIndex] = useState(0)
@@ -267,21 +300,7 @@ export default function About() {
         <Section title="Focus" subtitle="Areas of focus">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {profile.focus.map((item, i) => (
-              <div
-                key={item}
-                className="group relative overflow-hidden rounded-2xl border border-edge bg-panel/60 p-5 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-accent/50 hover:shadow-[0_0_30px_-10px_rgba(57,255,139,0.4)]"
-              >
-                <span
-                  aria-hidden
-                  className="pointer-events-none absolute right-3 bottom-3.5 select-none font-mono text-[4.5rem] leading-none font-bold tracking-tighter text-accent/[0.06] transition-colors duration-300 group-hover:text-accent/[0.12] md:right-3 md:-bottom-4 md:text-[6.5rem]"
-                >
-                  {String(i + 1).padStart(2, '0')}
-                </span>
-                <span className="relative mb-3 block h-px w-8 bg-accent/60 transition-all duration-300 group-hover:w-14" />
-                <p className="relative text-sm font-medium text-frost/90">
-                  {item}
-                </p>
-              </div>
+              <FocusCard key={item} title={item} index={i} />
             ))}
           </div>
         </Section>
