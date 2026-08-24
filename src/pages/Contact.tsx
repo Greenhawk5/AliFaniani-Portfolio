@@ -163,8 +163,8 @@ export default function Contact() {
           </p>
         </header>
 
-        <div className="grid gap-8 lg:grid-cols-[1fr_1.4fr]">
-          <div className="space-y-4">
+        <div className="grid min-w-0 gap-8 lg:grid-cols-[1fr_1.4fr]">
+          <div className="min-w-0 space-y-4">
             <Card className="p-6">
               <h2 className="font-mono text-xs tracking-[0.2em] text-mist uppercase">
                 Direct
@@ -207,7 +207,7 @@ export default function Contact() {
             </Card>
           </div>
 
-          <Card className="p-6 md:p-8">
+          <Card className="min-w-0 p-6 md:p-8">
             {status === 'success' ? (
               <div className="flex h-full flex-col items-center justify-center gap-4 py-14 text-center">
                 <span className="flex h-14 w-14 items-center justify-center rounded-full border border-accent/40 bg-accent/10 text-accent shadow-[0_0_30px_-8px_rgba(57,255,139,0.7)]">
@@ -300,7 +300,11 @@ export default function Contact() {
                 />
 
                 {TURNSTILE_SITE_KEY && (
-                  <div ref={turnstileContainerRef} aria-label="Security verification" />
+                  <div
+                    ref={turnstileContainerRef}
+                    className="turnstile-container"
+                    aria-label="Security verification"
+                  />
                 )}
 
                 {status === 'error' && (
