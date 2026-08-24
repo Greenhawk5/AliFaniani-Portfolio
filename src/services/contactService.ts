@@ -16,12 +16,18 @@ interface ContactFailure {
   error: string
 }
 
-export async function sendContactMessage(data: ContactFormData): Promise<void> {
+export async function sendContactMessage(
+  data: ContactFormData,
+  turnstileToken?: string
+): Promise<void> {
   let response: Response
   try {
     response = await fetch('/api/contact', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(turnstileToken ? { 'X-Turnstile-Token': turnstileToken } : {}),
+      },
       body: JSON.stringify(data),
     })
   } catch {

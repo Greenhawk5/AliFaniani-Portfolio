@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { useDocumentMeta } from '@/hooks/useDocumentMeta'
 import { PageTransition } from '@/components/ui/PageTransition'
 import { PageContainer } from '@/components/ui/Section'
@@ -10,6 +10,15 @@ import { AlertIcon, CheckIcon, MailIcon } from '@/components/ui/icons'
 import { socialLinks } from '@/data/links'
 import { SITE } from '@/app/config'
 import { sendContactMessage, type ContactFormData } from '@/services/contactService'
+
+declare global {
+  interface Window {
+    onTurnstileVerify?: (token: string) => void
+    turnstile?: { reset: (container?: string) => void }
+  }
+}
+
+const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined
 
 type FormErrors = Partial<Record<'firstName' | 'lastName' | 'email' | 'message', string>>
 
@@ -46,6 +55,23 @@ export default function Contact() {
   const [errors, setErrors] = useState<FormErrors>({})
   const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
   const [serverError, setServerError] = useState<string>('')
+  const [turnstileToken, setTurnstileToken] = useState('')
+
+  useEffect(() => {
+    if (!TURNSTILE_SITE_KEY) return
+    window.onTurnstileVerify = (token) => setTurnstileToken(token)
+    if (!document.querySelector('script[data-turnstile="true"]')) {
+      const script = document.createElement('script')
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js'
+      script.async = true
+      script.defer = true
+      script.dataset.turnstile = 'true'
+      document.head.appendChild(script)
+    }
+    return () => {
+      delete window.onTurnstileVerify
+    }
+  }, [])
 
   const update = (field: keyof ContactFormData) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -63,16 +89,25 @@ export default function Contact() {
       setErrors(validation)
       return
     }
+    if (TURNSTILE_SITE_KEY && !turnstileToken) {
+      setStatus('error')
+      setServerError('Please complete the captcha verification.')
+      return
+    }
     setStatus('sending')
     setServerError('')
     try {
-      await sendContactMessage(form)
+      await sendContactMessage(form, turnstileToken || undefined)
       setStatus('success')
+      setTurnstileToken('')
+      window.turnstile?.reset()
     } catch (err) {
       setStatus('error')
       setServerError(
         err instanceof Error ? err.message : 'Something went wrong. Please try again.'
       )
+      window.turnstile?.reset()
+      setTurnstileToken('')
     }
   }
 
@@ -208,6 +243,16 @@ export default function Contact() {
                   maxLength={4000}
                   placeholder="Tell me about your project, timeline and goals…"
                 />
+
+                {TURNSTILE_SITE_KEY && (
+                  <div
+                    className="cf-turnstile"
+                    data-sitekey={TURNSTILE_SITE_KEY}
+                    data-action="contact"
+                    data-callback="onTurnstileVerify"
+                    data-theme="dark"
+                  />
+                )}
 
                 {status === 'error' && (
                   <p className="flex items-start gap-2 rounded-xl border border-danger/40 bg-danger/10 px-3.5 py-2.5 text-sm text-danger">
