@@ -6,6 +6,18 @@ export const assets = {
   telegramCertificate: telegramCertImg,
 }
 
+/**
+ * Manual crop controls for the profile image.
+ * - scale: zoom level (1 = no zoom, 1.2 = 20% zoom in)
+ * - positionX / positionY: object-position, e.g. '50%' centers horizontally/vertically.
+ *   Lower % moves the visible crop toward the top/left, higher % toward bottom/right.
+ */
+export const profileImageConfig = {
+  scale: 1.15,
+  positionX: '50%',
+  positionY: '25%',
+}
+
 export type SkillLevel = 'Advanced' | 'Strong' | 'Familiar'
 
 export interface SkillItem {
@@ -83,7 +95,7 @@ export const profile = {
       title: 'Project-Oriented Course In Creating Telegram Bot Using Python',
       provider: 'Quera',
       date: 'March 2024',
-      href: 'https://quera.org/certificate/0vyf6bky/',
+      href: 'https://quera.org/certificate/QvyE6bky/',
       image: telegramCertImg,
     },
   ] as { title: string; provider: string; date: string; href: string; image: string }[],

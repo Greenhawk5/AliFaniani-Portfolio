@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { ExternalLinkIcon, ArrowRightIcon } from '@/components/ui/icons'
-import { profile, skillLevels, type SkillItem } from '@/data/profile'
+import { profile, skillLevels, profileImageConfig, type SkillItem } from '@/data/profile'
 import { socialLinks } from '@/data/links'
 import { Link } from 'react-router-dom'
 import { cn } from '@/lib/cn'
@@ -210,6 +210,10 @@ export default function About() {
                 src={profile.hero.avatarSrc}
                 alt={`${profile.hero.name} profile`}
                 className="h-full w-full rounded-3xl object-cover"
+                style={{
+                  transform: `scale(${profileImageConfig.scale})`,
+                  objectPosition: `${profileImageConfig.positionX} ${profileImageConfig.positionY}`,
+                }}
                 loading="eager"
               />
               <span className="absolute -top-2 -right-2 h-3 w-3 animate-pulse-soft rounded-full bg-accent shadow-[0_0_12px_rgba(57,255,139,0.9)]" />
@@ -269,11 +273,11 @@ export default function About() {
               >
                 <span
                   aria-hidden
-                  className="pointer-events-none absolute -right-6 -bottom-8 font-mono text-7xl font-bold text-accent/5 transition-colors duration-300 group-hover:text-accent/10"
+                  className="pointer-events-none absolute right-3 -bottom-4 select-none font-mono text-[5.5rem] leading-none font-bold tracking-tighter text-accent/[0.06] transition-colors duration-300 group-hover:text-accent/[0.12] md:text-[6.5rem]"
                 >
                   {String(i + 1).padStart(2, '0')}
                 </span>
-                <span className="mb-3 block h-px w-8 bg-accent/60 transition-all duration-300 group-hover:w-14" />
+                <span className="relative mb-3 block h-px w-8 bg-accent/60 transition-all duration-300 group-hover:w-14" />
                 <p className="relative text-sm font-medium text-frost/90">
                   {item}
                 </p>
