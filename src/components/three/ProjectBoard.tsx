@@ -15,11 +15,16 @@ export function ProjectBoard() {
   const renderer = useMemo(() => {
     const slides: BoardSlide[] = featuredProjects().map((p) => ({
       title: p.title,
-      tagline: p.tagline,
+      tagline: p.subtitle,
       tags: p.technologies.slice(0, 5),
-      accent: p.accent,
-      accent2: p.accent2,
-      initial: p.initial,
+      accent: '#39ff8b',
+      accent2: '#37d5ff',
+      initial: p.title
+        .split(' ')
+        .map((w) => w[0])
+        .join('')
+        .slice(0, 3)
+        .toUpperCase(),
     }))
     return createBoardRenderer(slides)
   }, [])

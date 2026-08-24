@@ -15,5 +15,5 @@ export const useProjectStore = create<ProjectState>((set) => ({
 }))
 
 export function featuredProjects() {
-  return projects.filter((p) => p.featured)
+  return projects
 }

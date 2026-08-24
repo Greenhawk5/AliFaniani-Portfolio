@@ -4,8 +4,8 @@ import { PageTransition } from '@/components/ui/PageTransition'
 import { PageContainer, Section } from '@/components/ui/Section'
 import { Card } from '@/components/ui/Card'
 import { Badge, TechTag } from '@/components/ui/Badge'
-import { ProjectArt } from '@/components/ui/ProjectArt'
 import { Button } from '@/components/ui/Button'
+import { ProjectGallery } from '@/components/ui/ProjectGallery'
 import { EmptyState } from '@/components/ui/Spinner'
 import {
   ChevronLeftIcon,
@@ -55,119 +55,137 @@ export default function ProjectDetail() {
           <ChevronLeftIcon className="h-4 w-4" /> All projects
         </Link>
 
+        {/* Hero */}
         <header>
           <div className="flex flex-wrap items-center gap-3">
             <h1 className="text-3xl font-bold tracking-tight md:text-5xl">{project.title}</h1>
-            <Badge tone="accent">{project.year}</Badge>
+            <Badge tone="accent">{project.category}</Badge>
+            <Badge>{project.year}</Badge>
           </div>
-          <p className="mt-3 text-lg text-mist">{project.tagline}</p>
+          <p className="mt-3 text-lg text-mist">{project.subtitle}</p>
           <p className="mt-4 max-w-2xl leading-relaxed text-frost/80">{project.description}</p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            {project.links.map((link) => (
-              <a key={link.label} href={link.href} target="_blank" rel="noreferrer">
-                <Button variant={link.label === 'GitHub' ? 'primary' : 'outline'} size="sm">
-                  {link.label === 'GitHub' ? (
-                    <GitHubIcon className="h-4 w-4" />
-                  ) : (
-                    <ExternalLinkIcon className="h-4 w-4" />
-                  )}
-                  {link.label}
-                </Button>
-              </a>
-            ))}
-          </div>
-        </header>
-
-        <ProjectArt
-          initial={project.initial}
-          accent={project.accent}
-          accent2={project.accent2}
-          className="mt-10 h-64 w-full rounded-2xl border border-edge md:h-80"
-        />
-
-        <Section title="Overview" subtitle="What & why">
-          <p className="max-w-3xl leading-relaxed text-frost/80">{project.overview}</p>
-        </Section>
-
-        <Section title="Technologies" subtitle="Built with">
-          <div className="flex flex-wrap gap-2">
+          <div className="mt-5 flex flex-wrap gap-1.5">
             {project.technologies.map((t) => (
               <TechTag key={t}>{t}</TechTag>
             ))}
           </div>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <a href={project.repository} target="_blank" rel="noreferrer">
+              <Button>
+                <GitHubIcon className="h-4 w-4" /> Repository
+              </Button>
+            </a>
+            {project.demo && (
+              <a href={project.demo} target="_blank" rel="noreferrer">
+                <Button variant="outline">
+                  <ExternalLinkIcon className="h-4 w-4" /> Live demo
+                </Button>
+              </a>
+            )}
+            {project.documentation && (
+              <a href={project.documentation} target="_blank" rel="noreferrer">
+                <Button variant="outline">
+                  <ExternalLinkIcon className="h-4 w-4" /> Documentation
+                </Button>
+              </a>
+            )}
+          </div>
+        </header>
+
+        {/* Banner */}
+        <div className="mt-10 overflow-hidden rounded-2xl border border-edge">
+          <img
+            src={project.banner}
+            alt={`${project.title} banner`}
+            className="w-full object-cover"
+          />
+        </div>
+
+        {/* Gallery */}
+        <Section title="Gallery" subtitle="Screenshots">
+          <ProjectGallery images={project.screenshots} />
         </Section>
 
-        <Section title="Goals" subtitle="Objectives">
+        {/* Overview */}
+        <Section title="Overview" subtitle="What & why">
+          <p className="max-w-3xl leading-relaxed text-frost/80">{project.description}</p>
+        </Section>
+
+        {/* Key features */}
+        <Section title="Key features" subtitle="What it does">
           <ul className="grid max-w-3xl gap-3">
-            {project.goals.map((goal, i) => (
-              <li key={i} className="flex gap-3 text-frost/80">
-                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-accent shadow-[0_0_8px_rgba(57,255,139,0.8)]" />
-                {goal}
+            {project.features.map((feature) => (
+              <li key={feature} className="flex gap-3 text-frost/80">
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent shadow-[0_0_8px_rgba(57,255,139,0.8)]" />
+                {feature}
               </li>
             ))}
           </ul>
         </Section>
 
+        {/* Architecture */}
         <Section title="Architecture" subtitle="How it works">
           <Card className="p-6">
-            <ul className="space-y-3">
+            <ol className="space-y-3">
               {project.architecture.map((item, i) => (
-                <li key={i} className="flex gap-3 font-mono text-sm text-frost/75">
-                  <span className="text-accent/70">{String(i + 1).padStart(2, '0')}</span>
+                <li key={i} className="flex gap-3 text-sm leading-relaxed text-frost/75">
+                  <span className="shrink-0 font-mono text-accent/70">
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
                   {item}
                 </li>
               ))}
-            </ul>
+            </ol>
           </Card>
         </Section>
 
-        <Section title="Development process" subtitle="Decisions">
-          <div className="grid max-w-4xl gap-4 md:grid-cols-2">
-            {project.process.map((entry, i) => (
-              <Card key={i} className="p-5">
-                <p className="font-mono text-[11px] tracking-widest text-danger uppercase">
-                  Challenge
-                </p>
-                <p className="mt-2 text-sm leading-relaxed text-frost/80">{entry.challenge}</p>
-                <p className="mt-4 font-mono text-[11px] tracking-widest text-accent uppercase">
-                  Solution
-                </p>
-                <p className="mt-2 text-sm leading-relaxed text-frost/80">{entry.solution}</p>
+        {/* Tech stack */}
+        <Section title="Technology stack" subtitle="Built with">
+          <div className="grid max-w-4xl gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {project.techGroups.map((group) => (
+              <Card key={group.label} className="p-5">
+                <h3 className="mb-3 font-mono text-xs tracking-[0.2em] text-accent uppercase">
+                  {group.label}
+                </h3>
+                <div className="flex flex-wrap gap-1.5">
+                  {group.items.map((item) => (
+                    <TechTag key={item}>{item}</TechTag>
+                  ))}
+                </div>
               </Card>
             ))}
           </div>
         </Section>
 
-        <Section title="Challenges & results" subtitle="Outcome">
-          <div className="grid max-w-4xl gap-6 md:grid-cols-2">
-            <div>
-              <h3 className="mb-3 font-mono text-xs tracking-[0.2em] text-amber uppercase">
-                Challenges
-              </h3>
-              <ul className="space-y-2.5">
-                {project.challenges.map((c, i) => (
-                  <li key={i} className="text-sm leading-relaxed text-frost/75">
-                    — {c}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <h3 className="mb-3 font-mono text-xs tracking-[0.2em] text-accent uppercase">
-                Results
-              </h3>
-              <ul className="space-y-2.5">
-                {project.results.map((r, i) => (
-                  <li key={i} className="text-sm leading-relaxed text-frost/75">
-                    — {r}
-                  </li>
-                ))}
-              </ul>
-            </div>
+        {/* Links */}
+        <Section title="Links" subtitle="Explore">
+          <div className="flex flex-wrap gap-3">
+            <a href={project.repository} target="_blank" rel="noreferrer">
+              <Button variant="outline">
+                <GitHubIcon className="h-4 w-4" /> Repository
+              </Button>
+            </a>
+            {project.demo && (
+              <a href={project.demo} target="_blank" rel="noreferrer">
+                <Button variant="outline">
+                  <ExternalLinkIcon className="h-4 w-4" /> Live demo
+                </Button>
+              </a>
+            )}
+            {project.documentation && (
+              <a href={project.documentation} target="_blank" rel="noreferrer">
+                <Button variant="outline">
+                  <ExternalLinkIcon className="h-4 w-4" /> Documentation
+                </Button>
+              </a>
+            )}
           </div>
         </Section>
 
-        <nav className="mt-8 grid gap-4 border-t border-edge pt-8 sm:grid-cols-2" aria-label="Project navigation">
+        <nav
+          className="mt-8 grid gap-4 border-t border-edge pt-8 sm:grid-cols-2"
+          aria-label="Project navigation"
+        >
           {prev && (
             <Link
               to={`/projects/${prev.slug}`}

@@ -3,9 +3,9 @@ import { useDocumentMeta } from '@/hooks/useDocumentMeta'
 import { PageTransition } from '@/components/ui/PageTransition'
 import { PageContainer } from '@/components/ui/Section'
 import { Card } from '@/components/ui/Card'
-import { TechTag } from '@/components/ui/Badge'
-import { ProjectArt } from '@/components/ui/ProjectArt'
-import { ArrowRightIcon } from '@/components/ui/icons'
+import { Badge, TechTag } from '@/components/ui/Badge'
+import { Button } from '@/components/ui/Button'
+import { ArrowRightIcon, ExternalLinkIcon } from '@/components/ui/icons'
 import { projects } from '@/data/projects'
 
 export default function Projects() {
@@ -29,41 +29,66 @@ export default function Projects() {
           </p>
         </header>
 
-        <div className="grid gap-6 sm:grid-cols-2">
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
           {projects.map((project) => (
-            <Card key={project.slug} hover className="group flex flex-col overflow-hidden">
-              <Link to={`/projects/${project.slug}`} className="flex h-full flex-col">
-                <ProjectArt
-                  initial={project.initial}
-                  accent={project.accent}
-                  accent2={project.accent2}
-                  className="h-44 w-full transition-transform duration-500 group-hover:scale-[1.03]"
+            <Card
+              key={project.slug}
+              hover
+              className="group flex flex-col overflow-hidden transition-all duration-300 hover:shadow-[0_0_40px_-12px_rgba(57,255,139,0.35)]"
+            >
+              {/* Banner */}
+              <Link
+                to={`/projects/${project.slug}`}
+                className="relative block aspect-[16/9] overflow-hidden border-b border-edge"
+              >
+                <img
+                  src={project.banner}
+                  alt={`${project.title} banner`}
+                  loading="lazy"
+                  className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
-                <div className="flex flex-1 flex-col p-5">
-                  <div className="flex items-center justify-between gap-2">
-                    <h2 className="text-lg font-semibold text-frost transition-colors group-hover:text-accent">
-                      {project.title}
-                    </h2>
-                    <span className="font-mono text-[11px] text-mist">{project.year}</span>
-                  </div>
-                  <p className="mt-1 text-sm text-mist">{project.tagline}</p>
-                  <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-frost/70">
-                    {project.description}
-                  </p>
-                  <div className="mt-4 flex flex-wrap gap-1.5">
-                    {project.technologies.slice(0, 4).map((t) => (
-                      <TechTag key={t}>{t}</TechTag>
-                    ))}
-                    {project.technologies.length > 4 && (
-                      <TechTag>+{project.technologies.length - 4}</TechTag>
-                    )}
-                  </div>
-                  <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-accent">
-                    View project
-                    <ArrowRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                  </span>
-                </div>
+                <span className="absolute inset-0 bg-gradient-to-t from-void/80 via-transparent to-transparent" />
+                <span className="absolute top-3 left-3">
+                  <Badge tone="accent">{project.category}</Badge>
+                </span>
               </Link>
+
+              {/* Content */}
+              <div className="flex flex-1 flex-col p-5">
+                <div className="flex items-center justify-between gap-2">
+                  <h2 className="text-lg font-semibold text-frost transition-colors group-hover:text-accent">
+                    {project.title}
+                  </h2>
+                  <span className="font-mono text-[11px] text-mist">{project.year}</span>
+                </div>
+                <p className="mt-1 text-sm text-mist">{project.subtitle}</p>
+                <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-frost/70">
+                  {project.description}
+                </p>
+                <div className="mt-4 flex flex-wrap gap-1.5">
+                  {project.technologies.slice(0, 4).map((t) => (
+                    <TechTag key={t}>{t}</TechTag>
+                  ))}
+                  {project.technologies.length > 4 && (
+                    <TechTag>+{project.technologies.length - 4}</TechTag>
+                  )}
+                </div>
+
+                {/* Actions */}
+                <div className="mt-auto flex items-center gap-2 pt-5">
+                  <Link to={`/projects/${project.slug}`} className="flex-1">
+                    <Button size="sm" className="w-full">
+                      View details <ArrowRightIcon className="h-4 w-4" />
+                    </Button>
+                  </Link>
+                  <a href={project.repository} target="_blank" rel="noreferrer">
+                    <Button variant="outline" size="sm" aria-label={`${project.title} repository`}>
+                      <ExternalLinkIcon className="h-4 w-4" />
+                      Repository
+                    </Button>
+                  </a>
+                </div>
+              </div>
             </Card>
           ))}
         </div>
