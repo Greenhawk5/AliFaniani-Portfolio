@@ -84,6 +84,31 @@ async function sendEmail(env: Env, body: ContactBody, ip: string): Promise<void>
         .join('\n'),
     }),
   })
+
+  try {
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${env.RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: env.EMAIL_FROM ?? 'Portfolio <onboarding@resend.dev>',
+        to: body.email,
+        reply_to: env.EMAIL_TO,
+        subject: 'Thanks for contacting Ali Faniani',
+        html: `
+          <p>Hi ${body.firstName},</p>
+          <p>Thanks for reaching out. I received your message and will review it shortly.</p>
+          <p>I usually reply within a day.</p>
+          <p>You can also visit <a href="https://alifaniani.ir">alifaniani.ir</a>.</p>
+          <p>Best regards,<br />Ali Faniani</p>
+        `,
+      }),
+    })
+  } catch (error) {
+    console.error('Visitor confirmation email failed:', error)
+  }
 }
 
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
