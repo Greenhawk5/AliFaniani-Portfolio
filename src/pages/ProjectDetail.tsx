@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useDocumentMeta } from '@/hooks/useDocumentMeta'
 import { PageTransition } from '@/components/ui/PageTransition'
@@ -13,24 +14,37 @@ import {
   ExternalLinkIcon,
   GitHubIcon,
 } from '@/components/ui/icons'
-import { getAdjacentProjects, getProjectBySlug } from '@/data/projects'
+import { getAdjacentProjects, getProjectBySlug, type BannerConfig } from '@/data/projects'
 
 /**
- * Reusable banner presentation for designed artwork.
- * Uses object-contain inside a fixed responsive aspect ratio so the full
- * banner (logos, text, key visuals) is always visible without cropping.
- * A subtle gradient backdrop fills any letterbox space so it feels intentional.
+ * Full-bleed banner presentation using controlled cropping (object-cover).
+ * Per-project bannerConfig supports desktop/mobile overrides for
+ * object-position and scale so key artwork never gets cropped away.
  */
-function ProjectBanner({ banner, bannerConfig }: { banner: string; bannerConfig?: { objectPosition?: string; scale?: number } }) {
+function ProjectBanner({ banner, bannerConfig }: { banner: string; bannerConfig?: BannerConfig }) {
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)')
+    const update = () => setIsMobile(mq.matches)
+    update()
+    mq.addEventListener('change', update)
+    return () => mq.removeEventListener('change', update)
+  }, [])
+
+  const crop = isMobile
+    ? { objectPosition: 'center', scale: 1, ...bannerConfig, ...bannerConfig?.mobile }
+    : { objectPosition: 'center', scale: 1, ...bannerConfig, ...bannerConfig?.desktop }
+
   return (
-    <div className="mt-10 aspect-[21/9] overflow-hidden rounded-2xl border border-edge bg-gradient-to-br from-accent/10 via-panel to-violet/10 max-md:aspect-[16/10]">
+    <div className="mt-10 aspect-[21/9] overflow-hidden rounded-2xl border border-edge max-md:aspect-[16/10]">
       <img
         src={banner}
         alt="Project banner"
-        className="h-full w-full object-contain"
+        className="h-full w-full object-cover"
         style={{
-          objectPosition: bannerConfig?.objectPosition ?? 'center',
-          transform: `scale(${bannerConfig?.scale ?? 1})`,
+          objectPosition: crop.objectPosition,
+          transform: `scale(${crop.scale})`,
         }}
       />
     </div>

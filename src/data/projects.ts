@@ -24,12 +24,22 @@ export interface TechGroup {
   items: string[]
 }
 
-/** Optional per-project banner crop configuration. */
-export interface BannerConfig {
+/** Crop settings for a single breakpoint. */
+export interface BannerCrop {
   /** CSS object-position, e.g. '50% 30%'. Defaults to center. */
   objectPosition?: string
   /** Zoom level, 1 = no zoom. Defaults to 1. */
   scale?: number
+}
+
+/**
+ * Optional per-project banner crop configuration.
+ * Supports desktop/mobile overrides; a top-level value acts as the default
+ * for both breakpoints when no override is given.
+ */
+export interface BannerConfig extends BannerCrop {
+  desktop?: BannerCrop
+  mobile?: BannerCrop
 }
 
 export interface Project {
@@ -61,7 +71,10 @@ export const projects: Project[] = [
     category: 'AI · Computer Vision',
     year: 2026,
     banner: bannerGreenhawk,
-    bannerConfig: { objectPosition: '50% 35%', scale: 1.05 },
+    bannerConfig: {
+      desktop: { objectPosition: '50% 40%', scale: 1.02 },
+      mobile: { objectPosition: '50% 30%', scale: 1.15 },
+    },
     screenshots: [
       { src: shotGreenhawkHome, caption: 'Home interface' },
       { src: shotGreenhawkModels, caption: 'AI models overview' },
@@ -99,6 +112,10 @@ export const projects: Project[] = [
     category: 'Web · Cloud',
     year: 2026,
     banner: bannerHawkbucksWeb,
+    bannerConfig: {
+      desktop: { objectPosition: '50% 45%', scale: 1.02 },
+      mobile: { objectPosition: '50% 40%', scale: 1.1 },
+    },
     screenshots: [
       { src: shotWebHome, caption: 'Mission dashboard' },
       { src: shotWebMissions, caption: 'V-Bucks missions history' },
@@ -137,6 +154,10 @@ export const projects: Project[] = [
     category: 'Automation · Telegram',
     year: 2026,
     banner: bannerHawkbucksBot,
+    bannerConfig: {
+      desktop: { objectPosition: '50% 40%', scale: 1.02 },
+      mobile: { objectPosition: '42% 40%', scale: 1.15 },
+    },
     screenshots: [
       { src: shotBotInChat, caption: 'Daily mission message in chat' },
       { src: shotBotMultiple, caption: 'Multiple missions available' },
