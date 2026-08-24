@@ -53,25 +53,25 @@ export function Footer() {
         </nav>
 
         {/* Social */}
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2.5">
           <p className="font-mono text-[10px] tracking-[0.25em] text-mist/60 uppercase">
             Connect
           </p>
-          <div className="flex flex-wrap gap-2">
-            {socialLinks.map((s) => (
-              <a
-                key={s.label}
-                href={s.href}
-                target="_blank"
-                rel="noreferrer"
-                aria-label={s.label}
-                title={s.label}
-                className="rounded-lg border border-edge bg-panel p-2 text-mist transition-all duration-200 hover:-translate-y-0.5 hover:border-accent/40 hover:text-accent hover:shadow-[0_0_18px_-6px_rgba(57,255,139,0.5)]"
-              >
+          {socialLinks.map((s) => (
+            <a
+              key={s.label}
+              href={s.href}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={s.label}
+              className="group flex w-fit items-center gap-2.5 text-sm text-mist transition-colors hover:text-accent"
+            >
+              <span className="text-mist/70 transition-colors group-hover:text-accent">
                 <SocialIcon label={s.label} />
-              </a>
-            ))}
-          </div>
+              </span>
+              {s.label}
+            </a>
+          ))}
         </div>
       </div>
 
@@ -88,7 +88,7 @@ export function Footer() {
               {SITE_VERSION}
             </span>
           </div>
-          <p className="font-mono">Designed & built with React Three Fiber</p>
+          <p className="font-mono">Crafted with code, creativity & curiosity</p>
         </div>
       </div>
     </footer>

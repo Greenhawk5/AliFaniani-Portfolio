@@ -52,8 +52,16 @@ export function TelegramIcon({ className }: IconProps) {
 
 export function HuggingFaceIcon({ className }: IconProps) {
   return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
-      <path d="M12.02 1.5c-5.8 0-10.5 4.7-10.5 10.5s4.7 10.5 10.5 10.5 10.5-4.7 10.5-10.5S17.82 1.5 12.02 1.5ZM8.6 8.4c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1Zm6.8 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1Zm-3.38 4.2c2.36 0 4.36.9 5.06 2.14.28.5-.06 1.06-.6 1.06-.24 0-.5-.12-.66-.38-.5-.82-2.02-1.42-3.8-1.42s-3.3.6-3.8 1.42c-.16.26-.42.38-.66.38-.54 0-.88-.56-.6-1.06.7-1.24 2.7-2.14 5.06-2.14Z" />
+    <svg
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10c2.4 0 4.6-.84 6.32-2.24-.1-.34-.15-.7-.15-1.06 0-1.65 1.35-3 3-3 .35 0 .69.06 1 .17C22.7 14.7 22 13.38 22 12c0-5.52-4.48-10-10-10Z" />
+      <circle cx="8.5" cy="10" r="1.5" />
+      <circle cx="15.5" cy="10" r="1.5" />
+      <path d="M8 14c1.1 1.2 2.4 1.8 4 1.8s2.9-.6 4-1.8" />
     </svg>
   )
 }
