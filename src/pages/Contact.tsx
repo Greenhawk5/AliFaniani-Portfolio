@@ -62,7 +62,7 @@ export default function Contact() {
   const turnstileWidgetIdRef = useRef<string | null>(null)
 
   useEffect(() => {
-    if (!TURNSTILE_SITE_KEY) return
+    if (!TURNSTILE_SITE_KEY || status === 'success') return
     let cancelled = false
     const renderTurnstile = () => {
       if (
@@ -83,28 +83,28 @@ export default function Contact() {
       })
     }
 
-    const existingScript = document.querySelector<HTMLScriptElement>('script[data-turnstile="true"]')
-    if (existingScript) {
-      existingScript.addEventListener('load', renderTurnstile)
+    const script = document.querySelector<HTMLScriptElement>('script[data-turnstile="true"]') ?? (() => {
+      const newScript = document.createElement('script')
+      newScript.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'
+      newScript.async = true
+      newScript.defer = true
+      newScript.dataset.turnstile = 'true'
+      document.head.appendChild(newScript)
+      return newScript
+    })()
+    script.addEventListener('load', renderTurnstile)
+    if (window.turnstile) {
       renderTurnstile()
-    } else {
-      const script = document.createElement('script')
-      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'
-      script.async = true
-      script.defer = true
-      script.dataset.turnstile = 'true'
-      script.addEventListener('load', renderTurnstile)
-      document.head.appendChild(script)
     }
     return () => {
       cancelled = true
-      existingScript?.removeEventListener('load', renderTurnstile)
+      script.removeEventListener('load', renderTurnstile)
       if (turnstileWidgetIdRef.current && window.turnstile) {
         window.turnstile.reset(turnstileWidgetIdRef.current)
       }
       turnstileWidgetIdRef.current = null
     }
-  }, [status])
+  }, [status === 'success'])
 
   const resetTurnstile = () => {
     if (turnstileWidgetIdRef.current && window.turnstile) {
@@ -138,7 +138,7 @@ export default function Contact() {
     setServerError('')
     try {
       await sendContactMessage(form, turnstileToken || undefined)
-      resetTurnstile()
+      setTurnstileToken('')
       setStatus('success')
     } catch (err) {
       setStatus('error')

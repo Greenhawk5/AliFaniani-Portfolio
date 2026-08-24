@@ -108,6 +108,12 @@ body {
   max-width: 100%;
 }
 
+@media (min-width: 768px) {
+  .turnstile-container {
+    justify-content: flex-start;
+  }
+}
+
 .card-hover {
   transition:
     transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
