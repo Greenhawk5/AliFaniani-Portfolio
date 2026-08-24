@@ -204,19 +204,19 @@ export default function About() {
               </Link>
             </div>
           </div>
-          <div className="justify-self-center md:justify-self-end">
-            <div className="relative flex h-44 w-44 items-center justify-center rounded-3xl border border-accent/30 bg-gradient-to-br from-accent/15 via-panel to-violet/15 shadow-[0_0_60px_-18px_rgba(57,255,139,0.5)] md:h-56 md:w-56">
+          <div className="justify-self-center p-3 md:justify-self-end md:p-0">
+            <div className="relative flex h-48 w-48 items-center justify-center rounded-3xl border border-accent/30 bg-gradient-to-br from-accent/15 via-panel to-violet/15 shadow-[0_0_60px_-18px_rgba(57,255,139,0.5)] md:h-56 md:w-56">
               <img
                 src={profile.hero.avatarSrc}
                 alt={`${profile.hero.name} profile`}
-                className="h-full w-full rounded-3xl object-cover"
+                className="h-full w-full rounded-3xl object-cover max-md:scale-[0.92]"
                 style={{
                   transform: `scale(${profileImageConfig.scale})`,
                   objectPosition: `${profileImageConfig.positionX} ${profileImageConfig.positionY}`,
                 }}
                 loading="eager"
               />
-              <span className="absolute -top-2 -right-2 h-3 w-3 animate-pulse-soft rounded-full bg-accent shadow-[0_0_12px_rgba(57,255,139,0.9)]" />
+              <span className="absolute -top-2.5 -right-2.5 h-3 w-3 animate-pulse-soft rounded-full bg-accent shadow-[0_0_12px_rgba(57,255,139,0.9)] max-md:-top-1.5 max-md:-right-1.5" />
             </div>
           </div>
         </section>
@@ -273,7 +273,7 @@ export default function About() {
               >
                 <span
                   aria-hidden
-                  className="pointer-events-none absolute right-3 -bottom-4 select-none font-mono text-[5.5rem] leading-none font-bold tracking-tighter text-accent/[0.06] transition-colors duration-300 group-hover:text-accent/[0.12] md:text-[6.5rem]"
+                  className="pointer-events-none absolute right-3 bottom-3.5 select-none font-mono text-[4.5rem] leading-none font-bold tracking-tighter text-accent/[0.06] transition-colors duration-300 group-hover:text-accent/[0.12] md:right-3 md:-bottom-4 md:text-[6.5rem]"
                 >
                   {String(i + 1).padStart(2, '0')}
                 </span>

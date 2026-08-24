@@ -13,9 +13,9 @@ export const assets = {
  *   Lower % moves the visible crop toward the top/left, higher % toward bottom/right.
  */
 export const profileImageConfig = {
-  scale: 1.15,
+  scale: 1,
   positionX: '50%',
-  positionY: '25%',
+  positionY: '70%',
 }
 
 export type SkillLevel = 'Advanced' | 'Strong' | 'Familiar'

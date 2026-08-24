@@ -33,7 +33,7 @@ export function LoadingVeil() {
             </span>
             <div>
               <p className="text-sm font-semibold tracking-wide">{SITE.name}</p>
-              <p className="text-xs text-mist">{SITE.role}</p>
+              <p className="text-xs text-mist">{SITE.shortRole}</p>
             </div>
           </div>
           <div className="mt-8 h-px w-48 overflow-hidden rounded-full bg-edge">

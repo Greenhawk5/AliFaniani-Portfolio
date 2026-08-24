@@ -2,6 +2,7 @@ export const SITE = {
   name: 'Ali Faniani',
   shortName: 'AF',
   role: 'Computer Science Graduate | Software Developer | AI, Backend & Web Development',
+  shortRole: 'Software Developer',
   tagline: 'Building practical software systems with AI and modern web technologies.',
   url: 'https://alifaniani.ir',
   email: 'ali.faniani@gmail.com',
