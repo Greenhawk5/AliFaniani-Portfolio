@@ -10,18 +10,36 @@ export function NeonSign() {
   const toggleSign = useUiStore((s) => s.toggleSign)
   const texture = useMemo(() => createNeonTexture('BUILD · SHIP · ITERATE', '#39ff8b'), [])
   const material = useRef<THREE.MeshBasicMaterial>(null)
+  const spillRef = useRef<THREE.PointLight>(null)
   const nextFlicker = useRef(2)
+  const flickerUntil = useRef(0)
+  const intensity = useRef(1)
 
   useFrame((state) => {
     const mat = material.current
     if (!mat) return
     const t = state.clock.elapsedTime
+
+    // Occasional brief flicker bursts, like a real neon tube.
     if (t > nextFlicker.current) {
-      nextFlicker.current = t + 2 + Math.random() * 5
-      mat.opacity = 0.55
+      nextFlicker.current = t + 3 + Math.random() * 6
+      flickerUntil.current = t + 0.12 + Math.random() * 0.25
     }
-    const target = signOn ? 1 : 0.05
-    mat.opacity += (target - mat.opacity) * (1 - Math.exp(-(1 / 60) * 14))
+    let target = signOn ? 1 : 0.05
+    if (signOn && t < flickerUntil.current) {
+      // Rapid dips during a flicker burst.
+      target *= 0.55 + Math.random() * 0.4
+    } else if (signOn) {
+      // Subtle continuous intensity variation (tube hum).
+      target *= 0.96 + Math.sin(t * 8.3) * 0.02 + Math.sin(t * 23.7) * 0.02
+    }
+    intensity.current += (target - intensity.current) * (1 - Math.exp(-(1 / 60) * 14))
+    mat.opacity = intensity.current
+
+    // Soft green light spill onto the nearby wall, following the sign.
+    if (spillRef.current) {
+      spillRef.current.intensity = intensity.current * (signOn ? 1.6 : 0.05)
+    }
   })
 
   return (
@@ -41,6 +59,15 @@ export function NeonSign() {
           />
         </mesh>
       </Interactable>
+      {/* Light bounce: soft green spill on the wall around the tubes */}
+      <pointLight
+        ref={spillRef}
+        position={[0.15, 0, 0.35]}
+        color="#39ff8b"
+        distance={3.6}
+        decay={2}
+        intensity={1.6}
+      />
     </group>
   )
 }

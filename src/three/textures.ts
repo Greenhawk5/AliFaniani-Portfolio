@@ -104,17 +104,31 @@ export function createNeonTexture(text: string, color: string): THREE.CanvasText
   ctx.clearRect(0, 0, 1024, 256)
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
-
-  ctx.shadowColor = color
-  ctx.shadowBlur = 42
-  ctx.fillStyle = color
   ctx.font = 'bold 92px Inter, sans-serif'
-  ctx.fillText(text, 512, 128)
-  ctx.fillText(text, 512, 128)
 
-  ctx.shadowBlur = 16
-  ctx.fillStyle = '#f4fff9'
+  // Layered neon-tube rendering: the glow follows the letterforms via
+  // multiple low-blur passes instead of one huge blur that floods the
+  // canvas and reads as a rectangle after bloom.
+  const passes: Array<[number, number, string]> = [
+    // [shadowBlur, globalAlpha, fillStyle] — wide halo → tight glow → core
+    [26, 0.35, color],
+    [14, 0.55, color],
+    [6, 0.9, color],
+    [0, 1, '#f4fff9'], // white-hot tube core
+  ]
+  for (const [blur, alpha, fill] of passes) {
+    ctx.shadowColor = color
+    ctx.shadowBlur = blur
+    ctx.globalAlpha = alpha
+    ctx.fillStyle = fill
+    ctx.fillText(text, 512, 128)
+  }
+  // Second core pass for a denser tube center.
+  ctx.shadowBlur = 0
+  ctx.globalAlpha = 1
+  ctx.fillStyle = '#ffffff'
   ctx.fillText(text, 512, 128)
+  ctx.globalAlpha = 1
 
   const texture = new THREE.CanvasTexture(canvas)
   texture.colorSpace = THREE.SRGBColorSpace
