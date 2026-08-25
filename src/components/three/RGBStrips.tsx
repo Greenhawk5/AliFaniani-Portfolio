@@ -84,7 +84,6 @@ export function RGBStrips() {
       <GlowLight position={[-3.4, 3.7, -3.4]} offset={0} base={7} distance={9} />
       <GlowLight position={[1.3, 3.4, -3.6]} offset={0.33} base={5} distance={8} />
       <GlowLight position={[3.1, 1.4, -3.2]} offset={0.66} base={4.5} distance={7} />
-      <GlowLight position={[-4.1, 2.4, 1.8]} offset={0.5} base={4} distance={7} />
     </group>
   )
 }
