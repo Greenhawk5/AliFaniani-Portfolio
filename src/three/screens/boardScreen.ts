@@ -133,7 +133,7 @@ export function createBoardRenderer(slides: BoardSlide[]): BoardRenderer {
 
     for (let i = 0; i < slides.length; i++) {
       ctx.beginPath()
-      ctx.arc(W - 48 - (slides.length - 1 - i) * 26, H - 66, 5, 0, Math.PI * 2)
+      ctx.arc(W - 48 - (slides.length - 1 - i) * 26, 48, 5, 0, Math.PI * 2)
       ctx.fillStyle = i === activeIndex ? slide.accent : 'rgba(255,255,255,0.18)'
       ctx.fill()
     }
