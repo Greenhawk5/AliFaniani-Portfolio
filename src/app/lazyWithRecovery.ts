@@ -7,7 +7,7 @@ function isDynamicImportFailure(error: unknown) {
   return /dynamically imported module|importing a module script failed|mime type of ['"]text\/html/i.test(message)
 }
 
-function reloadFreshDocument() {
+export function recoverFromChunkFailure() {
   const url = new URL(window.location.href)
   url.searchParams.set('_deploy_refresh', Date.now().toString())
   window.location.replace(url.href)
@@ -25,7 +25,7 @@ export function lazyWithChunkRecovery(load: () => Promise<PageModule>) {
       const recoveryKey = 'portfolio:chunk-recovery'
       if (!sessionStorage.getItem(recoveryKey)) {
         sessionStorage.setItem(recoveryKey, '1')
-        reloadFreshDocument()
+        recoverFromChunkFailure()
         return new Promise<PageModule>(() => {})
       }
 
