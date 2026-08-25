@@ -17,6 +17,12 @@ export function LightingSystem() {
   const monitorLightRef = useRef<THREE.PointLight>(null)
   const lampLightRef = useRef<THREE.SpotLight>(null)
   const floorLampRef = useRef<THREE.PointLight>(null)
+  const nightFillRef = useRef<THREE.PointLight>(null)
+  const shelfAccentRef = useRef<THREE.PointLight>(null)
+  const boardAccentRef = useRef<THREE.PointLight>(null)
+  const plantAccentRef = useRef<THREE.PointLight>(null)
+  const loungeAccentRef = useRef<THREE.PointLight>(null)
+  const nightFactor = useRef(0)
   const lampTarget = useMemo(() => new THREE.Object3D(), [])
   const lampIntensity = useRef(0)
   const floorLampIntensity = useRef(0)
@@ -59,6 +65,17 @@ export function LightingSystem() {
     const autoWarm = 0.6 + env.rgb * 4.5
     floorLampIntensity.current += (autoWarm - floorLampIntensity.current) * k
     if (floorLampRef.current) floorLampRef.current.intensity = floorLampIntensity.current
+
+    // Night fill + accents: driven by the day/night cycle (sun intensity).
+    // Fades in smoothly as the sun sets, zero influence during daytime.
+    const targetNight = Math.pow(1 - Math.min(1, env.sunIntensity / 0.45), 1.4)
+    nightFactor.current += (targetNight - nightFactor.current) * k
+    const night = nightFactor.current
+    if (nightFillRef.current) nightFillRef.current.intensity = night * 1.7
+    if (shelfAccentRef.current) shelfAccentRef.current.intensity = night * 1.1
+    if (boardAccentRef.current) boardAccentRef.current.intensity = night * 0.85
+    if (plantAccentRef.current) plantAccentRef.current.intensity = night * 0.7
+    if (loungeAccentRef.current) loungeAccentRef.current.intensity = night * 0.9
   })
 
   return (
@@ -104,6 +121,51 @@ export function LightingSystem() {
         distance={6.5}
         decay={2}
         color="#ffc98a"
+      />
+      {/* Soft indirect night fill for the darker left side */}
+      <pointLight
+        ref={nightFillRef}
+        position={[-2.6, 3.4, 1.0]}
+        distance={12}
+        decay={1.6}
+        intensity={0}
+        color="#5f74b8"
+      />
+      {/* Subtle night accent: wall shelf & decorations */}
+      <pointLight
+        ref={shelfAccentRef}
+        position={[-3.5, 2.5, 0.8]}
+        distance={3.2}
+        decay={2}
+        intensity={0}
+        color="#9db4e6"
+      />
+      {/* Subtle night accent: social board area */}
+      <pointLight
+        ref={boardAccentRef}
+        position={[-3.5, 2.75, 2.6]}
+        distance={2.8}
+        decay={2}
+        intensity={0}
+        color="#8fa8e0"
+      />
+      {/* Subtle night accent: plant corner */}
+      <pointLight
+        ref={plantAccentRef}
+        position={[-3.2, 1.1, -3.1]}
+        distance={2.6}
+        decay={2}
+        intensity={0}
+        color="#7e9ad0"
+      />
+      {/* Subtle night accent: lounge / coffee table */}
+      <pointLight
+        ref={loungeAccentRef}
+        position={[1.7, 1.5, 1.7]}
+        distance={4.5}
+        decay={2}
+        intensity={0}
+        color="#a89a80"
       />
     </>
   )
