@@ -22,21 +22,28 @@ function Shelf() {
   const bookHeights = [0.26, 0.3, 0.24, 0.29, 0.26, 0.31, 0.25]
 
   return (
-    <group position={[-4.4, 0, 0.8]}>
-      {[1.62, 2.14].map((y) => (
+    <Interactable id="shelf" label="Display Shelf — click to inspect the collectibles" focusable>
+      <group position={[-4.4, 0, 0.8]}>
+        {/* Invisible click target covering both shelf boards and contents */}
+        <mesh position={[0.05, 1.9, 0]} visible={false}>
+          <boxGeometry args={[0.55, 1.0, 1.8]} />
+        </mesh>
+        {[1.62, 2.14].map((y) => (
         <group key={y} position={[0, y, 0]}>
           <mesh castShadow receiveShadow material={wood}>
             <boxGeometry args={[0.36, 0.04, 1.7]} />
           </mesh>
           {[-0.5, 0.5].map((z) => (
-            <mesh key={z} position={[0.1, -0.06, z]} material={metal}>
+            <mesh key={z} position={[0.1, -0.035, z]} material={metal}>
               <boxGeometry args={[0.16, 0.03, 0.03]} />
             </mesh>
           ))}
         </group>
       ))}
 
-      <group position={[0.02, 1.64 + 0.02, -0.45]}>
+      {/* Lower-shelf books — group shifted to keep all books on the board
+          (board spans z -0.85..0.85; previously overhung the -z end) */}
+      <group position={[0.02, 1.64 + 0.02, -0.28]}>
         {bookColors.map((color, i) => {
           const z = -0.55 + i * 0.075
           return (
@@ -61,20 +68,7 @@ function Shelf() {
         ))}
       </group>
 
-      <group position={[0.02, 2.16, 0.35]}>
-        <mesh position={[0, 0.02, 0]} castShadow>
-          <boxGeometry args={[0.09, 0.04, 0.09]} />
-          <meshStandardMaterial color="#0e1219" roughness={0.4} metalness={0.5} />
-        </mesh>
-        <mesh position={[0, 0.11, 0]} castShadow>
-          <cylinderGeometry args={[0.03, 0.045, 0.14, 14]} />
-          <meshStandardMaterial color="#b8a44a" roughness={0.3} metalness={0.8} />
-        </mesh>
-        <mesh position={[0, 0.21, 0]} castShadow>
-          <sphereGeometry args={[0.045, 12, 10]} />
-          <meshStandardMaterial color="#d4c46a" roughness={0.25} metalness={0.9} emissive="#b8a44a" emissiveIntensity={0.15} />
-        </mesh>
-      </group>
+      {/* Gold trophy removed by design decision — intentionally empty space */}
 
       <group position={[0.02, 2.16, 0.68]}>
         {['#2d4a5a', '#5a3a2d'].map((color, i) => (
@@ -84,7 +78,8 @@ function Shelf() {
           </mesh>
         ))}
       </group>
-    </group>
+      </group>
+    </Interactable>
   )
 }
 

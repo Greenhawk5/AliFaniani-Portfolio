@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import type { ThreeEvent } from '@react-three/fiber'
 import { useUiStore, type FocusTarget } from '@/stores/uiStore'
 
-const FOCUSABLE: ReadonlySet<string> = new Set(['board', 'monitor', 'clock'])
+const FOCUSABLE: ReadonlySet<string> = new Set(['board', 'monitor', 'clock', 'shelf'])
 
 interface InteractableProps {
   id: string

@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-export type FocusTarget = 'board' | 'monitor' | 'clock'
+export type FocusTarget = 'board' | 'monitor' | 'clock' | 'shelf'
 
 interface UiState {
   settingsOpen: boolean

@@ -23,6 +23,11 @@ export const FOCUS_PRESETS: Record<FocusTarget, { pos: THREE.Vector3; target: TH
     pos: new THREE.Vector3(3.6, 3.05, 0.7),
     target: new THREE.Vector3(3.6, 3.0, -4.5),
   },
+  shelf: {
+    // pos: new THREE.Vector3(-3.11, 2.16, 1.17),
+    pos: new THREE.Vector3(-2.95, 2.19, 1.22),
+    target: new THREE.Vector3(-4.4, 1.95, 0.8),
+  },
 }
 
 export function CameraRig() {
@@ -87,8 +92,12 @@ export function CameraRig() {
 
   useFrame((_, dt) => {
     const parallax = motionMode === 'full' && !isTouch
-    const targetX = parallax ? pointer.x * 0.42 : 0
-    const targetY = parallax ? -pointer.y * 0.2 : 0
+    // Side-on focus views (like the shelf) are dolly-sensitive: world-space
+    // parallax reads as zooming into the subject. Dampen it per-focus while
+    // keeping a subtle cinematic drift.
+    const parallaxScale = focus === 'shelf' ? 0.25 : 1
+    const targetX = parallax ? pointer.x * 0.42 * parallaxScale : 0
+    const targetY = parallax ? -pointer.y * 0.2 * parallaxScale : 0
     const k = 1 - Math.exp(-dt * 3.2)
     offset.current.x += (targetX - offset.current.x) * k
     offset.current.y += (targetY - offset.current.y) * k

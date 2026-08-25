@@ -70,7 +70,7 @@ function TFigurine() {
     seatOffset: 0.25,
   })
   return (
-    <group position={[0.1, 2.16, -0.08]}>
+    <group position={[0.15, 2.16, -0.08]}>
       <primitive object={model} />
     </group>
   )
@@ -95,7 +95,9 @@ export function ShelfCharacters() {
   return (
     <group position={[-4.4, 0, 0.8]}>
       <TFigurine />
-      <JetFigurine />
+      {/* Jet temporarily disabled — restore by rendering <JetFigurine /> again.
+          The optimized asset (public/models/jet_the_hawk.glb) is kept. */}
+      {/* <JetFigurine /> */}
     </group>
   )
 }
