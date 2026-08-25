@@ -6,6 +6,17 @@ import { Spinner } from '@/components/ui/Spinner'
 
 type PageModule = { default: React.ComponentType }
 
+function isDynamicImportFailure(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error)
+  return /dynamically imported module|importing a module script failed|mime type of ['"]text\/html/i.test(message)
+}
+
+function reloadFreshDocument() {
+  const url = new URL(window.location.href)
+  url.searchParams.set('_deploy_refresh', Date.now().toString())
+  window.location.replace(url.href)
+}
+
 // A deployment can leave an already-open tab referring to an old hashed chunk.
 // Reload once so the browser receives the current index.html and chunk names.
 function lazyWithChunkRecovery(load: () => Promise<PageModule>) {
@@ -13,10 +24,11 @@ function lazyWithChunkRecovery(load: () => Promise<PageModule>) {
     try {
       return await load()
     } catch (error) {
+      if (!isDynamicImportFailure(error)) throw error
       const recoveryKey = 'portfolio:chunk-recovery'
       if (!sessionStorage.getItem(recoveryKey)) {
         sessionStorage.setItem(recoveryKey, '1')
-        window.location.reload()
+        reloadFreshDocument()
         return new Promise<PageModule>(() => {})
       }
       sessionStorage.removeItem(recoveryKey)
