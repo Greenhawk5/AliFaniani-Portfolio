@@ -56,10 +56,6 @@ export function Room() {
         <boxGeometry args={[0.25, 4.5, 9.2]} />
       </mesh>
 
-      <mesh position={[4.625, 2.25, 0]} castShadow receiveShadow material={wallMaterial}>
-        <boxGeometry args={[0.25, 4.5, 9.2]} />
-      </mesh>
-
       <mesh position={[-2.15, 0.06, -4.47]} material={trimMaterial}>
         <boxGeometry args={[4.7, 0.12, 0.04]} />
       </mesh>
