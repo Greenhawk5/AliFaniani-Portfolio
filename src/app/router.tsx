@@ -4,12 +4,33 @@ import { Layout } from '@/components/layout/Layout'
 import { ErrorBoundary } from './providers'
 import { Spinner } from '@/components/ui/Spinner'
 
-const HomePage = lazy(() => import('@/pages/Home'))
-const AboutPage = lazy(() => import('@/pages/About'))
-const ProjectsPage = lazy(() => import('@/pages/Projects'))
-const ProjectDetailPage = lazy(() => import('@/pages/ProjectDetail'))
-const ContactPage = lazy(() => import('@/pages/Contact'))
-const NotFoundPage = lazy(() => import('@/pages/NotFound'))
+type PageModule = { default: React.ComponentType }
+
+// A deployment can leave an already-open tab referring to an old hashed chunk.
+// Reload once so the browser receives the current index.html and chunk names.
+function lazyWithChunkRecovery(load: () => Promise<PageModule>) {
+  return lazy(async () => {
+    try {
+      return await load()
+    } catch (error) {
+      const recoveryKey = 'portfolio:chunk-recovery'
+      if (!sessionStorage.getItem(recoveryKey)) {
+        sessionStorage.setItem(recoveryKey, '1')
+        window.location.reload()
+        return new Promise<PageModule>(() => {})
+      }
+      sessionStorage.removeItem(recoveryKey)
+      throw error
+    }
+  })
+}
+
+const HomePage = lazyWithChunkRecovery(() => import('@/pages/Home'))
+const AboutPage = lazyWithChunkRecovery(() => import('@/pages/About'))
+const ProjectsPage = lazyWithChunkRecovery(() => import('@/pages/Projects'))
+const ProjectDetailPage = lazyWithChunkRecovery(() => import('@/pages/ProjectDetail'))
+const ContactPage = lazyWithChunkRecovery(() => import('@/pages/Contact'))
+const NotFoundPage = lazyWithChunkRecovery(() => import('@/pages/NotFound'))
 
 function LazyPage({ children }: { children: React.ReactNode }) {
   return (
