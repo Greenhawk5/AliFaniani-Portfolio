@@ -49,41 +49,12 @@ function Strip({
   )
 }
 
-function GlowLight({
-  position,
-  offset,
-  base,
-  distance,
-}: {
-  position: [number, number, number]
-  offset: number
-  base: number
-  distance: number
-}) {
-  const ref = useRef<THREE.PointLight>(null)
-
-  useFrame(() => {
-    const rgbOn = useUiStore.getState().rgbEnabled
-    const light = ref.current
-    if (!light) return
-    const hue = (env.time * 0.035 + offset) % 1
-    light.color.setHSL(hue, 0.8, 0.55)
-    light.intensity = rgbOn ? base * env.rgb : 0
-  })
-
-  return <pointLight ref={ref} position={position} distance={distance} decay={2} />
-}
-
 export function RGBStrips() {
   return (
     <group>
       <Strip position={[0, 4.36, -4.42]} scale={[8.8, 0.045, 0.045]} offset={0} />
       <Strip position={[-4.42, 4.36, 0]} scale={[0.045, 0.045, 8.8]} offset={0.15} />
       <Strip position={[1.2, 0.9, -3.04]} scale={[3.2, 0.04, 0.04]} offset={0.3} />
-
-      <GlowLight position={[-3.4, 3.7, -3.4]} offset={0} base={7} distance={9} />
-      <GlowLight position={[1.3, 3.4, -3.6]} offset={0.33} base={5} distance={8} />
-      <GlowLight position={[3.1, 1.4, -3.2]} offset={0.66} base={4.5} distance={7} />
     </group>
   )
 }
