@@ -6,6 +6,7 @@ import { env } from '@/three/env'
 import { Interactable } from './Interactable'
 import { useUiStore } from '@/stores/uiStore'
 import { SocialBoard } from './SocialBoard'
+import { ShelfCharacters } from './ShelfCharacters'
 
 function Shelf() {
   const wood = useMemo(
@@ -166,6 +167,7 @@ export function ShelfDecor() {
       <SocialBoard />
       <Plant />
       <MugInteraction />
+      <ShelfCharacters />
     </group>
   )
 }
