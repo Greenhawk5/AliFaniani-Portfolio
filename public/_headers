@@ -9,3 +9,18 @@
 
 /index.html
   Cache-Control: no-cache, no-store, must-revalidate
+
+/
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/about
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/projects
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/projects/*
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/contact
+  Cache-Control: no-cache, no-store, must-revalidate
