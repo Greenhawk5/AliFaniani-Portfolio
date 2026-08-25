@@ -20,14 +20,12 @@ export function Chair() {
     <group position={[1.2, 0, -2.42]} rotation={[0, Math.PI, 0]}>
       {[0, 1, 2, 3, 4].map((i) => {
         const angle = (i / 5) * Math.PI * 2
-        const x = Math.cos(angle) * 0.22
-        const z = Math.sin(angle) * 0.22
         return (
           <group key={i} rotation={[0, -angle, 0]}>
-            <mesh position={[x * 0.7, 0.06, z * 0.7]} castShadow material={plastic}>
+            <mesh position={[0.154, 0.06, 0]} castShadow material={plastic}>
               <boxGeometry args={[0.3, 0.03, 0.07]} />
             </mesh>
-            <mesh position={[x, 0.035, z]} castShadow material={plastic}>
+            <mesh position={[0.22, 0.035, 0]} castShadow material={plastic}>
               <sphereGeometry args={[0.035, 10, 8]} />
             </mesh>
           </group>
