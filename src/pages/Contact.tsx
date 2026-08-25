@@ -58,6 +58,28 @@ export default function Contact() {
   const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
   const [serverError, setServerError] = useState<string>('')
   const [turnstileToken, setTurnstileToken] = useState('')
+
+  // Live local time (Asia/Tehran), minute precision, refreshed every 10s.
+  const [localTime, setLocalTime] = useState(() =>
+    new Intl.DateTimeFormat('en-GB', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23',
+      timeZone: 'Asia/Tehran',
+    }).format(new Date())
+  )
+  useEffect(() => {
+    const fmt = new Intl.DateTimeFormat('en-GB', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23',
+      timeZone: 'Asia/Tehran',
+    })
+    const update = () => setLocalTime(fmt.format(new Date()))
+    update()
+    const id = window.setInterval(update, 10_000)
+    return () => window.clearInterval(id)
+  }, [])
   const turnstileContainerRef = useRef<HTMLDivElement>(null)
   const turnstileWidgetIdRef = useRef<string | null>(null)
 
@@ -180,9 +202,10 @@ export default function Contact() {
                 Availability
               </p>
               <p className="mt-2 flex items-center gap-2 text-sm text-frost/85">
-                <span className="h-2 w-2 animate-pulse-soft rounded-full bg-accent shadow-[0_0_10px_rgba(57,255,139,0.9)]" />
+                <span className="h-2 w-2 shrink-0 aspect-square animate-pulse-soft rounded-full bg-accent shadow-[0_0_10px_rgba(57,255,139,0.9)]" />
                 {SITE.availability}
               </p>
+              <p className="mt-1 text-sm text-mist">Local time · {localTime}</p>
               <p className="mt-1 text-sm text-mist">{SITE.location}</p>
             </Card>
 
