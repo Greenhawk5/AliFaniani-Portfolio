@@ -111,8 +111,8 @@ export function createNeonTexture(text: string, color: string): THREE.CanvasText
   // canvas and reads as a rectangle after bloom.
   const passes: Array<[number, number, string]> = [
     // [shadowBlur, globalAlpha, fillStyle] — wide halo → tight glow → core
-    [26, 0.35, color],
-    [14, 0.55, color],
+    [20, 0.26, color],
+    [12, 0.45, color],
     [6, 0.9, color],
     [0, 1, '#f4fff9'], // white-hot tube core
   ]

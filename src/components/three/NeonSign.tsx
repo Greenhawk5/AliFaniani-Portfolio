@@ -38,7 +38,7 @@ export function NeonSign() {
 
     // Soft green light spill onto the nearby wall, following the sign.
     if (spillRef.current) {
-      spillRef.current.intensity = intensity.current * (signOn ? 1.6 : 0.05)
+      spillRef.current.intensity = intensity.current * (signOn ? 0.35 : 0.02)
     }
   })
 
@@ -62,11 +62,11 @@ export function NeonSign() {
       {/* Light bounce: soft green spill on the wall around the tubes */}
       <pointLight
         ref={spillRef}
-        position={[0.15, 0, 0.35]}
+        position={[0.15, 0, 0.25]}
         color="#39ff8b"
-        distance={3.6}
+        distance={2.2}
         decay={2}
-        intensity={1.6}
+        intensity={0.35}
       />
     </group>
   )
