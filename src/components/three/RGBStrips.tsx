@@ -80,7 +80,6 @@ export function RGBStrips() {
       <Strip position={[0, 4.36, -4.42]} scale={[8.8, 0.045, 0.045]} offset={0} />
       <Strip position={[-4.42, 4.36, 0]} scale={[0.045, 0.045, 8.8]} offset={0.15} />
       <Strip position={[1.2, 0.9, -3.04]} scale={[3.2, 0.04, 0.04]} offset={0.3} />
-      <Strip position={[-4.4, 2.62, 2.55]} scale={[0.04, 0.9, 0.04]} offset={0.45} />
 
       <GlowLight position={[-3.4, 3.7, -3.4]} offset={0} base={7} distance={9} />
       <GlowLight position={[1.3, 3.4, -3.6]} offset={0.33} base={5} distance={8} />

@@ -58,7 +58,7 @@ export default function ProjectDetail() {
 
   useDocumentMeta({
     title: project ? project.title : 'Project not found',
-    description: project?.description ?? 'Project details',
+    description: project?.shortDescription ?? 'Project details',
   })
 
   if (!project) {
@@ -99,7 +99,7 @@ export default function ProjectDetail() {
             <Badge>{project.year}</Badge>
           </div>
           <p className="mt-3 text-lg text-mist">{project.subtitle}</p>
-          <p className="mt-4 max-w-2xl leading-relaxed text-frost/80">{project.description}</p>
+          <p className="mt-4 max-w-2xl leading-relaxed text-frost/80">{project.shortDescription}</p>
           <div className="mt-5 flex flex-wrap gap-1.5">
             {project.technologies.map((t) => (
               <TechTag key={t}>{t}</TechTag>
@@ -112,11 +112,14 @@ export default function ProjectDetail() {
               </Button>
             </a>
             {project.demo && (
-              <a href={project.demo} target="_blank" rel="noreferrer">
-                <Button variant="outline">
-                  <ExternalLinkIcon className="h-4 w-4" /> Live demo
-                </Button>
-              </a>
+              <>
+                <a href={project.demo} target="_blank" rel="noreferrer">
+                  <Button variant="outline">
+                    <ExternalLinkIcon className="h-4 w-4" /> Live demo
+                  </Button>
+                </a>
+                {project.demoStatus && <span className="inline-flex items-center gap-1.5 text-xs text-danger"><span className="h-2 w-2 rounded-full bg-danger" />{project.demoStatus}</span>}
+              </>
             )}
             {project.documentation && (
               <a href={project.documentation} target="_blank" rel="noreferrer">
@@ -133,7 +136,7 @@ export default function ProjectDetail() {
 
         {/* Overview */}
         <Section title="Overview" subtitle="What & why">
-          <p className="max-w-3xl leading-relaxed text-frost/80">{project.description}</p>
+          <p className="max-w-3xl leading-relaxed text-frost/80">{project.overview}</p>
         </Section>
 
         {/* Key features */}
@@ -191,11 +194,14 @@ export default function ProjectDetail() {
               </Button>
             </a>
             {project.demo && (
-              <a href={project.demo} target="_blank" rel="noreferrer">
-                <Button variant="outline">
-                  <ExternalLinkIcon className="h-4 w-4" /> Live demo
-                </Button>
-              </a>
+              <>
+                <a href={project.demo} target="_blank" rel="noreferrer">
+                  <Button variant="outline">
+                    <ExternalLinkIcon className="h-4 w-4" /> Live demo
+                  </Button>
+                </a>
+                {project.demoStatus && <span className="inline-flex items-center gap-1.5 text-xs text-danger"><span className="h-2 w-2 rounded-full bg-danger" />{project.demoStatus}</span>}
+              </>
             )}
             {project.documentation && (
               <a href={project.documentation} target="_blank" rel="noreferrer">
@@ -247,4 +253,3 @@ export default function ProjectDetail() {
     </PageTransition>
   )
 }
-

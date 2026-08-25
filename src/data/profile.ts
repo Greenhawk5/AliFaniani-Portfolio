@@ -1,5 +1,5 @@
-import avatarImg from '../../docs/profile/pic2.jpg'
-import telegramCertImg from '../../docs/certificates/Project-Oriented Course In Creating Telegram Bot Using Python - Certificate.jpg'
+import avatarImg from '../../docs/profile/pic2.webp'
+import telegramCertImg from '../../docs/certificates/Project-Oriented Course In Creating Telegram Bot Using Python - Certificate.webp'
 
 export const assets = {
   avatar: avatarImg,
@@ -85,9 +85,9 @@ export const profile = {
     },
   ],
   projects: [
-    { title: 'GreenHawk AI', description: 'An AI-powered web application for black-and-white image colorization using CNN, GAN, and diffusion-based deep learning approaches through a FastAPI backend and web interface.', href: 'https://github.com/Greenhawk5/GreenHawk-AI' },
-    { title: 'HawkBucks', description: 'A Fortnite Save The World mission platform with a React and TypeScript web application, Cloudflare serverless backend, data processing, API integration, persistent storage, and automated workflows.', href: 'https://github.com/Greenhawk5/HawkBucks-Web' },
-    { title: 'HawkBucks Bot', description: 'A Telegram automation system featuring scheduled jobs, mission data processing, image generation, reminders, webhooks, and persistent user and group management.', href: 'https://github.com/Greenhawk5/HawkBucks-Bot' },
+    { slug: 'greenhawk-ai', title: 'GreenHawk AI', description: 'An AI-powered web application for black-and-white image colorization using CNN, GAN, and diffusion-based deep learning approaches through a FastAPI backend and web interface.', href: 'https://github.com/Greenhawk5/GreenHawk-AI' },
+    { slug: 'hawkbucks', title: 'HawkBucks', description: 'A Fortnite Save The World mission platform with a React and TypeScript web application, Cloudflare serverless backend, data processing, API integration, persistent storage, and automated workflows.', href: 'https://github.com/Greenhawk5/HawkBucks-Web' },
+    { slug: 'hawkbucks-bot', title: 'HawkBucks Bot', description: 'A Telegram automation system featuring scheduled jobs, mission data processing, image generation, reminders, webhooks, and persistent user and group management.', href: 'https://github.com/Greenhawk5/HawkBucks-Bot' },
   ],
   technologies: ['Python', 'FastAPI', 'PyTorch', 'OpenCV', 'Computer Vision', 'Deep Learning', 'React', 'TypeScript', 'JavaScript', 'Tailwind CSS', 'Cloudflare Workers', 'D1', 'KV', 'Git', 'GitHub', 'REST APIs', 'SQL'],
   certificates: [

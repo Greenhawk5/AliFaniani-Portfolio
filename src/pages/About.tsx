@@ -150,14 +150,9 @@ function ProjectCarousel() {
                       {String(i + 1).padStart(2, '0')} /{' '}
                       {String(projects.length).padStart(2, '0')}
                     </span>
-                    <a
-                      href={p.href}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1.5 text-sm text-accent transition-opacity hover:opacity-75"
-                    >
-                      Repository <ExternalLinkIcon className="h-3.5 w-3.5" />
-                    </a>
+                    <Link to={`/projects/${p.slug}`} className="inline-flex items-center gap-1.5 text-sm text-accent transition-opacity hover:opacity-75">
+                      View case study <ArrowRightIcon className="h-3.5 w-3.5" />
+                    </Link>
                   </div>
                   <h3 className="mt-4 text-2xl font-bold tracking-tight md:text-3xl">
                     {p.title}

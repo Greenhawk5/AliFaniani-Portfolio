@@ -67,7 +67,7 @@ export default function Projects() {
                 </div>
                 <p className="mt-1 text-sm text-mist">{project.subtitle}</p>
                 <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-frost/70">
-                  {project.description}
+                  {project.shortDescription}
                 </p>
                 <div className="mt-4 flex flex-wrap gap-1.5">
                   {project.technologies.slice(0, 4).map((t) => (

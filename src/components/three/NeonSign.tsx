@@ -36,6 +36,8 @@ export function NeonSign() {
             opacity={1}
             toneMapped={false}
             depthWrite={false}
+            alphaTest={0.01}
+            blending={THREE.AdditiveBlending}
           />
         </mesh>
       </Interactable>

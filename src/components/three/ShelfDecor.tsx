@@ -5,6 +5,7 @@ import { createPosterTexture } from '@/three/textures'
 import { env } from '@/three/env'
 import { Interactable } from './Interactable'
 import { useUiStore } from '@/stores/uiStore'
+import { SocialBoard } from './SocialBoard'
 
 function Shelf() {
   const wood = useMemo(
@@ -87,7 +88,6 @@ function Shelf() {
 }
 
 function Posters() {
-  const posterA = useMemo(() => createPosterTexture(7, '#39ff8b', '#37d5ff'), [])
   const posterB = useMemo(() => createPosterTexture(21, '#a06bff', '#ff5470'), [])
 
   const frame = useMemo(
@@ -97,16 +97,6 @@ function Posters() {
 
   return (
     <group>
-      <group position={[-4.44, 2.75, 2.6]} rotation={[0, Math.PI / 2, 0]}>
-        <mesh castShadow material={frame}>
-          <boxGeometry args={[0.72, 0.94, 0.04]} />
-        </mesh>
-        <mesh position={[0, 0, 0.025]}>
-          <planeGeometry args={[0.64, 0.86]} />
-          <meshStandardMaterial map={posterA} roughness={0.9} />
-        </mesh>
-      </group>
-
       <group position={[3.9, 1.72, -4.44]}>
         <mesh castShadow material={frame}>
           <boxGeometry args={[0.64, 0.82, 0.04]} />
@@ -173,6 +163,7 @@ export function ShelfDecor() {
     <group>
       <Shelf />
       <Posters />
+      <SocialBoard />
       <Plant />
       <MugInteraction />
     </group>

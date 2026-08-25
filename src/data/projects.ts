@@ -1,18 +1,18 @@
-import bannerGreenhawk from '../../docs/project/GreenHawk AI/banner.png'
-import shotGreenhawkHome from '../../docs/project/GreenHawk AI/home.png'
-import shotGreenhawkModels from '../../docs/project/GreenHawk AI/models.png'
-import shotGreenhawkComparison from '../../docs/project/GreenHawk AI/comparison.png'
-import shotGreenhawkResults from '../../docs/project/GreenHawk AI/results.png'
+import bannerGreenhawk from '../../docs/project/GreenHawk AI/banner.webp'
+import shotGreenhawkHome from '../../docs/project/GreenHawk AI/home.webp'
+import shotGreenhawkModels from '../../docs/project/GreenHawk AI/models.webp'
+import shotGreenhawkComparison from '../../docs/project/GreenHawk AI/comparison.webp'
+import shotGreenhawkResults from '../../docs/project/GreenHawk AI/results.webp'
 
-import bannerHawkbucksWeb from '../../docs/project/HawkBucks - Web/hawkbucks-header.png'
-import shotWebHome from '../../docs/project/HawkBucks - Web/home.png'
-import shotWebMissions from '../../docs/project/HawkBucks - Web/v-bucks-missions.png'
-import shotWebAbout from '../../docs/project/HawkBucks - Web/about.png'
+import bannerHawkbucksWeb from '../../docs/project/HawkBucks - Web/hawkbucks-header.webp'
+import shotWebHome from '../../docs/project/HawkBucks - Web/home.webp'
+import shotWebMissions from '../../docs/project/HawkBucks - Web/v-bucks-missions.webp'
+import shotWebAbout from '../../docs/project/HawkBucks - Web/about.webp'
 
-import bannerHawkbucksBot from '../../docs/project/HawkBucks - Bot/banner.png'
-import shotBotInChat from '../../docs/project/HawkBucks - Bot/in chat.png'
-import shotBotMultiple from '../../docs/project/HawkBucks - Bot/multiple missions available.jpg'
-import shotBotNone from '../../docs/project/HawkBucks - Bot/no mission.jpg'
+import bannerHawkbucksBot from '../../docs/project/HawkBucks - Bot/banner.webp'
+import shotBotInChat from '../../docs/project/HawkBucks - Bot/in chat.webp'
+import shotBotMultiple from '../../docs/project/HawkBucks - Bot/multiple missions available.webp'
+import shotBotNone from '../../docs/project/HawkBucks - Bot/no mission.webp'
 
 export interface ProjectLink {
   label: string
@@ -46,7 +46,8 @@ export interface Project {
   slug: string
   title: string
   subtitle: string
-  description: string
+  shortDescription: string
+  overview: string
   category: string
   year: number
   banner: string
@@ -58,6 +59,7 @@ export interface Project {
   architecture: string[]
   repository: string
   demo?: string
+  demoStatus?: string
   documentation?: string
 }
 
@@ -66,8 +68,10 @@ export const projects: Project[] = [
     slug: 'greenhawk-ai',
     title: 'GreenHawk AI',
     subtitle: 'AI-powered black & white image colorization platform',
-    description:
+    shortDescription:
       'An AI-powered web application for black-and-white image colorization using CNN, GAN, and diffusion-based deep learning approaches through a FastAPI backend.',
+    overview:
+      'GreenHawk AI is an AI-powered web application for black-and-white image colorization. It brings multiple deep-learning approaches, including CNN, GAN, and diffusion-based models, together behind a FastAPI backend and web interface so users can explore colorization results through a practical software system.',
     category: 'AI · Computer Vision',
     year: 2026,
     banner: bannerGreenhawk,
@@ -102,13 +106,17 @@ export const projects: Project[] = [
       'Results are returned to the user for comparison and download',
     ],
     repository: 'https://github.com/Greenhawk5/GreenHawk-AI',
+    demo: 'https://greenhawkai.ir',
+    demoStatus: 'Currently unavailable',
   },
   {
     slug: 'hawkbucks',
     title: 'HawkBucks',
     subtitle: 'Fortnite Save The World V-Bucks mission tracker',
-    description:
+    shortDescription:
       'A Fortnite Save The World mission tracking platform using React, TypeScript, Cloudflare serverless technologies, APIs, and automation.',
+    overview:
+      'HawkBucks is a Fortnite Save The World mission tracking platform. Its React and TypeScript web application works with Cloudflare serverless technologies, APIs, data processing, persistent storage, and automated workflows to turn mission information into a usable web experience.',
     category: 'Web · Cloud',
     year: 2026,
     banner: bannerHawkbucksWeb,
@@ -149,8 +157,10 @@ export const projects: Project[] = [
     slug: 'hawkbucks-bot',
     title: 'HawkBucks Bot',
     subtitle: 'Telegram V-Bucks mission assistant',
-    description:
+    shortDescription:
       'A Telegram automation bot with scheduled jobs, mission data processing, reminders, image generation, and persistent user management.',
+    overview:
+      'HawkBucks Bot is a Telegram automation system for mission information. It combines scheduled jobs, mission data processing, reminders, image generation, webhooks, and persistent user and group management to support automated delivery through Telegram.',
     category: 'Automation · Telegram',
     year: 2026,
     banner: bannerHawkbucksBot,
@@ -185,6 +195,7 @@ export const projects: Project[] = [
       'Users, groups, and channels are persisted for reliable delivery',
     ],
     repository: 'https://github.com/Greenhawk5/HawkBucks-Bot',
+    demo: 'https://t.me/HawkBucks_bot',
   },
 ]
 

@@ -1,6 +1,7 @@
 export interface BoardSlide {
   title: string
   tagline: string
+  banner: string
   tags: string[]
   accent: string
   accent2: string
@@ -31,6 +32,14 @@ export function createBoardRenderer(slides: BoardSlide[]): BoardRenderer {
   let activeIndex = 0
   let transitionStart = -1
   let lastDrawn = -1
+  const bannerImages = slides.map((slide) => {
+    const image = new Image()
+    image.onload = () => {
+      lastDrawn = -1
+    }
+    image.src = slide.banner
+    return image
+  })
 
   function drawSlide(slide: BoardSlide) {
     const grad = ctx.createLinearGradient(0, 0, W, H)
@@ -66,18 +75,38 @@ export function createBoardRenderer(slides: BoardSlide[]): BoardRenderer {
       ctx.stroke()
     }
 
-    ctx.fillStyle = `${slide.accent}1c`
-    ctx.font = '900 300px Inter, sans-serif'
-    ctx.textAlign = 'right'
-    ctx.fillText(slide.initial, W - 30, H - 40)
-    ctx.textAlign = 'left'
-
     ctx.fillStyle = slide.accent
     ctx.fillRect(48, 64, 56, 5)
 
     ctx.fillStyle = '#e8ecf4'
     ctx.font = 'bold 58px Inter, sans-serif'
     ctx.fillText(slide.title, 48, 160)
+
+    const banner = bannerImages[activeIndex]
+    if (banner?.complete && banner.naturalWidth > 0) {
+      const panelX = 600
+      const panelY = 320
+      const panelW = 376
+      const panelH = 238
+      ctx.fillStyle = 'rgba(0,0,0,0.35)'
+      ctx.beginPath()
+      ctx.roundRect(panelX - 8, panelY - 8, panelW + 16, panelH + 16, 14)
+      ctx.fill()
+      const scale = Math.max(panelW / banner.naturalWidth, panelH / banner.naturalHeight)
+      const width = banner.naturalWidth * scale
+      const height = banner.naturalHeight * scale
+      ctx.save()
+      ctx.beginPath()
+      ctx.roundRect(panelX, panelY, panelW, panelH, 10)
+      ctx.clip()
+      ctx.drawImage(banner, panelX + (panelW - width) / 2, panelY + (panelH - height) / 2, width, height)
+      ctx.restore()
+      ctx.strokeStyle = `${slide.accent}88`
+      ctx.lineWidth = 2
+      ctx.beginPath()
+      ctx.roundRect(panelX, panelY, panelW, panelH, 10)
+      ctx.stroke()
+    }
 
     ctx.fillStyle = '#9aa4b8'
     ctx.font = '28px Inter, sans-serif'

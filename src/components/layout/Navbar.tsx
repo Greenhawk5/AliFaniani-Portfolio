@@ -35,7 +35,9 @@ export function Navbar() {
     <header
       className={cn(
         'fixed inset-x-0 top-0 z-50 transition-all duration-300',
-        solid ? 'glass shadow-[0_8px_30px_-12px_rgba(0,0,0,0.6)]' : 'bg-transparent'
+        solid
+          ? 'glass shadow-[0_8px_30px_-12px_rgba(0,0,0,0.6)]'
+          : 'bg-abyss/65 shadow-[0_8px_30px_-18px_rgba(0,0,0,0.8)] backdrop-blur-md'
       )}
     >
       <nav className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-5 md:px-8">

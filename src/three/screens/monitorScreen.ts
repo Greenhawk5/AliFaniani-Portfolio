@@ -378,7 +378,7 @@ export function createMonitorRenderer(): MonitorRenderer {
       flash = 1
     },
     update(elapsed: number) {
-      const modeDuration = modes[modeIndex] === 'update' ? 14 : 13
+      const modeDuration = modes[modeIndex] === 'update' ? 24 : 22
       if (elapsed - modeStart > modeDuration) {
         modeIndex = (modeIndex + 1) % modes.length
         modeStart = elapsed
