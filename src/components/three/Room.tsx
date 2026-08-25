@@ -36,7 +36,7 @@ export function Room() {
   return (
     <group>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow material={floorMaterial}>
-        <planeGeometry args={[9.2, 9.2]} />
+        <planeGeometry args={[9.0, 9.0]} />
       </mesh>
 
       <mesh position={[-2.15, 2.25, -4.625]} castShadow receiveShadow material={wallMaterial}>
@@ -63,13 +63,13 @@ export function Room() {
         <boxGeometry args={[1.9, 0.12, 0.04]} />
       </mesh>
       <mesh position={[-4.47, 0.06, 0]} rotation={[0, Math.PI / 2, 0]} material={trimMaterial}>
-        <boxGeometry args={[9.2, 0.12, 0.04]} />
+        <boxGeometry args={[9.0, 0.12, 0.04]} />
       </mesh>
       <mesh position={[0, 4.44, -4.47]} material={trimMaterial}>
-        <boxGeometry args={[9.2, 0.12, 0.04]} />
+        <boxGeometry args={[9.0, 0.12, 0.04]} />
       </mesh>
       <mesh position={[-4.47, 4.44, 0]} rotation={[0, Math.PI / 2, 0]} material={trimMaterial}>
-        <boxGeometry args={[9.2, 0.12, 0.04]} />
+        <boxGeometry args={[9.0, 0.12, 0.04]} />
       </mesh>
     </group>
   )
