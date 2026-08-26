@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { socialLinks } from '@/data/links'
+import { SOCIAL_ICON_DEFS } from '@/components/ui/socialIconPaths'
 import { env } from '@/three/env'
 import { useUiStore } from '@/stores/uiStore'
 import { Interactable } from './Interactable'
@@ -9,27 +10,43 @@ import { Interactable } from './Interactable'
 const W = 640
 const H = 860
 const SLIDE_DURATION = 5
+const HF_SVG_URL = '/icons/hf-logo-monochrome.svg'
 
 /**
- * Same 24x24 vector icon paths as the footer social icons
- * (src/components/ui/icons.tsx), drawn on the board canvas via Path2D.
+ * Loads the official Hugging Face monochrome SVG and returns one tinted
+ * image per slide accent color (the SVG's black fills are replaced via a
+ * data-URL string swap, so the existing accent-color system applies without
+ * deforming the geometry). Resolves with null if the asset can't load —
+ * callers then fall back to the shared path geometry.
  */
-const ICON_PATHS: Record<string, string[]> = {
-  GitHub: [
-    'M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.55 0-.27-.01-1.17-.02-2.12-3.2.7-3.88-1.36-3.88-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.19 1.76 1.19 1.03 1.76 2.69 1.25 3.35.96.1-.75.4-1.25.72-1.54-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.16-1.18 3.16-1.18.63 1.59.24 2.76.12 3.05.74.81 1.18 1.83 1.18 3.09 0 4.41-2.69 5.38-5.26 5.66.41.36.78 1.06.78 2.14 0 1.55-.01 2.79-.01 3.17 0 .31.21.67.8.55A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z',
-  ],
-  LinkedIn: [
-    'M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28ZM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12ZM7.12 20.45H3.55V9h3.57v11.45Z',
-  ],
-  Telegram: [
-    'M11.94 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm4.96 6.03-1.79 8.49c-.13.6-.49.74-.99.46l-2.72-2.02-1.31 1.27c-.15.15-.27.27-.55.27l.19-2.77 5.05-4.57c.22-.19-.05-.3-.34-.11l-6.24 3.94-2.69-.84c-.58-.19-.6-.58.12-.86l10.5-4.05c.49-.18.91.11.77.79Z',
-  ],
-  'Hugging Face': [
-    'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10c2.4 0 4.6-.84 6.32-2.24-.1-.34-.15-.7-.15-1.06 0-1.65 1.35-3 3-3 .35 0 .69.06 1 .17C22.7 14.7 22 13.38 22 12c0-5.52-4.48-10-10-10Z',
-  ],
-  Email: ['M3 5h18a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z', 'M1.5 7 12 14.5 22.5 7'],
+async function loadHfSvgImages(colors: string[]): Promise<HTMLImageElement[] | null> {
+  try {
+    const response = await fetch(HF_SVG_URL)
+    const svgText = await response.text()
+    return await Promise.all(
+      colors.map(
+        (color) =>
+          new Promise<HTMLImageElement | null>((resolve) => {
+            const tinted = svgText.replace(/fill="black"/g, `fill="${color}"`)
+            const image = new Image()
+            image.onload = () => resolve(image)
+            image.onerror = () => resolve(null)
+            image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(tinted)}`
+          })
+      )
+    ).then((images) => (images.every(Boolean) ? (images as HTMLImageElement[]) : null))
+  } catch {
+    return null
+  }
 }
 
+/**
+ * Draws a social icon from the shared footer icon definitions
+ * (src/components/ui/socialIconPaths.ts) onto a canvas via Path2D.
+ * The icon is fitted proportionally inside a square bounding box of the
+ * given size, centered on (cx, cy), preserving the original 24x24
+ * viewBox aspect ratio (uniform scale — no independent X/Y stretch).
+ */
 function drawSocialIcon(
   ctx: CanvasRenderingContext2D,
   label: string,
@@ -38,57 +55,98 @@ function drawSocialIcon(
   size: number,
   color: string
 ) {
-  const paths = ICON_PATHS[label] ?? ICON_PATHS.Email
+  const def = SOCIAL_ICON_DEFS[label] ?? SOCIAL_ICON_DEFS.Email
   const scale = size / 24
   ctx.save()
   ctx.translate(cx - size / 2, cy - size / 2)
   ctx.scale(scale, scale)
-  ctx.fillStyle = color
-  ctx.strokeStyle = color
-  ctx.lineWidth = 1.8
   ctx.lineCap = 'round'
   ctx.lineJoin = 'round'
-  for (const d of paths) {
-    const path = new Path2D(d)
-    ctx.fill(path)
-    ctx.stroke(path)
+  for (const d of def.fill) {
+    ctx.fillStyle = color
+    ctx.fill(new Path2D(d))
+  }
+  for (const d of def.stroke) {
+    ctx.strokeStyle = color
+    ctx.lineWidth = 1.8
+    ctx.stroke(new Path2D(d))
   }
   ctx.restore()
 }
 
-function drawSocialSlide(canvas: HTMLCanvasElement, index: number) {
+/**
+ * Draws the official Hugging Face SVG image fitted proportionally inside a
+ * square bounding box of the given size, centered on (cx, cy).
+ */
+function drawHfSvgImage(
+  ctx: CanvasRenderingContext2D,
+  image: HTMLImageElement,
+  cx: number,
+  cy: number,
+  size: number
+) {
+  const ratio = Math.min(size / image.width, size / image.height)
+  const width = image.width * ratio
+  const height = image.height * ratio
+  ctx.drawImage(image, cx - width / 2, cy - height / 2, width, height)
+}
+
+function drawSocialSlide(
+  canvas: HTMLCanvasElement,
+  index: number,
+  hfImage: HTMLImageElement | null
+) {
   const ctx = canvas.getContext('2d')!
   const link = socialLinks[index]
   const hue = (index * 0.16 + 0.34) % 1
   const accentColor = new THREE.Color().setHSL(hue, 0.85, 0.6)
-  const accent = `rgb(${Math.round(accentColor.r * 255)}, ${Math.round(accentColor.g * 255)}, ${Math.round(accentColor.b * 255)})`
+  const r = Math.round(accentColor.r * 255)
+  const g = Math.round(accentColor.g * 255)
+  const b = Math.round(accentColor.b * 255)
+  const accentGlow = (a: number) => `rgba(${r}, ${g}, ${b}, ${a})`
+  // Near-white core tinted with the accent hue — keeps the icon bright and
+  // readable while staying inside the same color family as the frame.
+  const iconCore = `rgb(${Math.round(r + (255 - r) * 0.78)}, ${Math.round(g + (255 - g) * 0.78)}, ${Math.round(b + (255 - b) * 0.78)})`
 
   ctx.clearRect(0, 0, W, H)
   ctx.fillStyle = '#0b0f19'
   ctx.fillRect(0, 0, W, H)
 
-  const glow = ctx.createRadialGradient(W / 2, H / 2, 20, W / 2, H / 2, 430)
-  glow.addColorStop(0, `rgba(${Math.round(accentColor.r * 255)}, ${Math.round(accentColor.g * 255)}, ${Math.round(accentColor.b * 255)}, 0.2)`)
+  // Soft ambient glow concentrated around the icon/ring, fading naturally.
+  const glow = ctx.createRadialGradient(W / 2, 350, 40, W / 2, 350, 300)
+  glow.addColorStop(0, accentGlow(0.16))
+  glow.addColorStop(0.55, accentGlow(0.06))
   glow.addColorStop(1, 'transparent')
   ctx.fillStyle = glow
   ctx.fillRect(0, 0, W, H)
 
+  // Thin neon ring — same accent as the frame, medium brightness.
   ctx.beginPath()
   ctx.arc(W / 2, 350, 116, 0, Math.PI * 2)
-  ctx.fillStyle = `rgba(${Math.round(accentColor.r * 255)}, ${Math.round(accentColor.g * 255)}, ${Math.round(accentColor.b * 255)}, 0.13)`
+  ctx.fillStyle = accentGlow(0.08)
   ctx.fill()
-  ctx.strokeStyle = `rgba(${Math.round(accentColor.r * 255)}, ${Math.round(accentColor.g * 255)}, ${Math.round(accentColor.b * 255)}, 0.6)`
-  ctx.lineWidth = 4
+  ctx.strokeStyle = accentGlow(0.85)
+  ctx.lineWidth = 3
+  ctx.stroke()
+  // Faint inner ring echo for depth.
+  ctx.beginPath()
+  ctx.arc(W / 2, 350, 104, 0, Math.PI * 2)
+  ctx.strokeStyle = accentGlow(0.18)
+  ctx.lineWidth = 1.5
   ctx.stroke()
 
-  drawSocialIcon(
-    ctx,
-    link.label,
-    W / 2,
-    350,
-    150,
-    `rgb(${Math.round(accentColor.r * 255)}, ${Math.round(accentColor.g * 255)}, ${Math.round(accentColor.b * 255)})`
-  )
+  // Icon glow pass (accent, subtle), then the bright core pass on top.
+  // Hugging Face uses the official SVG asset rasterized onto the canvas;
+  // other platforms keep the shared Path2D geometry.
+  if (link.label === 'Hugging Face' && hfImage) {
+    ctx.globalAlpha = 0.55
+    drawHfSvgImage(ctx, hfImage, W / 2, 350, 132)
+    ctx.globalAlpha = 1
+    drawHfSvgImage(ctx, hfImage, W / 2, 350, 132)
+  } else {
+    drawSocialIcon(ctx, link.label, W / 2, 350, 132, accentGlow(0.55))
+    drawSocialIcon(ctx, link.label, W / 2, 350, 132, iconCore)
+  }
 
   for (let i = 0; i < socialLinks.length; i++) {
     ctx.beginPath()
@@ -103,7 +161,7 @@ export function SocialBoard() {
     const value = document.createElement('canvas')
     value.width = W
     value.height = H
-    drawSocialSlide(value, 0)
+    drawSocialSlide(value, 0, null)
     return value
   }, [])
   const texture = useMemo(() => {
@@ -119,6 +177,27 @@ export function SocialBoard() {
   const active = useRef(0)
   const timer = useRef(0)
   const glowRef = useRef<THREE.PointLight>(null)
+  // Official Hugging Face SVG, one tinted copy per slide accent color.
+  // Until loaded (or on failure) the shared Path2D geometry is used.
+  const hfImagesRef = useRef<HTMLImageElement[] | null>(null)
+  useEffect(() => {
+    let cancelled = false
+    const colors = socialLinks.map((_, i) => {
+      const hue = (i * 0.16 + 0.34) % 1
+      const c = new THREE.Color().setHSL(hue, 0.85, 0.6)
+      return `rgb(${Math.round(c.r * 255)}, ${Math.round(c.g * 255)}, ${Math.round(c.b * 255)})`
+    })
+    loadHfSvgImages(colors).then((images) => {
+      if (!cancelled && images) {
+        hfImagesRef.current = images
+        drawSocialSlide(canvas, active.current, images[active.current])
+        texture.needsUpdate = true
+      }
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [canvas, texture])
   const focus = useUiStore((s) => s.focus)
   const boardNav = useUiStore((s) => s.boardNav)
   const lastNavNonce = useRef(0)
@@ -126,7 +205,7 @@ export function SocialBoard() {
   const goTo = (index: number) => {
     active.current = (index + socialLinks.length) % socialLinks.length
     timer.current = 0
-    drawSocialSlide(canvas, active.current)
+    drawSocialSlide(canvas, active.current, hfImagesRef.current?.[active.current] ?? null)
     texture.needsUpdate = true
   }
 
@@ -143,7 +222,7 @@ export function SocialBoard() {
     if (timer.current >= SLIDE_DURATION) {
       timer.current = 0
       active.current = (active.current + 1) % socialLinks.length
-      drawSocialSlide(canvas, active.current)
+      drawSocialSlide(canvas, active.current, hfImagesRef.current?.[active.current] ?? null)
       texture.needsUpdate = true
     }
     frameMaterial.emissive.setHSL((env.time * 0.035) % 1, 0.85, 0.55)

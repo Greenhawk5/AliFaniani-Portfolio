@@ -1,21 +1,37 @@
+import { SOCIAL_ICON_DEFS } from './socialIconPaths'
+
 interface IconProps {
   className?: string
 }
 
-export function GitHubIcon({ className }: IconProps) {
+function SocialSvg({ name, className }: { name: string; className?: string }) {
+  const def = SOCIAL_ICON_DEFS[name]
   return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
-      <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.55 0-.27-.01-1.17-.02-2.12-3.2.7-3.88-1.36-3.88-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.19 1.76 1.19 1.03 1.76 2.69 1.25 3.35.96.1-.75.4-1.25.72-1.54-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.16-1.18 3.16-1.18.63 1.59.24 2.76.12 3.05.74.81 1.18 1.83 1.18 3.09 0 4.41-2.69 5.38-5.26 5.66.41.36.78 1.06.78 2.14 0 1.55-.01 2.79-.01 3.17 0 .31.21.67.8.55A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z" />
+    <svg viewBox={def.viewBox ?? '0 0 24 24'} className={className} aria-hidden="true">
+      {def.fill.map((d, i) => (
+        <path key={`f${i}`} d={d} fill="currentColor" fillRule={def.fillRule ?? 'nonzero'} />
+      ))}
+      {def.stroke.map((d, i) => (
+        <path
+          key={`s${i}`}
+          d={d}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      ))}
     </svg>
   )
 }
 
+export function GitHubIcon({ className }: IconProps) {
+  return <SocialSvg name="GitHub" className={className} />
+}
+
 export function LinkedInIcon({ className }: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
-      <path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28ZM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12ZM7.12 20.45H3.55V9h3.57v11.45Z" />
-    </svg>
-  )
+  return <SocialSvg name="LinkedIn" className={className} />
 }
 
 export function XTwitterIcon({ className }: IconProps) {
@@ -27,43 +43,15 @@ export function XTwitterIcon({ className }: IconProps) {
 }
 
 export function MailIcon({ className }: IconProps) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      className={className}
-      aria-hidden="true"
-    >
-      <rect x="3" y="5" width="18" height="14" rx="2" />
-      <path d="m3 7 9 6 9-6" />
-    </svg>
-  )
+  return <SocialSvg name="Email" className={className} />
 }
 
 export function TelegramIcon({ className }: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
-      <path d="M11.94 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm4.96 6.03-1.79 8.49c-.13.6-.49.74-.99.46l-2.72-2.02-1.31 1.27c-.15.15-.27.27-.55.27l.19-2.77 5.05-4.57c.22-.19-.05-.3-.34-.11l-6.24 3.94-2.69-.84c-.58-.19-.6-.58.12-.86l10.5-4.05c.49-.18.91.11.77.79Z" />
-    </svg>
-  )
+  return <SocialSvg name="Telegram" className={className} />
 }
 
 export function HuggingFaceIcon({ className }: IconProps) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      className={className}
-      aria-hidden="true"
-    >
-      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10c2.4 0 4.6-.84 6.32-2.24-.1-.34-.15-.7-.15-1.06 0-1.65 1.35-3 3-3 .35 0 .69.06 1 .17C22.7 14.7 22 13.38 22 12c0-5.52-4.48-10-10-10Z" />
-      <circle cx="8.5" cy="10" r="1.5" />
-      <circle cx="15.5" cy="10" r="1.5" />
-      <path d="M8 14c1.1 1.2 2.4 1.8 4 1.8s2.9-.6 4-1.8" />
-    </svg>
-  )
+  return <SocialSvg name="Hugging Face" className={className} />
 }
 
 export function ArrowUpIcon({ className }: IconProps) {
