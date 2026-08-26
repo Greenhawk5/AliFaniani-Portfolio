@@ -1,16 +1,25 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { useUiStore } from '@/stores/uiStore'
+import { useUiStore, type FocusTarget } from '@/stores/uiStore'
 import { useTimeStore } from '@/stores/timeStore'
 import { useSettingsStore } from '@/stores/settingsStore'
 import { useClockText } from '@/hooks/useClockText'
 import { timeOfDayLabel } from '@/lib/timeController'
-import { ClockIcon, CloseIcon, SparkleIcon, ChevronLeftIcon } from '@/components/ui/icons'
+import {
+  ClockIcon,
+  CloseIcon,
+  SparkleIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+} from '@/components/ui/icons'
 
 const FOCUS_TITLES: Record<string, string> = {
-  board: 'Project Showcase Board',
   monitor: 'Workstation Monitor',
   clock: 'Digital Wall Clock',
+  projectBoard: 'Project Board',
+  socialBoard: 'Social Board',
 }
+
+const BOARD_NAV_TARGETS: ReadonlySet<FocusTarget> = new Set(['projectBoard', 'socialBoard'])
 
 export function HomeOverlay() {
   const hintVisible = useUiStore((s) => s.hintVisible)
@@ -18,6 +27,7 @@ export function HomeOverlay() {
   const hoveredLabel = useUiStore((s) => s.hoveredLabel)
   const focus = useUiStore((s) => s.focus)
   const setFocus = useUiStore((s) => s.setFocus)
+  const sendBoardNav = useUiStore((s) => s.sendBoardNav)
   const toggleSettings = useUiStore((s) => s.toggleSettings)
 
   const timeMode = useTimeStore((s) => s.mode)
@@ -83,6 +93,24 @@ export function HomeOverlay() {
               <span className="font-mono text-accent">{FOCUS_TITLES[focus] ?? focus}</span>
               <span className="ml-2 hidden text-mist sm:inline">press ESC to exit</span>
             </p>
+            {BOARD_NAV_TARGETS.has(focus) && (
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => sendBoardNav(focus, -1)}
+                  aria-label="Previous slide"
+                  className="rounded-full border border-edge-2 p-1.5 text-frost transition-colors hover:border-accent/50 hover:text-accent cursor-pointer"
+                >
+                  <ChevronLeftIcon className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  onClick={() => sendBoardNav(focus, 1)}
+                  aria-label="Next slide"
+                  className="rounded-full border border-edge-2 p-1.5 text-frost transition-colors hover:border-accent/50 hover:text-accent cursor-pointer"
+                >
+                  <ChevronRightIcon className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            )}
             <button
               onClick={() => setFocus(null)}
               className="flex items-center gap-1.5 rounded-full bg-accent px-3.5 py-1.5 text-xs font-semibold text-void transition-colors hover:bg-[#5cffa2] cursor-pointer"

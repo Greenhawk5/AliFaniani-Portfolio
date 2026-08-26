@@ -25,30 +25,6 @@ npm run lint       # eslint
 npm run format     # prettier
 ```
 
-## Deployment (Cloudflare Pages)
-
-1. Push the repository to GitHub.
-2. In Cloudflare, create a Pages project connected to the repo.
-   - Build command: `npm run build`
-   - Output directory: `dist`
-3. (Optional) Set environment variables / secrets for the contact API:
-
-| Variable            | Purpose                                            |
-| ------------------- | -------------------------------------------------- |
-| `RESEND_API_KEY`    | Enables email delivery via Resend                  |
-| `EMAIL_FROM`        | Verified sender address                            |
-| `EMAIL_TO`          | Inbox that receives contact notifications          |
-| `TURNSTILE_SECRET`  | Enables Cloudflare Turnstile captcha verification  |
-
-Without `RESEND_API_KEY` the API still validates and rate-limits submissions and
-responds `{ ok: true }` (useful for local development).
-
-Local worker emulation:
-
-```bash
-npx wrangler pages dev dist
-```
-
 ## Architecture Overview
 
 ```

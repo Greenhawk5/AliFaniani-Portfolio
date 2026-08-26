@@ -15,6 +15,7 @@ export interface BoardRenderer {
   canvas: HTMLCanvasElement
   update(elapsed: number): boolean
   advance(): void
+  back(): void
   getActiveIndex(): number
 }
 
@@ -153,6 +154,13 @@ export function createBoardRenderer(slides: BoardSlide[]): BoardRenderer {
       sctx.clearRect(0, 0, W, H)
       sctx.drawImage(canvas, 0, 0)
       activeIndex = (activeIndex + 1) % slides.length
+      transitionStart = performance.now() / 1000
+    },
+    back() {
+      if (transitionStart >= 0) return
+      sctx.clearRect(0, 0, W, H)
+      sctx.drawImage(canvas, 0, 0)
+      activeIndex = (activeIndex - 1 + slides.length) % slides.length
       transitionStart = performance.now() / 1000
     },
     update(elapsed: number) {

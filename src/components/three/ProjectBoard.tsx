@@ -1,9 +1,10 @@
-import { useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { useNavigate } from 'react-router-dom'
 import { createBoardRenderer, type BoardSlide } from '@/three/screens/boardScreen'
 import { featuredProjects, useProjectStore } from '@/stores/projectStore'
+import { useUiStore } from '@/stores/uiStore'
 import { env } from '@/three/env'
 import { Interactable } from './Interactable'
 
@@ -12,6 +13,9 @@ const SLIDE_DURATION = 7
 export function ProjectBoard() {
   const navigate = useNavigate()
   const nextProject = useProjectStore((s) => s.next)
+  const focus = useUiStore((s) => s.focus)
+  const boardNav = useUiStore((s) => s.boardNav)
+  const lastNavNonce = useRef(0)
   const renderer = useMemo(() => {
     const slides: BoardSlide[] = featuredProjects().map((p) => ({
       title: p.title,
@@ -53,14 +57,34 @@ export function ProjectBoard() {
     }
   })
 
+  // Overlay slide controls (focus bar arrows) drive the board slideshow.
+  useEffect(() => {
+    if (!boardNav || boardNav.target !== 'projectBoard' || boardNav.nonce === lastNavNonce.current)
+      return
+    lastNavNonce.current = boardNav.nonce
+    slideTimer.current = 0
+    if (boardNav.dir === 1) {
+      renderer.advance()
+      nextProject()
+    } else {
+      renderer.back()
+      useProjectStore.setState((s) => ({
+        activeIndex: (s.activeIndex - 1 + featuredProjects().length) % featuredProjects().length,
+      }))
+    }
+  }, [boardNav, renderer, nextProject])
+
   const openProject = () => {
+    // In room view the click focuses the board; only when focused does a
+    // slide click open the active project page.
+    if (focus !== 'projectBoard') return
     const project = featuredProjects()[renderer.getActiveIndex()]
     if (project) navigate(`/projects/${project.slug}`)
   }
 
   return (
     <group position={[-2.2, 2.38, -4.42]}>
-      <Interactable id="board" label="Project Board — click to view project" focusable>
+      <Interactable id="projectBoard" label="Project Board — click to focus" focusable>
         <mesh castShadow>
           <boxGeometry args={[2.62, 1.74, 0.07]} />
           <meshStandardMaterial color="#0b0e16" roughness={0.35} metalness={0.6} />
@@ -84,6 +108,9 @@ export function ProjectBoard() {
         <mesh
           position={[0, 0, 0.05]}
           onClick={(e) => {
+            // Room view: let the click bubble to Interactable so it focuses
+            // the board. Focused: consume the click and open the project.
+            if (focus !== 'projectBoard') return
             e.stopPropagation()
             openProject()
           }}

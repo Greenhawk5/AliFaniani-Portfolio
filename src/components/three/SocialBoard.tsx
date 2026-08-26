@@ -1,8 +1,10 @@
-import { useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { socialLinks } from '@/data/links'
 import { env } from '@/three/env'
+import { useUiStore } from '@/stores/uiStore'
+import { Interactable } from './Interactable'
 
 const W = 640
 const H = 860
@@ -117,6 +119,24 @@ export function SocialBoard() {
   const active = useRef(0)
   const timer = useRef(0)
   const glowRef = useRef<THREE.PointLight>(null)
+  const focus = useUiStore((s) => s.focus)
+  const boardNav = useUiStore((s) => s.boardNav)
+  const lastNavNonce = useRef(0)
+
+  const goTo = (index: number) => {
+    active.current = (index + socialLinks.length) % socialLinks.length
+    timer.current = 0
+    drawSocialSlide(canvas, active.current)
+    texture.needsUpdate = true
+  }
+
+  // Overlay slide controls (focus bar arrows) drive the board slideshow.
+  useEffect(() => {
+    if (!boardNav || boardNav.target !== 'socialBoard' || boardNav.nonce === lastNavNonce.current)
+      return
+    lastNavNonce.current = boardNav.nonce
+    goTo(active.current + boardNav.dir)
+  }, [boardNav, canvas, texture])
 
   useFrame((_, delta) => {
     timer.current += delta
@@ -136,44 +156,53 @@ export function SocialBoard() {
   })
 
   const open = (index: number) => {
+    // In room view the click focuses the board; only when focused does a
+    // slide click open the social link in a new tab.
+    if (focus !== 'socialBoard') return
     window.open(socialLinks[index].href, '_blank', 'noopener,noreferrer')
   }
 
   return (
     <group position={[-4.44, 2.75, 2.6]} rotation={[0, Math.PI / 2, 0]}>
-      <mesh castShadow>
-        <boxGeometry args={[0.72, 0.94, 0.04]} />
-        <meshStandardMaterial color="#0b0e16" roughness={0.4} metalness={0.5} />
-      </mesh>
-      <mesh position={[0, 0, 0.025]}>
-        <planeGeometry args={[0.64, 0.86]} />
-        <meshStandardMaterial map={texture} emissiveMap={texture} emissive="#ffffff" emissiveIntensity={0.35} />
-      </mesh>
-      <group position={[0, 0, 0.055]}>
-        <mesh position={[0, 0.445, 0]} material={frameMaterial}>
-          <boxGeometry args={[0.72, 0.025, 0.025]} />
+      <Interactable id="socialBoard" label="Social Board — click to focus" focusable>
+        <mesh castShadow>
+          <boxGeometry args={[0.72, 0.94, 0.04]} />
+          <meshStandardMaterial color="#0b0e16" roughness={0.4} metalness={0.5} />
         </mesh>
-        {([0.445, -0.445] as const).map((y) => (
-          <mesh key={y} position={[0, y, 0]} material={frameMaterial}>
+        <mesh position={[0, 0, 0.025]}>
+          <planeGeometry args={[0.64, 0.86]} />
+          <meshStandardMaterial map={texture} emissiveMap={texture} emissive="#ffffff" emissiveIntensity={0.35} />
+        </mesh>
+        <group position={[0, 0, 0.055]}>
+          <mesh position={[0, 0.445, 0]} material={frameMaterial}>
             <boxGeometry args={[0.72, 0.025, 0.025]} />
           </mesh>
-        ))}
-        {([-0.3475, 0.3475] as const).map((x) => (
-          <mesh key={x} position={[x, 0, 0]} material={frameMaterial}>
-            <boxGeometry args={[0.025, 0.89, 0.025]} />
-          </mesh>
-        ))}
-      </group>
-      <pointLight ref={glowRef} position={[0, 0, 0.6]} distance={7} decay={2} intensity={0} />
-      <mesh
-        position={[0, 0, 0.07]}
-        onPointerOver={(event) => { event.stopPropagation(); document.body.style.cursor = 'pointer' }}
-        onPointerOut={(event) => { event.stopPropagation(); document.body.style.cursor = 'auto' }}
-        onClick={(event) => { event.stopPropagation(); open(active.current) }}
-        visible={false}
-      >
-        <planeGeometry args={[0.64, 0.86]} />
-      </mesh>
+          {([0.445, -0.445] as const).map((y) => (
+            <mesh key={y} position={[0, y, 0]} material={frameMaterial}>
+              <boxGeometry args={[0.72, 0.025, 0.025]} />
+            </mesh>
+          ))}
+          {([-0.3475, 0.3475] as const).map((x) => (
+            <mesh key={x} position={[x, 0, 0]} material={frameMaterial}>
+              <boxGeometry args={[0.025, 0.89, 0.025]} />
+            </mesh>
+          ))}
+        </group>
+        <pointLight ref={glowRef} position={[0, 0, 0.6]} distance={7} decay={2} intensity={0} />
+        <mesh
+          position={[0, 0, 0.07]}
+          onClick={(event) => {
+            // Room view: let the click bubble to Interactable so it focuses
+            // the board. Focused: consume the click and open the link.
+            if (focus !== 'socialBoard') return
+            event.stopPropagation()
+            open(active.current)
+          }}
+          visible={false}
+        >
+          <planeGeometry args={[0.64, 0.86]} />
+        </mesh>
+      </Interactable>
     </group>
   )
 }

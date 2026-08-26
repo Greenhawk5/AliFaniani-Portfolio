@@ -7,7 +7,7 @@ export const SITE = {
   url: 'https://alifaniani.ir',
   email: 'ali.faniani@gmail.com',
   location: 'Jahrom County, Fars Province, Iran',
-  availability: 'Available for freelance & full-time work · Remote / Worldwide',
+  availability: 'Freelance & full-time work · Remote / Worldwide',
 } as const
 
 export const NAV_LINKS = [

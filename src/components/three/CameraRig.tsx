@@ -11,10 +11,6 @@ const BASE_TARGET = new THREE.Vector3(0.5, 1.55, -0.7)
 const INTRO_POS = new THREE.Vector3(14.5, 9, 15)
 
 export const FOCUS_PRESETS: Record<FocusTarget, { pos: THREE.Vector3; target: THREE.Vector3 }> = {
-  board: {
-    pos: new THREE.Vector3(-2.1, 2.45, 0.4),
-    target: new THREE.Vector3(-2.2, 2.3, -4.5),
-  },
   monitor: {
     pos: new THREE.Vector3(1.2, 2.05, -1.35),
     target: new THREE.Vector3(1.2, 1.6, -3.55),
@@ -27,6 +23,20 @@ export const FOCUS_PRESETS: Record<FocusTarget, { pos: THREE.Vector3; target: TH
     // pos: new THREE.Vector3(-3.11, 2.16, 1.17),
     pos: new THREE.Vector3(-2.95, 2.19, 1.22),
     target: new THREE.Vector3(-4.4, 1.95, 0.8),
+  },
+  // Project Board: centered on the board at (-2.2, 2.38, -4.42), pulled back
+  // ~2.6 units along +Z so the full 2.62x1.74 board fits comfortably in the
+  // 42° FOV with a little wall context, without clipping the shelf ledge below.
+  projectBoard: {
+    pos: new THREE.Vector3(-2.2, 2.42, -1.75),
+    target: new THREE.Vector3(-2.2, 2.38, -4.42),
+  },
+  // Social Board: centered on the board at (-4.44, 2.75, 2.6) facing +X.
+  // Pulled back along +X so the portrait 0.72x0.94 board reads clearly while
+  // keeping the neon frame and shelf edge in frame for room context.
+  socialBoard: {
+    pos: new THREE.Vector3(-1.55, 2.72, 2.6),
+    target: new THREE.Vector3(-4.44, 2.75, 2.6),
   },
 }
 
@@ -95,7 +105,8 @@ export function CameraRig() {
     // Side-on focus views (like the shelf) are dolly-sensitive: world-space
     // parallax reads as zooming into the subject. Dampen it per-focus while
     // keeping a subtle cinematic drift.
-    const parallaxScale = focus === 'shelf' ? 0.25 : 1
+    const parallaxScale =
+      focus === 'shelf' || focus === 'projectBoard' || focus === 'socialBoard' ? 0.25 : 1
     const targetX = parallax ? pointer.x * 0.42 * parallaxScale : 0
     const targetY = parallax ? -pointer.y * 0.2 * parallaxScale : 0
     const k = 1 - Math.exp(-dt * 3.2)
