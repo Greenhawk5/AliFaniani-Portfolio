@@ -147,7 +147,8 @@ function MugInteraction() {
   const cycleKeyboard = useUiStore((s) => s.cycleKeyboard)
   return (
     <Interactable id="mug" label="Coffee — essential developer fuel" onActivate={cycleKeyboard}>
-      <mesh position={[0.68, 1.06, -3.36]} visible={false}>
+      {/* Hitbox follows the mug's new position on the desk left of the keyboard */}
+      <mesh position={[0.05, 1.08, -3.32]} visible={false}>
         <cylinderGeometry args={[0.09, 0.09, 0.16, 8]} />
       </mesh>
     </Interactable>

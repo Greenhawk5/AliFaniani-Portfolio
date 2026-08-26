@@ -96,21 +96,29 @@ function DeskLamp() {
     []
   )
 
+  // Lamp geometry is unchanged — only the transform chain was corrected.
+  // Desk top surface Y = 1.0 (desk slab: center y 0.955, height 0.09).
+  // Base bottom sits exactly on the desk; lower arm leans slightly toward +x,
+  // elbow connects to an upper arm arcing forward, shade cone opens
+  // down-forward to throw light over the keyboard.
   return (
-    <group position={[0.02, 1.005, -3.86]} rotation={[0, -0.35, 0]}>
+    <group position={[-0.15, 1.0, -3.7]} rotation={[0, 0.5, 0]}>
       <mesh position={[0, 0.02, 0]} castShadow material={metal}>
         <cylinderGeometry args={[0.09, 0.11, 0.04, 20]} />
       </mesh>
-      <mesh position={[0.03, 0.2, 0]} rotation={[0, 0, -0.25]} castShadow material={metal}>
+      {/* Lower arm: from base up to elbow at (0.056, 0.366) */}
+      <mesh position={[0.02, 0.19, 0]} rotation={[0, 0, -0.2]} castShadow material={metal}>
         <boxGeometry args={[0.03, 0.36, 0.03]} />
       </mesh>
-      <mesh position={[0.12, 0.37, 0]} rotation={[0, 0, 0.9]} castShadow material={metal}>
+      {/* Upper arm: elbow to shade mount at (0.30, 0.52) */}
+      <mesh position={[0.174, 0.442, 0]} rotation={[0, 0, -1.0]} castShadow material={metal}>
         <boxGeometry args={[0.03, 0.3, 0.03]} />
       </mesh>
-      <mesh position={[0.24, 0.4, 0]} rotation={[0, 0, 1.35]} castShadow material={metal}>
+      {/* Shade: cone opening faces down-forward toward the keyboard */}
+      <mesh position={[0.292, 0.517, 0]} rotation={[0, 0, 0.64]} castShadow material={metal}>
         <coneGeometry args={[0.08, 0.14, 20, 1, true]} />
       </mesh>
-      <mesh position={[0.24, 0.38, 0]}>
+      <mesh position={[0.316, 0.485, 0]}>
         <sphereGeometry args={[0.035, 12, 10]} />
         <meshStandardMaterial ref={bulb} color="#fff4dd" emissive="#ffd9a0" emissiveIntensity={1.8} />
       </mesh>
@@ -139,7 +147,9 @@ function DeskAccessories() {
         </mesh>
       </group>
 
-      <group position={[0.68, 1.06, -3.36]}>
+      {/* Mug: left of the keyboard (keyboard spans x 0.52..1.52, z -3.49..-3.11).
+          Bottom of the 0.11-tall cylinder rests exactly on the desk surface (y = 1.0). */}
+      <group position={[0.05, 1.055, -3.32]}>
         <mesh castShadow>
           <cylinderGeometry args={[0.045, 0.04, 0.11, 18]} />
           <meshStandardMaterial color="#a06bff" roughness={0.35} />
@@ -150,7 +160,11 @@ function DeskAccessories() {
         </mesh>
       </group>
 
-      <group position={[3.05, 1.02, -3.78]}>
+      {/* Plant: right side of the desk. Desk surface Y = 1.0; pot is 0.07 tall,
+          so center y = 1.035 puts its bottom exactly on the surface.
+          x = 2.6 keeps it inside the desk bounds (desk right edge x = 2.9)
+          with margin, clear of the headphones at x 2.62 / z -3.72. */}
+      <group position={[2.6, 1.035, -3.95]}>
         <mesh castShadow>
           <cylinderGeometry args={[0.045, 0.035, 0.07, 14]} />
           <meshStandardMaterial color="#8a4a3a" roughness={0.8} />
