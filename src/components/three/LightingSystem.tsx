@@ -7,7 +7,6 @@ import { env } from '@/three/env'
 
 export function LightingSystem() {
   const quality = useSettingsStore((s) => s.quality)
-  const lampOn = useUiStore((s) => s.lampOn)
 
   const sunRef = useRef<THREE.DirectionalLight>(null)
   const moonRef = useRef<THREE.DirectionalLight>(null)
@@ -15,7 +14,6 @@ export function LightingSystem() {
   const hemiRef = useRef<THREE.HemisphereLight>(null)
   const windowLightRef = useRef<THREE.PointLight>(null)
   const monitorLightRef = useRef<THREE.PointLight>(null)
-  const lampLightRef = useRef<THREE.SpotLight>(null)
   const floorLampRef = useRef<THREE.PointLight>(null)
   const nightFillRef = useRef<THREE.PointLight>(null)
   const shelfAccentRef = useRef<THREE.PointLight>(null)
@@ -23,8 +21,6 @@ export function LightingSystem() {
   const plantAccentRef = useRef<THREE.PointLight>(null)
   const loungeAccentRef = useRef<THREE.PointLight>(null)
   const nightFactor = useRef(0)
-  const lampTarget = useMemo(() => new THREE.Object3D(), [])
-  const lampIntensity = useRef(0)
   const floorLampIntensity = useRef(0)
 
   const shadows = quality !== 'performance'
@@ -60,8 +56,6 @@ export function LightingSystem() {
       monitorLightRef.current.intensity = env.monitor * 4.4 * flicker
     }
     const k = 1 - Math.exp(-dt * 6)
-    lampIntensity.current += ((lampOn ? 9 : 0) - lampIntensity.current) * k
-    if (lampLightRef.current) lampLightRef.current.intensity = lampIntensity.current
     const autoWarm = 0.6 + env.rgb * 4.5
     floorLampIntensity.current += (autoWarm - floorLampIntensity.current) * k
     if (floorLampRef.current) floorLampRef.current.intensity = floorLampIntensity.current
@@ -104,17 +98,6 @@ export function LightingSystem() {
         decay={2}
       />
       <pointLight ref={monitorLightRef} position={[1.2, 1.75, -2.85]} distance={5.5} decay={2} color="#7ab8ff" />
-      <primitive object={lampTarget} position={[1.1, 1.05, -3.2]} />
-      <spotLight
-        ref={lampLightRef}
-        target={lampTarget}
-        position={[-0.05, 1.72, -3.78]}
-        angle={0.7}
-        penumbra={0.65}
-        distance={7}
-        decay={2}
-        color="#ffd9a0"
-      />
       <pointLight
         ref={floorLampRef}
         position={[3.95, 1.62, 0.9]}

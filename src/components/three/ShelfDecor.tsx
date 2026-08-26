@@ -143,18 +143,6 @@ function Plant() {
   )
 }
 
-function MugInteraction() {
-  const cycleKeyboard = useUiStore((s) => s.cycleKeyboard)
-  return (
-    <Interactable id="mug" label="Coffee — essential developer fuel" onActivate={cycleKeyboard}>
-      {/* Hitbox follows the mug's new position on the desk left of the keyboard */}
-      <mesh position={[0.05, 1.08, -3.32]} visible={false}>
-        <cylinderGeometry args={[0.09, 0.09, 0.16, 8]} />
-      </mesh>
-    </Interactable>
-  )
-}
-
 export function ShelfDecor() {
   return (
     <group>
@@ -162,7 +150,6 @@ export function ShelfDecor() {
       <Posters />
       <SocialBoard />
       <Plant />
-      <MugInteraction />
       <ShelfCharacters />
     </group>
   )

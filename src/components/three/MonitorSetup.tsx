@@ -37,7 +37,9 @@ export function MonitorSetup() {
   )
 
   return (
-    <group position={[1.2, 1.005, -3.68]}>
+    // Move the complete monitor assembly, including its hitbox and screen,
+    // 0.12 units toward the window.
+    <group position={[1.2, 1.005, -3.80]}>
       <Interactable id="monitor" label="Monitor — click to change the scene" focusable>
         <mesh position={[0, 0.02, 0.1]} castShadow material={standMaterial}>
           <cylinderGeometry args={[0.17, 0.2, 0.04, 24]} />
