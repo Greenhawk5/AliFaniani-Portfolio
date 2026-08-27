@@ -49,7 +49,7 @@ function DeskAccessories() {
 
       {/* Jet collectible replaces only the workstation desk plant. The asset
           loader measures its transformed bounds and rests the base at y=1.0. */}
-      <WorkstationAsset file="/models/workstation/jet_the_hawk.glb" position={[2.2, 1, -3.95]} size={0.36} rotation={[0, -0.55, 0]} />
+      <WorkstationAsset file="/models/workstation/jet_the_hawk.glb" position={[2.36, 1, -3.95]} size={0.36} rotation={[0, -0.55, 0]} />
     </group>
   )
 }

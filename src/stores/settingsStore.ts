@@ -5,14 +5,17 @@ import { STORAGE_KEYS } from '@/app/config'
 export type Quality = 'high' | 'medium' | 'performance'
 export type MotionMode = 'full' | 'reduced'
 export type TimezoneMode = 'local' | 'utc'
+export type CameraMode = 'default' | 'free'
 
 interface SettingsState {
   quality: Quality
   motion: MotionMode
   timezoneMode: TimezoneMode
+  cameraMode: CameraMode
   setQuality: (quality: Quality) => void
   setMotion: (motion: MotionMode) => void
   setTimezoneMode: (timezoneMode: TimezoneMode) => void
+  setCameraMode: (cameraMode: CameraMode) => void
   reset: () => void
 }
 
@@ -39,14 +42,17 @@ export const useSettingsStore = create<SettingsState>()(
       quality: detectDefaultQuality(),
       motion: detectDefaultMotion(),
       timezoneMode: 'local',
+      cameraMode: 'default',
       setQuality: (quality) => set({ quality }),
       setMotion: (motion) => set({ motion }),
       setTimezoneMode: (timezoneMode) => set({ timezoneMode }),
+      setCameraMode: (cameraMode) => set({ cameraMode }),
       reset: () =>
         set({
           quality: detectDefaultQuality(),
           motion: detectDefaultMotion(),
           timezoneMode: 'local',
+          cameraMode: 'default',
         }),
     }),
     {
@@ -55,6 +61,7 @@ export const useSettingsStore = create<SettingsState>()(
         quality: s.quality,
         motion: s.motion,
         timezoneMode: s.timezoneMode,
+        cameraMode: s.cameraMode,
       }),
     }
   )

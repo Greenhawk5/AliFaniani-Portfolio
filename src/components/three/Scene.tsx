@@ -4,11 +4,13 @@ import { useSettingsStore } from '@/stores/settingsStore'
 import { useUiStore } from '@/stores/uiStore'
 import { TimeDriver } from './TimeDriver'
 import { CameraRig } from './CameraRig'
+import { FreeCamRig } from './FreeCamRig'
 import { Experience } from './Experience'
 import { Effects } from './Effects'
 
 export default function Scene() {
   const quality = useSettingsStore((s) => s.quality)
+  const cameraMode = useSettingsStore((s) => s.cameraMode)
 
   return (
     <Canvas
@@ -35,6 +37,7 @@ export default function Scene() {
     >
       <TimeDriver />
       <CameraRig />
+      {cameraMode === 'free' && <FreeCamRig />}
       <Experience />
       {quality === 'high' && <Effects />}
     </Canvas>

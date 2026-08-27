@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { createPortal } from 'react-dom'
-import { useSettingsStore, type Quality, type MotionMode, type TimezoneMode } from '@/stores/settingsStore'
+import { useSettingsStore, type Quality, type MotionMode, type TimezoneMode, type CameraMode } from '@/stores/settingsStore'
 import { useTimeStore } from '@/stores/timeStore'
 import { useUiStore } from '@/stores/uiStore'
 import { useClockText } from '@/hooks/useClockText'
@@ -50,6 +50,9 @@ export function SettingsPanel() {
   const setQuality = useSettingsStore((s) => s.setQuality)
   const setMotion = useSettingsStore((s) => s.setMotion)
   const setTimezoneMode = useSettingsStore((s) => s.setTimezoneMode)
+  const cameraMode = useSettingsStore((s) => s.cameraMode)
+  const setCameraMode = useSettingsStore((s) => s.setCameraMode)
+
   const reset = useSettingsStore((s) => s.reset)
 
   const timeMode = useTimeStore((s) => s.mode)
@@ -189,6 +192,25 @@ export function SettingsPanel() {
                 <p className="text-[11px] leading-relaxed text-mist/70">
                   Reduced motion disables camera parallax and ambient animation for a calmer
                   experience.
+                </p>
+              </section>
+
+<section className="space-y-2.5">
+                <h3 className="font-mono text-[11px] tracking-[0.2em] text-mist uppercase">
+                  Camera
+                </h3>
+                <Segmented<CameraMode>
+                  ariaLabel="Camera mode"
+                  value={cameraMode}
+                  onChange={setCameraMode}
+                  options={[
+                    { value: 'default', label: 'Default', hint: 'Cinematic guided camera' },
+                    { value: 'free', label: 'Free Cam', hint: 'Explore the room manually' },
+                  ]}
+                />
+                <p className="text-[11px] leading-relaxed text-mist/70">
+                  Free Cam swaps the cinematic camera for manual exploration: drag to look,
+                  WASD to move, Q/E for down and up, Shift to speed up.
                 </p>
               </section>
             </div>

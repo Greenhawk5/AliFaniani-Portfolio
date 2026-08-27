@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import type { ThreeEvent } from '@react-three/fiber'
+import { useSettingsStore } from '@/stores/settingsStore'
 import { useUiStore, type FocusTarget } from '@/stores/uiStore'
 
 const FOCUSABLE: ReadonlySet<string> = new Set([
@@ -22,6 +23,7 @@ export function Interactable({ id, label, focusable, onActivate, children }: Int
   const setHoveredLabel = useUiStore((s) => s.setHoveredLabel)
   const setFocus = useUiStore((s) => s.setFocus)
   const focus = useUiStore((s) => s.focus)
+  const cameraMode = useSettingsStore((s) => s.cameraMode)
 
   const onOver = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation()
@@ -37,6 +39,13 @@ export function Interactable({ id, label, focusable, onActivate, children }: Int
 
   const onClick = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation()
+    // Cinematic focus transitions are a Default-camera feature. In Free Cam
+    // the user owns the camera, so prop interactions (like the PC RGB toggle)
+    // keep working but nothing is allowed to move the view.
+    if (cameraMode === 'free') {
+      onActivate?.()
+      return
+    }
     // While already focused on this object, clicks belong to the focused
     // content (e.g. board slides) — don't re-trigger the focus transition.
     if (focusable && FOCUSABLE.has(id) && focus !== id) setFocus(id as FocusTarget)
