@@ -20,7 +20,6 @@ export function ProjectBoard() {
     const slides: BoardSlide[] = featuredProjects().map((p) => ({
       title: p.title,
       tagline: p.subtitle,
-      banner: p.banner,
       tags: p.technologies.slice(0, 5),
       accent: '#39ff8b',
       accent2: '#37d5ff',

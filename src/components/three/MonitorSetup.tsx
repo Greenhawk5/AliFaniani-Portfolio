@@ -6,6 +6,7 @@ import { createMonitorRenderer } from '@/three/screens/monitorScreen'
 import { env } from '@/three/env'
 import { Interactable } from './Interactable'
 import { useSettingsStore } from '@/stores/settingsStore'
+import { MONITOR } from './monitorConfig'
 
 export function MonitorSetup() {
   const quality = useSettingsStore((s) => s.quality)
@@ -37,9 +38,8 @@ export function MonitorSetup() {
   )
 
   return (
-    // Move the complete monitor assembly, including its hitbox and screen,
-    // 0.12 units toward the window.
-    <group position={[1.2, 1.005, -3.80]}>
+    // Assembly position, size and tilt are tuned via MONITOR in monitorConfig.ts.
+    <group position={MONITOR.position} scale={MONITOR.size}>
       <Interactable id="monitor" label="Monitor — click to change the scene" focusable>
         <mesh position={[0, 0.02, 0.1]} castShadow material={standMaterial}>
           <cylinderGeometry args={[0.17, 0.2, 0.04, 24]} />
@@ -48,7 +48,7 @@ export function MonitorSetup() {
           <boxGeometry args={[0.07, 0.4, 0.05]} />
         </mesh>
 
-        <group position={[0, 0.78, 0.02]} rotation={[-0.04, 0, 0]}>
+        <group position={[0, 0.78, 0.02]} rotation={[MONITOR.tilt, 0, 0]}>
           <RoundedBox args={[1.82, 1.08, 0.06]} radius={0.02} smoothness={2} castShadow material={standMaterial} />
           <mesh position={[0, 0, 0.033]}>
             <planeGeometry args={[1.72, 0.98]} />

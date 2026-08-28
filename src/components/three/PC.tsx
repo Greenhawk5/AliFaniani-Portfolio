@@ -23,7 +23,7 @@ export function PC() {
     <Interactable id="pc" label="PC — click to toggle RGB" onActivate={toggleRgb}>
       <WorkstationAsset
         file="/models/workstation/pc.glb"
-        position={[2.6, 1.44, -3.52]}
+        position={[2.6, 1.38, -3.72]}
         size={0.8}
         rotation={[0, 0, 0]}
       />

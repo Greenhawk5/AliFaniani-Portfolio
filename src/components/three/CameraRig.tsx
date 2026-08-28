@@ -5,16 +5,22 @@ import gsap from 'gsap'
 import { useSettingsStore } from '@/stores/settingsStore'
 import { useUiStore, type FocusTarget } from '@/stores/uiStore'
 import { useIsTouch } from '@/hooks/useMediaQuery'
+import { MONITOR } from './monitorConfig'
 
 const BASE_POS = new THREE.Vector3(6.9, 4.5, 7.9)
 const BASE_TARGET = new THREE.Vector3(0.5, 1.55, -0.7)
 const INTRO_POS = new THREE.Vector3(14.5, 9, 15)
 const _dir = new THREE.Vector3()
 
+// The monitor focus preset derives from the monitor's tuning config
+// (monitorConfig.ts) so it follows any position/size tweaks. Offsets are
+// scaled by MONITOR.size and reproduce the original hand-tuned values
+// (pos 1.2, 2.05, -1.35 / target 1.2, 1.6, -3.55) at the defaults.
+const _ms = MONITOR.size
 export const FOCUS_PRESETS: Record<FocusTarget, { pos: THREE.Vector3; target: THREE.Vector3 }> = {
   monitor: {
-    pos: new THREE.Vector3(1.2, 2.05, -1.35),
-    target: new THREE.Vector3(1.2, 1.6, -3.55),
+    pos: new THREE.Vector3(MONITOR.position[0], MONITOR.position[1] + 1.045 * _ms, MONITOR.position[2] + 2.45 * _ms),
+    target: new THREE.Vector3(MONITOR.position[0], MONITOR.position[1] + 0.595 * _ms, MONITOR.position[2] + 0.25 * _ms),
   },
   clock: {
     pos: new THREE.Vector3(3.6, 3.05, 0.7),

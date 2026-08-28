@@ -1,7 +1,6 @@
 export interface BoardSlide {
   title: string
   tagline: string
-  banner: string
   tags: string[]
   accent: string
   accent2: string
@@ -33,14 +32,25 @@ export function createBoardRenderer(slides: BoardSlide[]): BoardRenderer {
   let activeIndex = 0
   let transitionStart = -1
   let lastDrawn = -1
-  const bannerImages = slides.map((slide) => {
-    const image = new Image()
-    image.onload = () => {
-      lastDrawn = -1
-    }
-    image.src = slide.banner
-    return image
-  })
+
+  /**
+   * Minimal neon project identifier — the abbreviation is the only content in
+   * the banner area: large, bold, centered, with a single soft green glow.
+   */
+  function drawInitialPanel(slide: BoardSlide) {
+    ctx.font = 'bold 124px "JetBrains Mono", monospace'
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    const cx = 600 + 376 / 2
+    const cy = 300 + 258 / 2
+    ctx.shadowColor = `${slide.accent}55`
+    ctx.shadowBlur = 22
+    ctx.fillStyle = slide.accent
+    ctx.fillText(slide.initial, cx, cy)
+    ctx.shadowBlur = 0
+    ctx.textBaseline = 'alphabetic'
+    ctx.textAlign = 'left'
+  }
 
   function drawSlide(slide: BoardSlide) {
     const grad = ctx.createLinearGradient(0, 0, W, H)
@@ -83,31 +93,11 @@ export function createBoardRenderer(slides: BoardSlide[]): BoardRenderer {
     ctx.font = 'bold 58px Inter, sans-serif'
     ctx.fillText(slide.title, 48, 160)
 
-    const banner = bannerImages[activeIndex]
-    if (banner?.complete && banner.naturalWidth > 0) {
-      const panelX = 600
-      const panelY = 320
-      const panelW = 376
-      const panelH = 238
-      ctx.fillStyle = 'rgba(0,0,0,0.35)'
-      ctx.beginPath()
-      ctx.roundRect(panelX - 8, panelY - 8, panelW + 16, panelH + 16, 14)
-      ctx.fill()
-      const scale = Math.max(panelW / banner.naturalWidth, panelH / banner.naturalHeight)
-      const width = banner.naturalWidth * scale
-      const height = banner.naturalHeight * scale
-      ctx.save()
-      ctx.beginPath()
-      ctx.roundRect(panelX, panelY, panelW, panelH, 10)
-      ctx.clip()
-      ctx.drawImage(banner, panelX + (panelW - width) / 2, panelY + (panelH - height) / 2, width, height)
-      ctx.restore()
-      ctx.strokeStyle = `${slide.accent}88`
-      ctx.lineWidth = 2
-      ctx.beginPath()
-      ctx.roundRect(panelX, panelY, panelW, panelH, 10)
-      ctx.stroke()
-    }
+    /**
+     * Minimal neon identifier — the slide's abbreviation is the only visual in
+     * the banner area. Pure 2D canvas drawing, no image assets.
+     */
+    drawInitialPanel(slide)
 
     ctx.fillStyle = '#9aa4b8'
     ctx.font = '28px Inter, sans-serif'

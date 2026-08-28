@@ -1,5 +1,7 @@
+import { useEffect } from 'react'
 import * as THREE from 'three'
 import { Canvas } from '@react-three/fiber'
+import { useProgress } from '@react-three/drei'
 import { useSettingsStore } from '@/stores/settingsStore'
 import { useUiStore } from '@/stores/uiStore'
 import { TimeDriver } from './TimeDriver'
@@ -7,6 +9,27 @@ import { CameraRig } from './CameraRig'
 import { FreeCamRig } from './FreeCamRig'
 import { Experience } from './Experience'
 import { Effects } from './Effects'
+
+/**
+ * Tracks real asset readiness for the Home room. All Home 3D assets (GLB
+ * models, textures, environment HDR) load through three's DefaultLoadingManager
+ * via useGLTF/useTexture/Environment, which drei's useProgress mirrors.
+ * The veil is only released once every tracked item has finished loading —
+ * no timers, no fake progress.
+ */
+function HomeReadiness() {
+  const active = useProgress((s) => s.active)
+  const progress = useProgress((s) => s.progress)
+  const errors = useProgress((s) => s.errors)
+
+  useEffect(() => {
+    if (!active && progress >= 100 && errors.length === 0) {
+      useUiStore.getState().setSceneReady(true)
+    }
+  }, [active, progress, errors])
+
+  return null
+}
 
 export default function Scene() {
   const quality = useSettingsStore((s) => s.quality)
@@ -26,7 +49,6 @@ export default function Scene() {
       }}
       onCreated={({ gl }) => {
         gl.setClearColor('#05060a')
-        useUiStore.getState().setSceneReady(true)
       }}
       onPointerMissed={() => {
         const ui = useUiStore.getState()
@@ -36,6 +58,7 @@ export default function Scene() {
       }}
     >
       <TimeDriver />
+      <HomeReadiness />
       <CameraRig />
       {cameraMode === 'free' && <FreeCamRig />}
       <Experience />

@@ -1,58 +1,20 @@
-import { useMemo } from 'react'
-import * as THREE from 'three'
-import { RoundedBox } from '@react-three/drei'
+import { WorkstationAsset } from './WorkstationAsset'
 
 export function Chair() {
-  const fabric = useMemo(
-    () => new THREE.MeshStandardMaterial({ color: '#141a28', roughness: 0.85, metalness: 0.05 }),
-    []
-  )
-  const plastic = useMemo(
-    () => new THREE.MeshStandardMaterial({ color: '#0e1219', roughness: 0.4, metalness: 0.5 }),
-    []
-  )
-  const accent = useMemo(
-    () => new THREE.MeshStandardMaterial({ color: '#1d5c3c', roughness: 0.6 }),
-    []
-  )
-
+  // "Corsair T3 Rush Gaming Chair" by BlackCube (CC-BY-4.0) — see
+  // src/3D asset/Workstation/Credits/chair.md. Native bounds 0.66 x 1.47 x 0.70
+  // (height the largest span) with the base authored at y=0, so size 1.56 keeps
+  // the old procedural chair's ~1.57 seat-back height with a ~0.70 x 0.75
+  // footprint. The model's backrest is native -Z (front faces +Z), so the Y
+  // rotation of PI turns the seat toward the desk, same as the old build. The
+  // rotated bbox center sits at z -0.052, so position.z is offset +0.055 to
+  // land the same center (1.2, -, -2.42) the old chair occupied.
   return (
-    <group position={[1.2, 0, -2.42]} rotation={[0, Math.PI, 0]}>
-      {[0, 1, 2, 3, 4].map((i) => {
-        const angle = (i / 5) * Math.PI * 2
-        return (
-          <group key={i} rotation={[0, -angle, 0]}>
-            <mesh position={[0.154, 0.06, 0]} castShadow material={plastic}>
-              <boxGeometry args={[0.3, 0.03, 0.07]} />
-            </mesh>
-            <mesh position={[0.22, 0.035, 0]} castShadow material={plastic}>
-              <sphereGeometry args={[0.035, 10, 8]} />
-            </mesh>
-          </group>
-        )
-      })}
-      <mesh position={[0, 0.28, 0]} castShadow material={plastic}>
-        <cylinderGeometry args={[0.03, 0.04, 0.3, 12]} />
-      </mesh>
-      <mesh position={[0, 0.44, 0]} castShadow material={plastic}>
-        <boxGeometry args={[0.12, 0.04, 0.12]} />
-      </mesh>
-
-      <RoundedBox args={[0.62, 0.12, 0.6]} radius={0.04} smoothness={3} position={[0, 0.55, 0]} castShadow receiveShadow material={fabric} />
-      <RoundedBox args={[0.58, 0.88, 0.1]} radius={0.05} smoothness={3} position={[0, 1.05, -0.3]} rotation={[-0.14, 0, 0]} castShadow material={fabric} />
-      <RoundedBox args={[0.58, 0.05, 0.02]} radius={0.01} smoothness={2} position={[0, 1.44, -0.36]} rotation={[-0.14, 0, 0]} material={accent} />
-      <mesh position={[0, 1.52, -0.38]} rotation={[-0.14, 0, 0]} castShadow material={fabric}>
-        <boxGeometry args={[0.4, 0.14, 0.08]} />
-      </mesh>
-
-      {[-0.34, 0.34].map((x) => (
-        <group key={x} position={[x, 0, 0.02]}>
-          <mesh position={[0, 0.68, 0]} castShadow material={plastic}>
-            <boxGeometry args={[0.05, 0.24, 0.05]} />
-          </mesh>
-          <RoundedBox args={[0.09, 0.03, 0.3]} radius={0.012} smoothness={2} position={[0, 0.81, 0.05]} castShadow material={plastic} />
-        </group>
-      ))}
-    </group>
+    <WorkstationAsset
+      file="/models/workstation/chair.glb"
+      position={[1.2, 0, -2.3646]}
+      size={1.8}
+      rotation={[0, Math.PI, 0]}
+    />
   )
 }

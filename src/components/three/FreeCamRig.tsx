@@ -25,7 +25,7 @@ const BLOCKERS: THREE.Box3[] = [
   new THREE.Box3(new THREE.Vector3(-0.5, 0.85, -4.175), new THREE.Vector3(2.9, 1.0, -3.025)), // desk top
   new THREE.Box3(new THREE.Vector3(0.29, 1.0, -3.92), new THREE.Vector3(2.11, 2.15, -3.45)), // monitor assembly
   new THREE.Box3(new THREE.Vector3(2.4, 1.0, -4.01), new THREE.Vector3(2.85, 2.01, -3.07)), // pc tower
-  new THREE.Box3(new THREE.Vector3(0.89, 0.0, -2.72), new THREE.Vector3(1.51, 1.62, -2.12)), // chair
+  new THREE.Box3(new THREE.Vector3(0.85, 0.0, -2.79), new THREE.Vector3(1.55, 1.56, -2.05)), // chair (GLB model)
   new THREE.Box3(new THREE.Vector3(2.7, 0.0, 0.6), new THREE.Vector3(3.65, 1.05, 2.9)), // sofa
   new THREE.Box3(new THREE.Vector3(0.56, 0.0, 1.31), new THREE.Vector3(1.44, 0.47, 2.19)), // coffee table
   new THREE.Box3(new THREE.Vector3(3.7, 0.0, 0.6), new THREE.Vector3(4.2, 1.8, 1.1)), // floor lamp

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useMemo } from 'react'
 import * as THREE from 'three'
 import { useGLTF } from '@react-three/drei'
 import { SkeletonUtils } from 'three-stdlib'
@@ -21,13 +21,21 @@ interface NormalizeOptions {
  * only transform values on the runtime clone are touched.
  */
 function useNormalized(scene: THREE.Object3D, { axis, size, correction, seatOffset = 0 }: NormalizeOptions) {
-  const clone = useMemo(() => SkeletonUtils.clone(scene), [scene])
+  // Normalization runs in useMemo (not useEffect) so it executes while the
+  // clone is still DETACHED. Box3.setFromObject computes world-space bounds,
+  // which multiply in the parent's matrixWorld; measuring before attachment
+  // guarantees an identity parent, making the result deterministic no matter
+  // when the component mounts or re-renders. Measuring in a post-render
+  // effect instead could observe an already-transformed parent and would
+  // "correct" the figure off the shelf (random mid-room placement bug).
+  return useMemo(() => {
+    const clone = SkeletonUtils.clone(scene)
 
-  useEffect(() => {
     clone.scale.set(1, 1, 1)
     clone.position.set(0, 0, 0)
     clone.rotation.set(0, 0, 0)
     if (correction) clone.rotation.set(...correction)
+    clone.updateMatrixWorld(true)
 
     const bbox = new THREE.Box3().setFromObject(clone)
     const dims = bbox.getSize(new THREE.Vector3())
@@ -46,10 +54,19 @@ function useNormalized(scene: THREE.Object3D, { axis, size, correction, seatOffs
         o.receiveShadow = true
       }
     })
-  }, [clone, axis, size, correction, seatOffset])
 
-  return clone
+    return clone
+    // `correction` is a tuple; consumers pass module-level constants so the
+    // identity (and thus the memo) stays stable across re-renders.
+  }, [scene, axis, size, correction, seatOffset])
 }
+
+/**
+ * Corrective rotations live at module scope so their array identity is stable:
+ * they are dependencies of the normalization memo, and a fresh literal each
+ * render would needlessly re-run (and re-create) the clone.
+ */
+const T_FIGURE_CORRECTION = [-Math.PI / 2, 0, 0] as [number, number, number]
 
 /**
  * Seated character perched on the front edge of the shelf's top board.
@@ -66,7 +83,7 @@ function TFigurine() {
   const model = useNormalized(scene, {
     axis: 'y',
     size: 0.3,
-    correction: [-Math.PI / 2, 0, 0],
+    correction: T_FIGURE_CORRECTION,
     seatOffset: 0.25,
   })
   return (

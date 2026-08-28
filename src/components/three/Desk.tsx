@@ -7,14 +7,14 @@ function Keyboard() {
   // Native bounds are approximately 0.45 x 0.04 x 0.14, indicating a
   // conventional Y-up keyboard: x is width, y is thickness, z is depth.
   // Normalize its width to the former 1.0-unit keyboard footprint.
-  return <WorkstationAsset file="/models/workstation/keyboard.glb" position={[5.25, -2.83, -0.3]} size={1} rotation={[0, 0.06, 0]} />
+  return <WorkstationAsset file="/models/workstation/keyboard.glb" position={[4.4, -2.07, -0.9]} size={0.8} rotation={[0, 0.06, 0]} />
 }
 
 function MouseAndPad() {
   // mouse.glb contains both the mouse and its integrated pad. Its native
   // bounds are approximately 2.82 x 0.36 x 2.36, so size 0.52 keeps the
   // complete pad comparable to the keyboard rather than scaling only the mouse.
-  return <WorkstationAsset file="/models/workstation/mouse.glb" position={[1.82, 1.0009, -3.26]} size={0.52} rotation={[0, 0.06, 0]} />
+  return <WorkstationAsset file="/models/workstation/mouse.glb" position={[1.75, 1.0009, -3.3]} size={0.52} rotation={[0, 0.06, 0]} />
 }
 
 function HeadphoneStand() {
@@ -35,7 +35,7 @@ function Headset() {
   // the 1.001 desk-contact height. It rests upright in the free front-left
   // strip between the stand and the mouse pad, angled toward the camera like it
   // was set down after a call.
-  return <WorkstationAsset file="/models/workstation/headset.glb" position={[-0.15, 1.03, -3.2]} size={0.8} rotation={[0, 1.1, 0]} />
+  return <WorkstationAsset file="/models/workstation/headset.glb" position={[-0.16, 1.044, -3.23]} size={0.8} rotation={[0, 1.1, 0]} />
 }
 
 function DeskAccessories() {
@@ -49,7 +49,7 @@ function DeskAccessories() {
 
       {/* Jet collectible replaces only the workstation desk plant. The asset
           loader measures its transformed bounds and rests the base at y=1.0. */}
-      <WorkstationAsset file="/models/workstation/jet_the_hawk.glb" position={[2.36, 1, -3.95]} size={0.36} rotation={[0, -0.55, 0]} />
+      <WorkstationAsset file="/models/workstation/jet_the_hawk.glb" position={[2.2, 1, -3.95]} size={0.36} rotation={[0, -0.55, 0]} />
     </group>
   )
 }
