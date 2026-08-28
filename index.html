@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#05060a" />
     <title>Ali Faniani — Software Developer</title>
+    <link rel="canonical" href="https://alifaniani.ir/" />
     <meta
       name="description"
       content="Ali Faniani is a computer science graduate and software developer focused on Artificial Intelligence, backend development, web applications, and automation."
@@ -19,11 +20,23 @@
     />
     <meta property="og:url" content="https://alifaniani.ir/" />
     <meta property="og:site_name" content="Ali Faniani Portfolio" />
+    <meta property="og:image" content="https://alifaniani.ir/og-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Ali Faniani — Software Developer. Portfolio covering AI, backend, web development and automation, presented as an interactive 3D developer room."
+    />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Ali Faniani — Software Developer" />
     <meta
       name="twitter:description"
-      content="An interactive 3D developer room. Portfolio of Ali Faniani."
+      content="Portfolio of Ali Faniani — computer science graduate and software developer focused on AI, backend, web development, and automation."
+    />
+    <meta name="twitter:image" content="https://alifaniani.ir/og-image.jpg" />
+    <meta
+      name="twitter:image:alt"
+      content="Ali Faniani — Software Developer. Portfolio covering AI, backend, web development and automation."
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -34,17 +47,77 @@
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "Person",
-        "name": "Ali Faniani",
-        "url": "https://alifaniani.ir/",
-        "jobTitle": "Software Developer",
-        "description": "Computer science graduate and software developer focused on AI, backend, web development, and automation.",
-        "knowsAbout": ["React", "TypeScript", "Three.js", "WebGL", "Cloudflare", "AI"]
+        "@graph": [
+          {
+            "@type": "Person",
+            "@id": "https://alifaniani.ir/#person",
+            "name": "Ali Faniani",
+            "url": "https://alifaniani.ir/",
+            "email": "mailto:ali.faniani@gmail.com",
+            "jobTitle": "Software Developer",
+            "description": "Computer science graduate and software developer focused on AI, backend, web development, and automation.",
+            "knowsAbout": [
+              "Python",
+              "FastAPI",
+              "PyTorch",
+              "OpenCV",
+              "Computer Vision",
+              "Deep Learning",
+              "React",
+              "TypeScript",
+              "Three.js",
+              "WebGL",
+              "Cloudflare",
+              "Automation"
+            ],
+            "sameAs": [
+              "https://github.com/Greenhawk5",
+              "https://www.linkedin.com/in/ali-faniani",
+              "https://t.me/HawkProjects",
+              "https://huggingface.co/Greenhawk5"
+            ]
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://alifaniani.ir/#website",
+            "url": "https://alifaniani.ir/",
+            "name": "Ali Faniani — Portfolio",
+            "inLanguage": "en",
+            "publisher": { "@id": "https://alifaniani.ir/#person" }
+          }
+        ]
       }
     </script>
   </head>
   <body>
     <div id="root"></div>
+    <noscript>
+      <div
+        style="min-height: 100dvh; background: #05060a; color: #e8ecf4; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; padding: 40px 20px;"
+      >
+        <div style="max-width: 560px;">
+          <p style="margin: 0 0 8px; font-size: 12px; letter-spacing: 0.25em; color: #39ff8b; text-transform: uppercase;">Portfolio</p>
+          <h1 style="margin: 0 0 12px; font-size: 32px; line-height: 1.2;">Ali Faniani — Software Developer</h1>
+          <p style="margin: 0 0 20px; line-height: 1.6; color: #b6bdcf;">
+            Computer science graduate and software developer building practical software
+            systems across Artificial Intelligence, backend engineering, web
+            applications, and automation.
+          </p>
+          <p style="margin: 0 0 8px; font-size: 12px; letter-spacing: 0.2em; color: #8b93a7; text-transform: uppercase;">Explore</p>
+          <p style="margin: 0 0 20px;">
+            <a href="/about" style="color: #39ff8b;">About</a> ·
+            <a href="/projects" style="color: #39ff8b;">Projects</a> ·
+            <a href="/contact" style="color: #39ff8b;">Contact</a>
+          </p>
+          <p style="margin: 0 0 8px; font-size: 12px; letter-spacing: 0.2em; color: #8b93a7; text-transform: uppercase;">Selected projects</p>
+          <ul style="margin: 0; padding-left: 18px; line-height: 1.9;">
+            <li><a href="/projects/greenhawk-ai" style="color: #e8ecf4;">GreenHawk AI</a> — AI image colorization</li>
+            <li><a href="/projects/hawkbucks" style="color: #e8ecf4;">HawkBucks</a> — V-Bucks mission tracker</li>
+            <li><a href="/projects/hawkbucks-bot" style="color: #e8ecf4;">HawkBucks Bot</a> — Telegram automation</li>
+          </ul>
+        </div>
+      </div>
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

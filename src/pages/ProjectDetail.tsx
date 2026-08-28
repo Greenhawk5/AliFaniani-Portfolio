@@ -15,6 +15,8 @@ import {
   GitHubIcon,
 } from '@/components/ui/icons'
 import { getAdjacentProjects, getProjectBySlug, type BannerConfig } from '@/data/projects'
+import { SITE } from '@/app/config'
+import { useJsonLd } from '@/hooks/useJsonLd'
 
 /**
  * Full-bleed banner presentation using controlled cropping (object-cover).
@@ -57,9 +59,29 @@ export default function ProjectDetail() {
   const { prev, next } = getAdjacentProjects(slug ?? '')
 
   useDocumentMeta({
-    title: project ? project.title : 'Project not found',
-    description: project?.shortDescription ?? 'Project details',
+    title: project ? `${project.title} — Ali Faniani` : 'Page Not Found — Ali Faniani',
+    description: project?.shortDescription ?? 'This project does not exist.',
+    noindex: !project,
   })
+
+  useJsonLd(
+    'project-detail',
+    project
+      ? {
+          '@context': 'https://schema.org',
+          '@type': 'CreativeWork',
+          '@id': `${SITE.url}/projects/${project.slug}#project`,
+          url: `${SITE.url}/projects/${project.slug}`,
+          name: project.title,
+          headline: project.subtitle,
+          description: project.overview,
+          genre: project.category,
+          keywords: project.technologies.join(', '),
+          dateCreated: String(project.year),
+          author: { '@id': `${SITE.url}/#person` },
+        }
+      : null
+  )
 
   if (!project) {
     return (

@@ -27,7 +27,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['functions/**/*.ts'],
+    files: ['functions/**/*.{js,ts}'],
     languageOptions: {
       globals: globals.worker,
     },

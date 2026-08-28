@@ -51,7 +51,7 @@ export function HomeOverlay() {
             initial={{ opacity: 0, y: -12 }}
             animate={{ opacity: 1, y: 0, transition: { delay: 1.2, duration: 0.6 } }}
             exit={{ opacity: 0, y: -8 }}
-            className="absolute top-[4.75rem] left-1/2 flex max-w-[92vw] -translate-x-1/2 items-center gap-2.5 rounded-full border border-edge-2 bg-panel/80 py-1.5 pr-2 pl-4 backdrop-blur-md md:hidden"
+            className="absolute top-[7.5rem] left-1/2 flex max-w-[92vw] -translate-x-1/2 items-center gap-2.5 rounded-full border border-edge-2 bg-panel/80 py-1.5 pr-2 pl-4 backdrop-blur-md md:hidden"
           >
             <SparkleIcon className="h-3.5 w-3.5 shrink-0 text-accent" />
             <p className="text-xs whitespace-nowrap text-frost/90">

@@ -42,7 +42,7 @@ function validate(data: ContactFormData): FormErrors {
 
 export default function Contact() {
   useDocumentMeta({
-    title: 'Contact',
+    title: 'Contact Ali Faniani — Software Developer',
     description: `Contact Ali Faniani — ${SITE.availability}.`,
   })
 

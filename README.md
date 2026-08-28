@@ -60,5 +60,8 @@ and ambient animation.
 
 ## Adding a Project
 
-Add an entry to `src/data/projects.ts` — the Projects page, detail pages, sitemap
-entries and the 3D showcase board all derive from that single data source.
+Add an entry to `src/data/projects.ts` — the Projects page, detail pages and the 3D showcase board all derive from that single data source.
+
+`npm run build` regenerates `public/sitemap.xml` from that same file (`scripts/generate-sitemap.mjs`), so the sitemap can never drift from the real routes.
+
+One manual copy of the valid project slugs remains in `functions/_middleware.js` (`PROJECT_SLUGS`) — the Cloudflare Pages middleware uses it to serve real HTTP 404s for unknown routes and to redirect trailing slashes / uppercase paths. Update that list when adding, renaming or removing a project.

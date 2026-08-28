@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/Button'
 
 export default function NotFound() {
   useDocumentMeta({
-    title: 'Page not found',
-    description: 'This page does not exist.',
+    title: 'Page Not Found — Ali Faniani',
+    description: 'The page you are looking for does not exist.',
+    noindex: true,
   })
 
   return (
