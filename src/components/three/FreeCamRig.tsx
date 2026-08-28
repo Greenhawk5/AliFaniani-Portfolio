@@ -113,6 +113,14 @@ export function FreeCamRig() {
     dragDistance: 0,
     suppressClick: false,
     capturedPointerId: null as number | null,
+    // Touch movement: a drag starting in the left zone acts as a virtual
+    // joystick (delta from the touch-start point = move direction); drags
+    // elsewhere look around, exactly like the mouse path. Desktop is untouched.
+    movePointerId: null as number | null,
+    moveStartX: 0,
+    moveStartY: 0,
+    moveX: 0, // -1..1 strafe
+    moveY: 0, // -1..1 forward (+ = forward)
   })
 
   useEffect(() => {
@@ -142,6 +150,16 @@ export function FreeCamRig() {
 
     const onPointerDown = (e: PointerEvent) => {
       if (e.button !== 0 || s.dragging) return
+      // Touch left-zone drag = move; everything else keeps the look-drag path.
+      if (e.pointerType === 'touch' && e.clientX < el.clientWidth * 0.45) {
+        if (s.movePointerId !== null) return
+        s.movePointerId = e.pointerId
+        s.moveStartX = e.clientX
+        s.moveStartY = e.clientY
+        s.moveX = 0
+        s.moveY = 0
+        return
+      }
       s.dragging = true
       s.lastX = e.clientX
       s.lastY = e.clientY
@@ -152,6 +170,17 @@ export function FreeCamRig() {
       el.style.cursor = 'grabbing'
     }
     const onPointerMove = (e: PointerEvent) => {
+      if (e.pointerId === s.movePointerId) {
+        // Virtual joystick: offset from the start point, clamped to a 56px
+        // radius so the response is proportional but saturates like a stick.
+        const dx = e.clientX - s.moveStartX
+        const dy = e.clientY - s.moveStartY
+        const len = Math.hypot(dx, dy)
+        const k = len > 56 ? 56 / len : 1
+        s.moveX = (dx * k) / 56
+        s.moveY = (-dy * k) / 56
+        return
+      }
       if (!s.dragging) return
       const dx = e.clientX - s.lastX
       const dy = e.clientY - s.lastY
@@ -166,6 +195,12 @@ export function FreeCamRig() {
       )
     }
     const onPointerUp = (e: PointerEvent) => {
+      if (e.pointerId === s.movePointerId) {
+        s.movePointerId = null
+        s.moveX = 0
+        s.moveY = 0
+        return
+      }
       if (!s.dragging) return
       s.dragging = false
       // Only the synthetic click immediately following a real look-drag on the
@@ -237,6 +272,9 @@ export function FreeCamRig() {
       s.velocity.set(0, 0, 0)
       s.dragging = false
       s.suppressClick = false
+      s.movePointerId = null
+      s.moveX = 0
+      s.moveY = 0
     }
   }, [camera, gl, setFocus, setHoveredLabel])
 
@@ -249,8 +287,8 @@ export function FreeCamRig() {
     s.yaw = THREE.MathUtils.damp(s.yaw, s.yawTarget, ROTATE_DAMP, dt)
     s.pitch = THREE.MathUtils.damp(s.pitch, s.pitchTarget, ROTATE_DAMP, dt)
 
-    const f = (s.keys.has('w') ? 1 : 0) - (s.keys.has('s') ? 1 : 0)
-    const r = (s.keys.has('d') ? 1 : 0) - (s.keys.has('a') ? 1 : 0)
+    const f = (s.keys.has('w') ? 1 : 0) - (s.keys.has('s') ? 1 : 0) + s.moveY
+    const r = (s.keys.has('d') ? 1 : 0) - (s.keys.has('a') ? 1 : 0) + s.moveX
     const u = (s.keys.has('e') ? 1 : 0) - (s.keys.has('q') ? 1 : 0)
     const speed = MOVE_SPEED * (s.keys.has('shift') ? SPRINT_MULTIPLIER : 1)
     const cosPitch = Math.cos(s.pitch)

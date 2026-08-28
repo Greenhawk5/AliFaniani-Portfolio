@@ -1,9 +1,11 @@
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useUiStore, type FocusTarget } from '@/stores/uiStore'
 import { useTimeStore } from '@/stores/timeStore'
 import { useSettingsStore } from '@/stores/settingsStore'
 import { useClockText } from '@/hooks/useClockText'
 import { timeOfDayLabel } from '@/lib/timeController'
+import { useIsTouch } from '@/hooks/useMediaQuery'
 import {
   ClockIcon,
   CloseIcon,
@@ -22,6 +24,7 @@ const FOCUS_TITLES: Record<string, string> = {
 const BOARD_NAV_TARGETS: ReadonlySet<FocusTarget> = new Set(['projectBoard', 'socialBoard'])
 
 export function HomeOverlay() {
+  const [deviceNoteVisible, setDeviceNoteVisible] = useState(true)
   const hintVisible = useUiStore((s) => s.hintVisible)
   const dismissHint = useUiStore((s) => s.dismissHint)
   const hoveredLabel = useUiStore((s) => s.hoveredLabel)
@@ -36,9 +39,35 @@ export function HomeOverlay() {
   const setMode = useTimeStore((s) => s.setMode)
   const { clock } = useClockText()
   const timezoneMode = useSettingsStore((s) => s.timezoneMode)
+  const isTouch = useIsTouch()
+  const verb = isTouch ? 'Tap' : 'click'
 
   return (
     <div className="pointer-events-none absolute inset-0 z-10">
+      <AnimatePresence>
+        {deviceNoteVisible && (
+          <motion.div
+            key="device-note"
+            initial={{ opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0, transition: { delay: 1.2, duration: 0.6 } }}
+            exit={{ opacity: 0, y: -8 }}
+            className="absolute top-[4.75rem] left-1/2 flex max-w-[92vw] -translate-x-1/2 items-center gap-2.5 rounded-full border border-edge-2 bg-panel/80 py-1.5 pr-2 pl-4 backdrop-blur-md md:hidden"
+          >
+            <SparkleIcon className="h-3.5 w-3.5 shrink-0 text-accent" />
+            <p className="text-xs whitespace-nowrap text-frost/90">
+              For a better 3D room experience, use a{' '}
+              <span className="text-accent">laptop or PC</span>
+            </p>
+            <button
+              onClick={() => setDeviceNoteVisible(false)}
+              aria-label="Dismiss device note"
+              className="pointer-events-auto ml-1 rounded-full p-1 text-mist transition-colors hover:text-frost cursor-pointer"
+            >
+              <CloseIcon className="h-3.5 w-3.5" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <AnimatePresence>
         {hintVisible && !focus && timeMode !== 'simulation' && (
           <motion.div
@@ -46,11 +75,11 @@ export function HomeOverlay() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0, transition: { delay: 2.6, duration: 0.6 } }}
             exit={{ opacity: 0, y: 10 }}
-            className="absolute bottom-5 left-1/2 flex max-w-[92vw] -translate-x-1/2 items-center gap-2.5 rounded-2xl border border-edge-2 bg-panel/80 py-2 pr-2.5 pl-4 backdrop-blur-md sm:rounded-full"
+            className="absolute bottom-[max(1.25rem,env(safe-area-inset-bottom))] left-1/2 flex max-w-[92vw] -translate-x-1/2 items-center gap-2.5 rounded-2xl border border-edge-2 bg-panel/80 py-2 pr-2.5 pl-4 backdrop-blur-md sm:rounded-full"
           >
             <SparkleIcon className="h-3.5 w-3.5 shrink-0 text-accent" />
             <p className="text-xs leading-relaxed text-frost/90">
-              Explore the room — click the <span className="text-accent">board</span>,{' '}
+              Explore the room — {verb} the <span className="text-accent">board</span>,{' '}
               <span className="text-accent">monitor</span>, <span className="text-accent">clock</span>{' '}
               or <span className="text-accent">PC</span>
             </p>
@@ -87,9 +116,9 @@ export function HomeOverlay() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 16 }}
-            className="pointer-events-auto absolute bottom-5 left-1/2 flex -translate-x-1/2 items-center gap-3 rounded-full border border-edge-2 bg-panel/85 py-2 pr-2 pl-5 backdrop-blur-md"
+            className="pointer-events-auto absolute bottom-[max(1.25rem,env(safe-area-inset-bottom))] left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full border border-edge-2 bg-panel/85 py-2 pr-1.5 pl-4 backdrop-blur-md sm:gap-3 sm:pr-2 sm:pl-5"
           >
-            <p className="text-xs text-frost/90">
+            <p className="text-xs whitespace-nowrap text-frost/90">
               <span className="font-mono text-accent">{FOCUS_TITLES[focus] ?? focus}</span>
               <span className="ml-2 hidden text-mist sm:inline">press ESC to exit</span>
             </p>

@@ -12,6 +12,34 @@ const BASE_TARGET = new THREE.Vector3(0.5, 1.55, -0.7)
 const INTRO_POS = new THREE.Vector3(14.5, 9, 15)
 const _dir = new THREE.Vector3()
 
+// ---------------------------------------------------------------------------
+// Centralized responsive framing.
+//
+// The desktop presets are tuned at a ~1.6 landscape aspect with a 42° vertical
+// FOV. Narrower viewports (tablet portrait, phones) would otherwise crop the
+// composition horizontally. Instead of scattering media-query magic numbers,
+// both knobs derive from one rule:
+//   - FOV widens with a sub-linear power curve (capped, so the lens never
+//     becomes fisheye) — keeps vertical context generous on tall screens.
+//   - The camera dollies out along its existing target->pos vector by
+//     sqrt(REF_ASPECT / aspect) (capped) — the sqrt pairs with the FOV curve
+//     so focused subjects keep their horizontal fit instead of being cropped
+//     or blown up. Desktop (aspect >= REF_ASPECT) is completely untouched.
+// Both values are continuous in aspect, so resizes never jitter.
+// ---------------------------------------------------------------------------
+const BASE_FOV = 42
+export const REF_ASPECT = 1.6
+const MAX_FOV = 58
+const MAX_DOLLY = 2
+
+export function responsiveFraming(aspect: number): { fov: number; dolly: number } {
+  if (aspect >= REF_ASPECT) return { fov: BASE_FOV, dolly: 1 }
+  return {
+    fov: Math.min(MAX_FOV, BASE_FOV * Math.pow(REF_ASPECT / aspect, 0.55)),
+    dolly: Math.min(MAX_DOLLY, Math.sqrt(REF_ASPECT / aspect)),
+  }
+}
+
 // The monitor focus preset derives from the monitor's tuning config
 // (monitorConfig.ts) so it follows any position/size tweaks. Offsets are
 // scaled by MONITOR.size and reproduce the original hand-tuned values
@@ -161,12 +189,19 @@ export function CameraRig() {
     offset.current.y += (targetY - offset.current.y) * k
 
     const aspect = size.width / size.height
-    const zoomOut = aspect < 1.3 ? 1 + (1.3 - aspect) * 0.6 : 1
+    const { fov, dolly } = responsiveFraming(aspect)
+    const persp = camera as THREE.PerspectiveCamera
+    // Only touch the projection when the (continuous) value actually moved,
+    // so orientation changes don't cause per-frame matrix rebuilds or jitter.
+    if (Math.abs(persp.fov - fov) > 0.01) {
+      persp.fov = fov
+      persp.updateProjectionMatrix()
+    }
 
     camera.position.set(
-      BASE_TARGET.x + (anchor.current.x - BASE_TARGET.x) * zoomOut + offset.current.x,
-      BASE_TARGET.y + (anchor.current.y - BASE_TARGET.y) * zoomOut + offset.current.y * 0.6,
-      BASE_TARGET.z + (anchor.current.z - BASE_TARGET.z) * zoomOut
+      BASE_TARGET.x + (anchor.current.x - BASE_TARGET.x) * dolly + offset.current.x,
+      BASE_TARGET.y + (anchor.current.y - BASE_TARGET.y) * dolly + offset.current.y * 0.6,
+      BASE_TARGET.z + (anchor.current.z - BASE_TARGET.z) * dolly
     )
     camera.lookAt(look.current)
   })
