@@ -76,7 +76,7 @@ export function Navbar() {
               onClick={toggleSettings}
               aria-label="Open settings"
               className={cn(
-                'ml-2 rounded-lg p-2 transition-all hover:bg-panel-2 hover:text-accent cursor-pointer',
+                'relative ml-2 rounded-lg p-2 transition-all hover:bg-panel-2 hover:text-accent cursor-pointer before:absolute before:-inset-1.5 before:rounded-lg before:content-[""]',
                 settingsOpen ? 'text-accent' : 'text-mist'
               )}
             >
@@ -90,7 +90,7 @@ export function Navbar() {
             <button
               onClick={toggleSettings}
               aria-label="Open settings"
-              className="rounded-lg p-2 text-mist transition-colors hover:bg-panel-2 hover:text-accent cursor-pointer"
+              className="relative rounded-lg p-2 text-mist transition-colors hover:bg-panel-2 hover:text-accent cursor-pointer before:absolute before:-inset-1.5 before:rounded-lg before:content-['']"
             >
               <GearIcon className="h-5 w-5" />
             </button>
@@ -99,7 +99,7 @@ export function Navbar() {
             onClick={() => setMenuOpen((o) => !o)}
             aria-label={menuOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={menuOpen}
-            className="rounded-lg p-2 text-mist transition-colors hover:bg-panel-2 hover:text-frost cursor-pointer"
+            className="relative rounded-lg p-2 text-mist transition-colors hover:bg-panel-2 hover:text-frost cursor-pointer before:absolute before:-inset-1.5 before:rounded-lg before:content-['']"
           >
             {menuOpen ? <CloseIcon className="h-5 w-5" /> : <MenuIcon className="h-5 w-5" />}
           </button>
@@ -124,7 +124,7 @@ export function Navbar() {
                   onClick={() => setMenuOpen(false)}
                   className={({ isActive }) =>
                     cn(
-                      'rounded-lg px-3.5 py-2.5 text-sm transition-colors',
+                      'rounded-lg px-3.5 py-3 text-sm transition-colors',
                       isActive ? 'bg-accent/10 text-accent' : 'text-mist hover:bg-panel-2 hover:text-frost'
                     )
                   }

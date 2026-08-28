@@ -1,18 +1,18 @@
-import bannerGreenhawk from '../../docs/project/GreenHawk AI/banner.webp'
+import bannerGreenhawk from '../../docs/project/GreenHawk AI/banner-1280.webp'
 import shotGreenhawkHome from '../../docs/project/GreenHawk AI/home.webp'
 import shotGreenhawkModels from '../../docs/project/GreenHawk AI/models.webp'
 import shotGreenhawkComparison from '../../docs/project/GreenHawk AI/comparison.webp'
 import shotGreenhawkResults from '../../docs/project/GreenHawk AI/results.webp'
 
-import bannerHawkbucksWeb from '../../docs/project/HawkBucks - Web/hawkbucks-header.webp'
+import bannerHawkbucksWeb from '../../docs/project/HawkBucks - Web/hawkbucks-header-1280.webp'
 import shotWebHome from '../../docs/project/HawkBucks - Web/home.webp'
 import shotWebMissions from '../../docs/project/HawkBucks - Web/v-bucks-missions.webp'
 import shotWebAbout from '../../docs/project/HawkBucks - Web/about.webp'
 
-import bannerHawkbucksBot from '../../docs/project/HawkBucks - Bot/banner.webp'
+import bannerHawkbucksBot from '../../docs/project/HawkBucks - Bot/banner-1280.webp'
 import shotBotInChat from '../../docs/project/HawkBucks - Bot/in chat.webp'
 import shotBotMultiple from '../../docs/project/HawkBucks - Bot/multiple missions available.webp'
-import shotBotNone from '../../docs/project/HawkBucks - Bot/no mission.webp'
+import shotBotNone from '../../docs/project/HawkBucks - Bot/no-mission-1280.webp'
 
 export interface ProjectLink {
   label: string

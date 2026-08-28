@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Interactive 3D developer portfolio of Ali Faniani",
+  "description": "Portfolio of Ali Faniani — software developer focused on AI, backend, web, and automation. Includes an interactive 3D developer room at /room.",
   "scripts": {
     "dev": "vite",
     "prebuild": "node scripts/generate-sitemap.mjs",

@@ -107,7 +107,7 @@ export default function Home() {
                   <Link
                     key={project.slug}
                     to={`/projects/${project.slug}`}
-                    className={`flex items-center gap-2 rounded-full border border-edge-2 bg-panel/60 px-4 py-2 text-sm text-frost transition-colors hover:border-accent/50 hover:text-accent ${focusRing}`}
+                    className={`flex items-center gap-2 rounded-full border border-edge-2 bg-panel/60 px-4 py-2.5 text-sm text-frost transition-colors hover:border-accent/50 hover:text-accent ${focusRing}`}
                   >
                     {project.title}
                     <ArrowRightIcon className="h-3 w-3 text-accent/70" />

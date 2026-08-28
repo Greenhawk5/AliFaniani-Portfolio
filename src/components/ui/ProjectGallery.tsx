@@ -123,13 +123,17 @@ export function ProjectGallery({ images, interval = 5000 }: ProjectGalleryProps)
               type="button"
               onClick={() => setIndex(i)}
               aria-label={`Go to ${img.caption}`}
-              className={cn(
-                'h-1.5 cursor-pointer rounded-full transition-all duration-300',
-                i === index
-                  ? 'w-8 bg-accent shadow-[0_0_8px_rgba(57,255,139,0.6)]'
-                  : 'w-3 bg-edge hover:bg-accent/50'
-              )}
-            />
+              className="flex h-6 w-6 cursor-pointer items-center justify-center"
+            >
+              <span
+                className={cn(
+                  'h-1.5 rounded-full transition-all duration-300',
+                  i === index
+                    ? 'w-7 bg-accent shadow-[0_0_8px_rgba(57,255,139,0.6)]'
+                    : 'w-3 bg-edge hover:bg-accent/50'
+                )}
+              />
+            </button>
           ))}
         </div>
       )}

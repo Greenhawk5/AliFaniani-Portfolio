@@ -61,7 +61,7 @@ export function RoomOverlay() {
             <button
               onClick={() => setDeviceNoteVisible(false)}
               aria-label="Dismiss device note"
-              className="pointer-events-auto ml-1 rounded-full p-1 text-mist transition-colors hover:text-frost cursor-pointer"
+              className="pointer-events-auto relative ml-1 rounded-full p-1 text-mist transition-colors hover:text-frost cursor-pointer before:absolute before:-inset-2.5 before:rounded-full before:content-['']"
             >
               <CloseIcon className="h-3.5 w-3.5" />
             </button>
@@ -86,7 +86,7 @@ export function RoomOverlay() {
             <button
               onClick={dismissHint}
               aria-label="Dismiss hint"
-              className="pointer-events-auto ml-1 rounded-full p-1 text-mist transition-colors hover:text-frost cursor-pointer"
+              className="pointer-events-auto relative ml-1 rounded-full p-1 text-mist transition-colors hover:text-frost cursor-pointer before:absolute before:-inset-2.5 before:rounded-full before:content-['']"
             >
               <CloseIcon className="h-3.5 w-3.5" />
             </button>
@@ -127,14 +127,14 @@ export function RoomOverlay() {
                 <button
                   onClick={() => sendBoardNav(focus, -1)}
                   aria-label="Previous slide"
-                  className="rounded-full border border-edge-2 p-1.5 text-frost transition-colors hover:border-accent/50 hover:text-accent cursor-pointer"
+                  className="relative rounded-full border border-edge-2 p-1.5 text-frost transition-colors hover:border-accent/50 hover:text-accent cursor-pointer before:absolute before:-inset-2 before:rounded-full before:content-['']"
                 >
                   <ChevronLeftIcon className="h-3.5 w-3.5" />
                 </button>
                 <button
                   onClick={() => sendBoardNav(focus, 1)}
                   aria-label="Next slide"
-                  className="rounded-full border border-edge-2 p-1.5 text-frost transition-colors hover:border-accent/50 hover:text-accent cursor-pointer"
+                  className="relative rounded-full border border-edge-2 p-1.5 text-frost transition-colors hover:border-accent/50 hover:text-accent cursor-pointer before:absolute before:-inset-2 before:rounded-full before:content-['']"
                 >
                   <ChevronRightIcon className="h-3.5 w-3.5" />
                 </button>
@@ -185,7 +185,7 @@ export function RoomOverlay() {
             />
             <button
               onClick={() => setMode('live')}
-              className="rounded-full border border-accent/40 px-2.5 py-1 font-mono text-[9px] tracking-widest text-accent uppercase transition-colors hover:bg-accent/10 cursor-pointer"
+              className="relative rounded-full border border-accent/40 px-2.5 py-1.5 font-mono text-[9px] tracking-widest text-accent uppercase transition-colors hover:bg-accent/10 cursor-pointer before:absolute before:-inset-1.5 before:rounded-full before:content-['']"
             >
               Live
             </button>

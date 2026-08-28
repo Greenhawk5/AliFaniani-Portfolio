@@ -1,5 +1,5 @@
 import avatarImg from '../../docs/profile/pic2.webp'
-import telegramCertImg from '../../docs/certificates/Project-Oriented Course In Creating Telegram Bot Using Python - Certificate.webp'
+import telegramCertImg from '../../docs/certificates/telegram-bot-certificate.webp'
 
 export const assets = {
   avatar: avatarImg,

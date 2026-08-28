@@ -50,7 +50,7 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
               <button
                 onClick={onClose}
                 aria-label="Close dialog"
-                className="ml-auto rounded-lg p-1.5 text-mist transition-colors hover:bg-panel-2 hover:text-frost cursor-pointer"
+                className="relative ml-auto rounded-lg p-1.5 text-mist transition-colors hover:bg-panel-2 hover:text-frost cursor-pointer before:absolute before:-inset-2 before:content-['']"
               >
                 <CloseIcon className="h-5 w-5" />
               </button>

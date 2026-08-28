@@ -20,13 +20,16 @@ import { Effects } from './Effects'
 function HomeReadiness() {
   const active = useProgress((s) => s.active)
   const progress = useProgress((s) => s.progress)
-  const errors = useProgress((s) => s.errors)
 
   useEffect(() => {
-    if (!active && progress >= 100 && errors.length === 0) {
+    // Released on real readiness — no timers, no fake progress. Item errors
+    // (failed downloads that did not throw) still release the veil so the
+    // user is never trapped behind a permanent spinner; thrown failures reach
+    // the room's error boundary on their own.
+    if (!active && progress >= 100) {
       useUiStore.getState().setSceneReady(true)
     }
-  }, [active, progress, errors])
+  }, [active, progress])
 
   return null
 }

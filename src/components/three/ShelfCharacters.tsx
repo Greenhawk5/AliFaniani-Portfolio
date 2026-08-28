@@ -99,7 +99,7 @@ function TFigurine() {
  * a safe whole-model tilt/bank that reads as an intentional display pose.
  */
 function JetFigurine() {
-  const { scene } = useGLTF('/models/jet_the_hawk.glb', '/draco/')
+  const { scene } = useGLTF('/models/workstation/jet_the_hawk.glb')
   const model = useNormalized(scene, { axis: 'x', size: 0.55 })
   return (
     <group position={[0.02, 1.64, 0.42]} rotation={[-0.22, Math.PI / 2, 0.12]}>
@@ -113,7 +113,8 @@ export function ShelfCharacters() {
     <group position={[-4.4, 0, 0.8]}>
       <TFigurine />
       {/* Jet temporarily disabled — restore by rendering <JetFigurine /> again.
-          The optimized asset (public/models/jet_the_hawk.glb) is kept. */}
+          It shares the optimized meshopt/webp asset used by the desk prop
+          (public/models/workstation/jet_the_hawk.glb). */}
       {/* <JetFigurine /> */}
     </group>
   )

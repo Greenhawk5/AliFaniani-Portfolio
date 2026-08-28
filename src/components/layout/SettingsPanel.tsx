@@ -92,7 +92,7 @@ export function SettingsPanel() {
               <button
                 onClick={close}
                 aria-label="Close settings"
-                className="rounded-lg p-1.5 text-mist transition-colors hover:bg-panel-2 hover:text-frost cursor-pointer"
+                className="relative rounded-lg p-1.5 text-mist transition-colors hover:bg-panel-2 hover:text-frost cursor-pointer before:absolute before:-inset-2 before:content-['']"
               >
                 <CloseIcon className="h-5 w-5" />
               </button>

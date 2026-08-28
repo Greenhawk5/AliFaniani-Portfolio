@@ -249,6 +249,9 @@ export default function About() {
               <img
                 src={profile.hero.avatarSrc}
                 alt={`${profile.hero.name} profile`}
+                width={480}
+                height={480}
+                fetchPriority="high"
                 className="h-full w-full rounded-3xl object-cover max-md:scale-[0.92]"
                 style={{
                   transform: `scale(${profileImageConfig.scale})`,

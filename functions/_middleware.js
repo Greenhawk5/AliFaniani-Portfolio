@@ -69,6 +69,11 @@ export async function onRequest(context) {
     return Response.redirect(target.toString(), 301)
   }
 
+  // /index.html is a duplicate of / — normalize it to the canonical root.
+  if (pathname === '/index.html') {
+    return redirect(url, '/', 308)
+  }
+
   // Static assets, hashed bundles, models and the API functions pass through.
   if (isStaticAsset(pathname)) {
     return context.next()
