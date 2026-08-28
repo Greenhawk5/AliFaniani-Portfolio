@@ -8,7 +8,10 @@ import { GearIcon, MenuIcon, CloseIcon } from '@/components/ui/icons'
 
 export function Navbar() {
   const { pathname } = useLocation()
-  const isHome = pathname === '/'
+  // Transparent style over the immersive full-screen 3D room, glass once scrolled.
+  const isImmersive = pathname === '/' || pathname === '/room'
+  // The settings trigger only makes sense inside the 3D room experience.
+  const isRoom = pathname === '/room'
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [prevPath, setPrevPath] = useState(pathname)
@@ -22,14 +25,14 @@ export function Navbar() {
   }
 
   useEffect(() => {
-    if (!isHome) return
+    if (!isImmersive) return
     const onScroll = () => setScrolled(window.scrollY > 40)
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
-  }, [isHome])
+  }, [isImmersive])
 
-  const solid = !isHome || scrolled
+  const solid = !isImmersive || scrolled
 
   return (
     <header
@@ -68,26 +71,30 @@ export function Navbar() {
               {link.label}
             </NavLink>
           ))}
-          <button
-            onClick={toggleSettings}
-            aria-label="Open settings"
-            className={cn(
-              'ml-2 rounded-lg p-2 transition-all hover:bg-panel-2 hover:text-accent cursor-pointer',
-              settingsOpen ? 'text-accent' : 'text-mist'
-            )}
-          >
-            <GearIcon className={cn('h-5 w-5', settingsOpen && 'animate-[spin_6s_linear_infinite]')} />
-          </button>
+          {isRoom && (
+            <button
+              onClick={toggleSettings}
+              aria-label="Open settings"
+              className={cn(
+                'ml-2 rounded-lg p-2 transition-all hover:bg-panel-2 hover:text-accent cursor-pointer',
+                settingsOpen ? 'text-accent' : 'text-mist'
+              )}
+            >
+              <GearIcon className={cn('h-5 w-5', settingsOpen && 'animate-[spin_6s_linear_infinite]')} />
+            </button>
+          )}
         </div>
 
         <div className="flex items-center gap-1 md:hidden">
-          <button
-            onClick={toggleSettings}
-            aria-label="Open settings"
-            className="rounded-lg p-2 text-mist transition-colors hover:bg-panel-2 hover:text-accent cursor-pointer"
-          >
-            <GearIcon className="h-5 w-5" />
-          </button>
+          {isRoom && (
+            <button
+              onClick={toggleSettings}
+              aria-label="Open settings"
+              className="rounded-lg p-2 text-mist transition-colors hover:bg-panel-2 hover:text-accent cursor-pointer"
+            >
+              <GearIcon className="h-5 w-5" />
+            </button>
+          )}
           <button
             onClick={() => setMenuOpen((o) => !o)}
             aria-label={menuOpen ? 'Close menu' : 'Open menu'}

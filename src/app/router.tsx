@@ -6,6 +6,7 @@ import { Spinner } from '@/components/ui/Spinner'
 import { lazyWithChunkRecovery } from './lazyWithRecovery'
 
 const HomePage = lazyWithChunkRecovery(() => import('@/pages/Home'))
+const RoomPage = lazyWithChunkRecovery(() => import('@/pages/Room'))
 const AboutPage = lazyWithChunkRecovery(() => import('@/pages/About'))
 const ProjectsPage = lazyWithChunkRecovery(() => import('@/pages/Projects'))
 const ProjectDetailPage = lazyWithChunkRecovery(() => import('@/pages/ProjectDetail'))
@@ -31,6 +32,14 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<LazyPage>{null}</LazyPage>}>
             <HomePage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'room',
+        element: (
+          <Suspense fallback={<LazyPage>{null}</LazyPage>}>
+            <RoomPage />
           </Suspense>
         ),
       },

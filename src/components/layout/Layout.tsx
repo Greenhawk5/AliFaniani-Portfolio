@@ -34,23 +34,30 @@ function EscapeHandler() {
 
 export function Layout() {
   const { pathname } = useLocation()
-  const isHome = pathname === '/'
+  // The landing page (/) uses its own minimal composition — no global navbar.
+  // The room (/room) is a full-screen 3D experience — no footer/back-to-top.
+  const isLanding = pathname === '/'
+  const isRoom = pathname === '/room'
   const setFocus = useUiStore((s) => s.setFocus)
+  const setSettingsOpen = useUiStore((s) => s.setSettingsOpen)
 
   useEffect(() => {
     setFocus(null)
-  }, [pathname, setFocus])
+    // Never carry an open settings dialog across a route change — the
+    // settings trigger only exists on /room.
+    setSettingsOpen(false)
+  }, [pathname, setFocus, setSettingsOpen])
 
   return (
     <div className="flex min-h-dvh flex-col">
       <ScrollToTop />
       <EscapeHandler />
-      <Navbar />
+      {!isLanding && <Navbar />}
       <main className="flex-1">
         <Outlet />
       </main>
-      {!isHome && <Footer />}
-      {!isHome && <BackToTop />}
+      {!isLanding && !isRoom && <Footer />}
+      {!isLanding && !isRoom && <BackToTop />}
       <SettingsPanel />
     </div>
   )

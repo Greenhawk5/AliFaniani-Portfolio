@@ -22,6 +22,18 @@
   --animate-pulse-soft: pulse-soft 3s ease-in-out infinite;
   --animate-blink: blink 1.1s step-end infinite;
   --animate-float: float 7s ease-in-out infinite;
+  --animate-fade-up: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 
   @keyframes pulse-soft {
     0%,
@@ -127,6 +139,21 @@ body {
     0 18px 50px -18px rgba(0, 0, 0, 0.7),
     0 0 0 1px rgba(57, 255, 139, 0.08),
     0 0 34px -8px rgba(57, 255, 139, 0.22);
+}
+
+/* Landing page (/) decorative background layers */
+.landing-grid {
+  background-image:
+    linear-gradient(to right, rgba(42, 49, 73, 0.32) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(42, 49, 73, 0.32) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: radial-gradient(ellipse 90% 75% at 50% 40%, black 25%, transparent 78%);
+  -webkit-mask-image: radial-gradient(ellipse 90% 75% at 50% 40%, black 25%, transparent 78%);
+}
+.landing-glow {
+  background:
+    radial-gradient(640px 420px at 78% 28%, rgba(57, 255, 139, 0.06), transparent 70%),
+    radial-gradient(520px 380px at 12% 85%, rgba(160, 107, 255, 0.05), transparent 70%);
 }
 
 input[type='range'].time-slider {

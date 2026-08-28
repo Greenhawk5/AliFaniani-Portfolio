@@ -1,9 +1,12 @@
-# Ali Faniani — Interactive 3D Portfolio
+# Ali Faniani — Portfolio
 
-A premium interactive developer portfolio. The Home page is a fully procedural 3D
-developer room rendered in real time with React Three Fiber, featuring a continuous
-day/night cycle driven by the visitor's real clock, animated monitor scenes, a project
-showcase board, and discoverable easter eggs.
+A premium developer portfolio. The root route (`/`) is a lightweight, SEO-first
+landing page presenting Ali's identity, focus areas and projects. The signature
+interactive experience — a fully procedural 3D developer room rendered in real
+time with React Three Fiber, featuring a continuous day/night cycle driven by
+the visitor's real clock, animated monitor scenes, a project showcase board,
+and discoverable easter eggs — lives at `/room` and is code-split so it never
+loads on the landing page.
 
 ## Tech Stack
 
@@ -33,16 +36,22 @@ src/
 ├── components/
 │   ├── ui/         reusable design-system components
 │   ├── layout/     navbar, footer, settings panel
-│   ├── home/       3D overlay UI (hints, time chip, slider)
+│   ├── room/       3D room overlay UI (hints, time chip, slider), loading veil, room content layer
 │   └── three/      3D scene components (room, desk, clock, board, …)
 ├── three/          engine code: time engine, env state, shaders, canvas screens
-├── pages/          Home, About, Projects, ProjectDetail, Contact, NotFound
+├── pages/          Home (landing), Room (3D experience), About, Projects, ProjectDetail, Contact, NotFound
 ├── stores/         zustand stores (settings, time, ui, projects)
 ├── hooks/          shared hooks
 ├── data/           data-driven content (projects, profile, links)
 └── services/       API clients
 functions/api/      Cloudflare Pages Function (contact endpoint)
 ```
+
+### Routes
+
+- `/` — lightweight landing page (no Three.js; fast first load, SEO-first)
+- `/room` — the interactive 3D developer room (lazy-loaded, code-split)
+- `/about`, `/projects`, `/projects/{slug}`, `/contact` — portfolio content pages
 
 ### Time System
 

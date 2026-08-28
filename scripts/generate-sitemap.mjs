@@ -23,8 +23,8 @@ if (slugs.length === 0) {
 const SITE_URL = 'https://alifaniani.ir'
 const lastmod = new Date().toISOString().slice(0, 10)
 
-// Order: homepage, main pages, project details, contact.
-const paths = ['/', '/about', '/projects', ...slugs.map((slug) => `/projects/${slug}`), '/contact']
+// Order: homepage, main pages, project details, contact, room experience.
+const paths = ['/', '/about', '/projects', ...slugs.map((slug) => `/projects/${slug}`), '/contact', '/room']
 
 const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

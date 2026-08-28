@@ -23,7 +23,7 @@ const FOCUS_TITLES: Record<string, string> = {
 
 const BOARD_NAV_TARGETS: ReadonlySet<FocusTarget> = new Set(['projectBoard', 'socialBoard'])
 
-export function HomeOverlay() {
+export function RoomOverlay() {
   const [deviceNoteVisible, setDeviceNoteVisible] = useState(true)
   const hintVisible = useUiStore((s) => s.hintVisible)
   const dismissHint = useUiStore((s) => s.dismissHint)

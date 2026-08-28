@@ -27,7 +27,7 @@ const STATIC_FILES = new Set([
 ])
 
 /** Valid SPA routes (without trailing slashes). */
-const ROUTES = new Set(['/', '/about', '/projects', '/contact'])
+const ROUTES = new Set(['/', '/about', '/projects', '/contact', '/room'])
 
 /** Valid project slugs — keep in sync with src/data/projects.ts. */
 const PROJECT_SLUGS = new Set(['greenhawk-ai', 'hawkbucks', 'hawkbucks-bot'])

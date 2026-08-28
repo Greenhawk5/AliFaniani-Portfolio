@@ -37,7 +37,7 @@ export class ErrorBoundary extends Component<Props, State> {
             <p className="mt-2 max-w-md text-sm leading-relaxed text-mist">{SITE.tagline}</p>
           </div>
           <p className="font-mono text-sm text-danger">
-            Something went wrong loading the interactive room.
+            Something went wrong while loading this page.
           </p>
           <nav aria-label="Site navigation" className="flex flex-wrap items-center justify-center gap-3">
             <a
