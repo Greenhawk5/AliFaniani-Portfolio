@@ -24,6 +24,10 @@ const STATIC_FILES = new Set([
   '/sitemap.xml',
   '/favicon.svg',
   '/og-image.jpg',
+  '/manifest.webmanifest',
+  '/apple-touch-icon.png',
+  '/icon-192.png',
+  '/icon-512.png',
 ])
 
 /** Valid SPA routes (without trailing slashes). */

@@ -22,11 +22,61 @@ loads on the landing page.
 ```bash
 npm install
 npm run dev        # start dev server
-npm run build      # typecheck + production build
+npm run build      # typecheck + production build (also regenerates the sitemap)
 npm run preview    # preview the production build
+npx wrangler pages dev dist   # Cloudflare-compatible local runtime (real headers/middleware)
 npm run lint       # eslint
 npm run format     # prettier
 ```
+
+## Environment Variables
+
+Copy `.env.example` to `.env` for local overrides — real `.env*` files are
+git-ignored and never committed.
+
+| Variable | Scope | Purpose |
+|---|---|---|
+| `VITE_SITE_URL` | client (public) | Canonical production URL, defaults to `https://alifaniani.ir` |
+| `VITE_TURNSTILE_SITE_KEY` | client (public) | Cloudflare Turnstile site key — public by design |
+| `TURNSTILE_SECRET` | server (Cloudflare secret) | Turnstile server-side verification |
+| `RESEND_API_KEY` | server (Cloudflare secret) | Contact-form email delivery |
+| `EMAIL_FROM` / `EMAIL_TO` | server (Cloudflare secret) | Contact-form addresses |
+
+`VITE_*` values are embedded in client JavaScript — never put secrets there.
+Server-only values are set with `wrangler pages secret put …` and read from the
+Functions `env` binding in `functions/api/contact.ts`.
+
+## Security Headers
+
+Security headers live in `public/_headers` (a single source, deployed to
+Cloudflare Pages):
+
+- `Strict-Transport-Security: max-age=31536000` — deliberately without
+  `includeSubDomains`/`preload`
+- `Content-Security-Policy` — `default-src 'self'`; the only non-self sources
+  are Cloudflare Turnstile (`challenges.cloudflare.com` for script/frame/connect)
+  and `'wasm-unsafe-eval'` (required by the Meshopt/Draco WASM decoders in the
+  3D room). `style-src 'unsafe-inline'` is required by React-generated inline
+  style attributes and inline SVG `<style>` blocks; `img-src blob:` is required
+  because three.js extracts GLB-embedded textures to blob URLs.
+- `X-Content-Type-Options`, `X-Frame-Options: DENY`, `frame-ancestors 'none'`,
+  `Referrer-Policy`, `Permissions-Policy`
+
+## Fonts & Assets
+
+Fonts (Inter latin variable, JetBrains Mono 400/600) are self-hosted from
+`public/fonts/` — no external font requests. Asset tooling:
+
+```bash
+node scripts/audit-glbs.mjs                 # report GLB composition/sizes
+node scripts/optimize-glb-textures.mjs …    # convert/downsize GLB textures to WebP
+node scripts/resize-images.mjs              # cap site image widths
+node scripts/self-host-fonts.mjs            # refresh self-hosted font files
+powershell -File scripts/generate-og-image.ps1   # regenerate og-image.jpg
+powershell -File scripts/generate-icons.ps1      # regenerate PNG icons
+```
+
+## Adding a Project
 
 ## Architecture Overview
 
