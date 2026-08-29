@@ -89,35 +89,35 @@
     </script>
   </head>
   <body>
-    <div id="root"></div>
-    <noscript>
-      <div
-        style="min-height: 100dvh; background: #05060a; color: #e8ecf4; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; padding: 40px 20px;"
-      >
-        <div style="max-width: 560px;">
-          <p style="margin: 0 0 8px; font-size: 12px; letter-spacing: 0.25em; color: #39ff8b; text-transform: uppercase;">Portfolio</p>
-          <h1 style="margin: 0 0 12px; font-size: 32px; line-height: 1.2;">Ali Faniani — Software Developer</h1>
-          <p style="margin: 0 0 20px; line-height: 1.6; color: #b6bdcf;">
-            Computer science graduate and software developer building practical software
-            systems across Artificial Intelligence, backend engineering, web
-            applications, and automation.
-          </p>
-          <p style="margin: 0 0 8px; font-size: 12px; letter-spacing: 0.2em; color: #8b93a7; text-transform: uppercase;">Explore</p>
-          <p style="margin: 0 0 20px;">
-            <a href="/about" style="color: #39ff8b;">About</a> ·
-            <a href="/projects" style="color: #39ff8b;">Projects</a> ·
-            <a href="/contact" style="color: #39ff8b;">Contact</a> ·
-            <a href="/room" style="color: #39ff8b;">Room (3D experience)</a>
-          </p>
-          <p style="margin: 0 0 8px; font-size: 12px; letter-spacing: 0.2em; color: #8b93a7; text-transform: uppercase;">Selected projects</p>
-          <ul style="margin: 0; padding-left: 18px; line-height: 1.9;">
-            <li><a href="/projects/greenhawk-ai" style="color: #e8ecf4;">GreenHawk AI</a> — AI image colorization</li>
-            <li><a href="/projects/hawkbucks" style="color: #e8ecf4;">HawkBucks</a> — V-Bucks mission tracker</li>
-            <li><a href="/projects/hawkbucks-bot" style="color: #e8ecf4;">HawkBucks Bot</a> — Telegram automation</li>
-          </ul>
-        </div>
+    <div id="root">
+      <!--
+        Static bootstrap shell: gives crawlers (e.g. Bing's raw-HTML analyzer)
+        and no-JS visitors a real, semantic H1 and navigation instantly.
+        React's createRoot().render() empties this container and replaces it
+        with the application on mount, so exactly one H1 remains afterwards.
+      -->
+      <div class="boot">
+        <p class="boot-kicker">AI · Backend · Web · Automation</p>
+        <h1 class="boot-title">Ali Faniani <span class="boot-role">— Software Developer</span></h1>
+        <p class="boot-intro">
+          Computer science graduate building practical software systems across
+          Artificial Intelligence, backend engineering, web applications, and
+          automation.
+        </p>
+        <nav class="boot-nav" aria-label="Primary">
+          <a href="/about">About</a>
+          <a href="/projects">Projects</a>
+          <a href="/contact">Contact</a>
+          <a href="/room">Enter the 3D experience</a>
+        </nav>
+        <p class="boot-kicker boot-kicker-muted">Selected work</p>
+        <nav class="boot-projects" aria-label="Selected projects">
+          <a href="/projects/greenhawk-ai">GreenHawk AI</a>
+          <a href="/projects/hawkbucks">HawkBucks</a>
+          <a href="/projects/hawkbucks-bot">HawkBucks Bot</a>
+        </nav>
       </div>
-    </noscript>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
