@@ -1,10 +1,11 @@
-import { Suspense } from 'react'
+﻿import { Suspense } from 'react'
 import { ErrorBoundary as RBErrorBoundary } from 'react-error-boundary'
 import { Link } from 'react-router-dom'
 import { useDocumentMeta } from '@/hooks/useDocumentMeta'
 import { useJsonLd } from '@/hooks/useJsonLd'
 import { SITE } from '@/app/config'
 import { projects } from '@/data/projects'
+import { ROOM_META } from '@/data/route-meta'
 import { LoadingVeil } from '@/components/room/LoadingVeil'
 import { RoomOverlay } from '@/components/room/RoomOverlay'
 import { RoomContentLayer } from '@/components/room/RoomContentLayer'
@@ -12,9 +13,6 @@ import { ArrowRightIcon } from '@/components/ui/icons'
 import { lazyWithChunkRecovery } from '@/app/lazyWithRecovery'
 
 const Scene = lazyWithChunkRecovery(() => import('@/components/three/Scene'))
-
-const ROOM_DESCRIPTION =
-  'Explore the interactive 3D developer room of Ali Faniani — walk through his workspace, browse his projects on the showcase board and try the live day/night cycle.'
 
 /**
  * Fallback shown when the Three.js scene fails to load or render (e.g. WebGL
@@ -83,10 +81,7 @@ function RoomErrorFallback({ resetErrorBoundary }: { resetErrorBoundary: () => v
 }
 
 export default function Room() {
-  useDocumentMeta({
-    title: 'Interactive 3D Portfolio — Ali Faniani',
-    description: ROOM_DESCRIPTION,
-  })
+  useDocumentMeta(ROOM_META)
 
   // WebPage schema for the room experience — references the site-wide
   // Person/WebSite entities by @id instead of duplicating them.
@@ -95,8 +90,8 @@ export default function Room() {
     '@type': 'WebPage',
     '@id': `${SITE.url}/room#webpage`,
     url: `${SITE.url}/room`,
-    name: 'Interactive 3D Portfolio — Ali Faniani',
-    description: ROOM_DESCRIPTION,
+    name: ROOM_META.title,
+    description: ROOM_META.description,
     isPartOf: { '@id': `${SITE.url}/#website` },
     about: { '@id': `${SITE.url}/#person` },
   })

@@ -33,6 +33,22 @@ const STATIC_FILES = new Set([
 /** Valid SPA routes (without trailing slashes). */
 const ROUTES = new Set(['/', '/about', '/projects', '/contact', '/room'])
 
+/**
+ * Route-specific HTML shells generated at build time
+ * (scripts/generate-route-html.mjs) — served to crawlers/no-JS visitors so
+ * the initial response carries route-correct title/canonical/OG metadata.
+ * `/` uses index.html directly.
+ */
+const ROUTE_SHELLS = new Set([
+  '/about',
+  '/projects',
+  '/contact',
+  '/room',
+  '/projects/greenhawk-ai',
+  '/projects/hawkbucks',
+  '/projects/hawkbucks-bot',
+])
+
 /** Valid project slugs — keep in sync with src/data/projects.ts. */
 const PROJECT_SLUGS = new Set(['greenhawk-ai', 'hawkbucks', 'hawkbucks-bot'])
 
@@ -78,6 +94,12 @@ export async function onRequest(context) {
     return redirect(url, '/', 308)
   }
 
+  // Generated route shells (e.g. /room.html) exist only for the middleware —
+  // normalize direct requests to their clean, canonical path.
+  if (pathname.endsWith('.html')) {
+    return redirect(url, pathname.slice(0, -5), 308)
+  }
+
   // Static assets, hashed bundles, models and the API functions pass through.
   if (isStaticAsset(pathname)) {
     return context.next()
@@ -92,6 +114,13 @@ export async function onRequest(context) {
   }
 
   if (isValidRoute(pathname)) {
+    // Serve the route-specific generated shell (route-correct initial
+    // <head>) when it exists; `/` and any missing shell fall back to the
+    // standard SPA response.
+    if (ROUTE_SHELLS.has(pathname)) {
+      const shell = await env.ASSETS.fetch(new URL(pathname + '.html', url.origin).toString())
+      if (shell.status === 200) return shell
+    }
     return context.next()
   }
 

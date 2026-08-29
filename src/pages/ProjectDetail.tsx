@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/icons'
 import { getAdjacentProjects, getProjectBySlug, type BannerConfig } from '@/data/projects'
 import { SITE } from '@/app/config'
+import { ROUTE_META, PROJECT_NOT_FOUND_META } from '@/data/route-meta'
 import { useJsonLd } from '@/hooks/useJsonLd'
 
 /**
@@ -58,11 +59,9 @@ export default function ProjectDetail() {
   const project = getProjectBySlug(slug ?? '')
   const { prev, next } = getAdjacentProjects(slug ?? '')
 
-  useDocumentMeta({
-    title: project ? `${project.title} — Ali Faniani` : 'Page Not Found — Ali Faniani',
-    description: project?.shortDescription ?? 'This project does not exist.',
-    noindex: !project,
-  })
+  useDocumentMeta(
+    project ? ROUTE_META[`/projects/${project.slug}`] : { ...PROJECT_NOT_FOUND_META, noindex: true }
+  )
 
   useJsonLd(
     'project-detail',

@@ -9,6 +9,7 @@ import { Spinner } from '@/components/ui/Spinner'
 import { AlertIcon, CheckIcon, MailIcon } from '@/components/ui/icons'
 import { socialLinks } from '@/data/links'
 import { SITE } from '@/app/config'
+import { ROUTE_META } from '@/data/route-meta'
 import { sendContactMessage, type ContactFormData } from '@/services/contactService'
 
 declare global {
@@ -42,8 +43,8 @@ function validate(data: ContactFormData): FormErrors {
 
 export default function Contact() {
   useDocumentMeta({
-    title: 'Contact Ali Faniani — Software Developer',
-    description: `Contact Ali Faniani — ${SITE.availability}.`,
+    title: ROUTE_META['/contact'].title,
+    description: ROUTE_META['/contact'].description,
   })
 
   const [form, setForm] = useState<ContactFormData>({

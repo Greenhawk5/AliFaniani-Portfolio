@@ -8,14 +8,11 @@ import { Button } from '@/components/ui/Button'
 import { ArrowRightIcon, ExternalLinkIcon } from '@/components/ui/icons'
 import { projects } from '@/data/projects'
 import { SITE } from '@/app/config'
+import { ROUTE_META } from '@/data/route-meta'
 import { useJsonLd } from '@/hooks/useJsonLd'
 
 export default function Projects() {
-  useDocumentMeta({
-    title: 'Projects — Ali Faniani',
-    description:
-      'Selected projects by Ali Faniani — AI, backend, web development, and automation projects.',
-  })
+  useDocumentMeta(ROUTE_META['/projects'])
 
   useJsonLd('projects-index', {
     '@context': 'https://schema.org',

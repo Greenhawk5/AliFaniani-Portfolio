@@ -9,6 +9,7 @@ import { ExternalLinkIcon, ArrowRightIcon } from '@/components/ui/icons'
 import { profile, skillLevels, profileImageConfig, type SkillItem } from '@/data/profile'
 import { socialLinks } from '@/data/links'
 import { SITE } from '@/app/config'
+import { ROUTE_META } from '@/data/route-meta'
 import { useJsonLd } from '@/hooks/useJsonLd'
 import { Link } from 'react-router-dom'
 import { cn } from '@/lib/cn'
@@ -199,11 +200,7 @@ function ProjectCarousel() {
 }
 
 export default function About() {
-  useDocumentMeta({
-    title: 'About Ali Faniani — Software Developer',
-    description:
-      'About Ali Faniani — software developer focused on AI, backend engineering and modern web technologies. Skills, education, certificates and projects.',
-  })
+  useDocumentMeta(ROUTE_META['/about'])
 
   useJsonLd('about-profile', {
     '@context': 'https://schema.org',
