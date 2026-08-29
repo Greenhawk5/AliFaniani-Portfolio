@@ -1,21 +1,19 @@
 ﻿<div align="center">
 
 <a href="https://alifaniani.ir">
-  <img src="docs/profile/home.webp" alt="Ali Faniani — Portfolio" width="100%" />
+  <img src="docs/profile/banner.webp" alt="Ali Faniani — Software Developer Portfolio" width="100%" />
 </a>
 
 # Ali Faniani — Portfolio
 
 ### Software Developer · AI · Backend · Web · Automation
 
-A production developer portfolio built with **React, TypeScript, Vite, Three.js, and Cloudflare Pages** — combining a lightweight, SEO-first landing page with a fully interactive 3D developer room at `/room`.
-
 <p>
-  <a href="https://alifaniani.ir">Live Website</a>
-  &nbsp;•&nbsp;
-  <a href="https://github.com/Greenhawk5/AliFaniani-Portfolio">Repository</a>
-  &nbsp;•&nbsp;
-  <a href="https://alifaniani.ir/room">3D Room</a>
+  <a href="https://alifaniani.ir">🌐 Live Website</a>
+  &nbsp;·&nbsp;
+  <a href="https://alifaniani.ir/room">🧊 3D Developer Room</a>
+  &nbsp;·&nbsp;
+  <a href="https://github.com/Greenhawk5/AliFaniani-Portfolio">💻 Repository</a>
 </p>
 
 <p>
@@ -34,66 +32,29 @@ A production developer portfolio built with **React, TypeScript, Vite, Three.js,
 
 ---
 
-## ✦ Overview
+## ✦ About
 
-This portfolio is intentionally split into two experiences:
+This repository contains my personal developer portfolio — a production-focused web experience designed to present my work, technical interests, and projects in two complementary ways:
 
-- **`/` — Lightweight landing:** a fast, content-first entry point with a semantic H1 in the initial HTML, crawlable navigation, project links, and **no WebGL / Three.js dependency**.
-- **`/room` — Interactive 3D experience:** a code-split, fully interactive developer room with optimized GLB assets, dynamic lighting, animated screens, project discovery, camera controls, and a continuous day/night environment.
+- **A lightweight portfolio:** fast, content-first, SEO-oriented, accessible and intentionally isolated from the 3D engine.
+- **An interactive 3D developer room:** a separate `/room` experience where projects and portfolio content can be explored inside a fully rendered environment.
 
-The architecture keeps these experiences independent: visitors who only want to explore the portfolio do not pay the cost of the 3D scene, while visitors who choose the room can enter it explicitly.
+> **Build a portfolio that feels like a real product, not just a collection of pages.**
 
 ---
 
 ## ✦ Highlights
 
-| Area | Implementation |
+| | |
 |---|---|
-| Landing | Lightweight SEO-first homepage with semantic HTML and a real initial-HTML H1 |
-| 3D | React Three Fiber + Three.js developer room at `/room` |
-| Routing | React Router with lazy route modules and route-level code splitting |
-| SEO | Route-specific HTML shells, canonical URLs, sitemap generation, JSON-LD, Open Graph |
-| Performance | Optimized GLB textures, Meshopt/Draco where applicable, self-hosted fonts, quality tiers |
-| Accessibility | Semantic landmarks, focus states, reduced-motion support, no-JS and WebGL fallbacks |
-| Security | HSTS, CSP, security headers, Turnstile verification, rate limiting, secret separation |
-| Backend | Cloudflare Pages Functions for the contact endpoint |
-| Deployment | Cloudflare Pages + Wrangler |
-
----
-
-## ✦ Selected Projects
-
-<table>
-  <tr>
-    <td width="33%" align="center">
-      <a href="https://alifaniani.ir/projects/greenhawk-ai">
-        <img src="docs/project/GreenHawk%20AI/banner-1280.webp" alt="GreenHawk AI" width="100%" />
-      </a>
-      <br />
-      <b>GreenHawk AI</b>
-      <br />
-      <sub>AI image colorization platform</sub>
-    </td>
-    <td width="33%" align="center">
-      <a href="https://alifaniani.ir/projects/hawkbucks">
-        <img src="docs/project/HawkBucks%20-%20Web/hawkbucks-header-1280.webp" alt="HawkBucks" width="100%" />
-      </a>
-      <br />
-      <b>HawkBucks</b>
-      <br />
-      <sub>Fortnite V-Bucks mission tracker</sub>
-    </td>
-    <td width="33%" align="center">
-      <a href="https://alifaniani.ir/projects/hawkbucks-bot">
-        <img src="docs/project/HawkBucks%20-%20Bot/banner-1280.webp" alt="HawkBucks Bot" width="100%" />
-      </a>
-      <br />
-      <b>HawkBucks Bot</b>
-      <br />
-      <sub>Telegram automation bot</sub>
-    </td>
-  </tr>
-</table>
+| ⚡ **Performance-first** | The landing experience does not load Three.js, WebGL or GLB assets. |
+| 🔎 **SEO-first** | Route-specific HTML shells, canonicals, sitemap generation and structured data. |
+| 🧊 **Interactive 3D** | A dedicated developer room powered by React Three Fiber and Three.js. |
+| 🧩 **Code splitting** | The heavy 3D experience is isolated from the lightweight landing page. |
+| 🛡️ **Hardened** | Security headers, CSP, Turnstile verification and contact-endpoint rate limiting. |
+| ♿ **Accessible** | Semantic structure, keyboard focus states, reduced motion and graceful fallbacks. |
+| ☁️ **Edge deployed** | Cloudflare Pages + Pages Functions + Wrangler. |
+| 🎨 **Data-driven** | Projects and route metadata are maintained from shared sources. |
 
 ---
 
@@ -113,13 +74,13 @@ The architecture keeps these experiences independent: visitors who only want to 
 
 <p>
   <img src="https://img.shields.io/badge/Three.js-r185-000000?style=flat-square&logo=threedotjs&logoColor=white" alt="Three.js r185" />
-  <img src="https://img.shields.io/badge/React_Three_Fiber-9-20232A?style=flat-square&logo=react&logoColor=white" alt="React Three Fiber" />
-  <img src="https://img.shields.io/badge/Drei-10-20232A?style=flat-square&logo=react&logoColor=white" alt="Drei" />
+  <img src="https://img.shields.io/badge/React_Three_Fiber-9-20232A?style=flat-square&logo=react&logoColor=white" alt="React Three Fiber 9" />
+  <img src="https://img.shields.io/badge/Drei-10-20232A?style=flat-square&logo=react&logoColor=white" alt="Drei 10" />
   <img src="https://img.shields.io/badge/GSAP-3-88CE02?style=flat-square&logo=greensock&logoColor=111111" alt="GSAP 3" />
-  <img src="https://img.shields.io/badge/Framer_Motion-13-111111?style=flat-square&logo=framer&logoColor=white" alt="Framer Motion" />
+  <img src="https://img.shields.io/badge/Framer_Motion-13-111111?style=flat-square&logo=framer&logoColor=white" alt="Framer Motion 13" />
 </p>
 
-### Platform & State
+### State & Platform
 
 <p>
   <img src="https://img.shields.io/badge/Zustand-5-433D3D?style=flat-square&logo=zustand&logoColor=white" alt="Zustand 5" />
@@ -129,77 +90,162 @@ The architecture keeps these experiences independent: visitors who only want to 
 
 ---
 
+## ✦ Selected Projects
+
+<table>
+<tr>
+<td width="33%" align="center">
+<a href="https://alifaniani.ir/projects/greenhawk-ai">
+<img src="docs/project/GreenHawk%20AI/banner-1280.webp" alt="GreenHawk AI" width="100%" />
+</a>
+<h3>GreenHawk AI</h3>
+<sub>AI image colorization platform</sub>
+</td>
+
+<td width="33%" align="center">
+<a href="https://alifaniani.ir/projects/hawkbucks">
+<img src="docs/project/HawkBucks%20-%20Web/hawkbucks-header-1280.webp" alt="HawkBucks" width="100%" />
+</a>
+<h3>HawkBucks</h3>
+<sub>Fortnite V-Bucks mission tracker</sub>
+</td>
+
+<td width="33%" align="center">
+<a href="https://alifaniani.ir/projects/hawkbucks-bot">
+<img src="docs/project/HawkBucks%20-%20Bot/banner-1280.webp" alt="HawkBucks Bot" width="100%" />
+</a>
+<h3>HawkBucks Bot</h3>
+<sub>Telegram automation bot</sub>
+</td>
+</tr>
+</table>
+
+---
+
+## ✦ Portfolio Gallery
+
+A visual overview of the portfolio interface and its interactive 3D environment.
+
+### General
+
+<table>
+<tr>
+<td width="50%" align="center">
+<a href="docs/profile/home.webp"><img src="docs/profile/home.webp" alt="Portfolio home page" width="100%" /></a>
+<br /><sub><b>Home</b> · Main portfolio landing page</sub>
+</td>
+<td width="50%" align="center">
+<a href="docs/profile/about.webp"><img src="docs/profile/about.webp" alt="About page" width="100%" /></a>
+<br /><sub><b>About</b> · Profile, skills and background</sub>
+</td>
+</tr>
+<tr>
+<td width="50%" align="center">
+<a href="docs/profile/projects.webp"><img src="docs/profile/projects.webp" alt="Projects page" width="100%" /></a>
+<br /><sub><b>Projects</b> · Project index and showcase</sub>
+</td>
+<td width="50%" align="center">
+<a href="docs/profile/contact.webp"><img src="docs/profile/contact.webp" alt="Contact page" width="100%" /></a>
+<br /><sub><b>Contact</b> · Contact experience</sub>
+</td>
+</tr>
+</table>
+
+### 3D Developer Room
+
+<table>
+<tr>
+<td width="33%" align="center">
+<a href="docs/profile/3D-Room%20(1).webp"><img src="docs/profile/3D-Room%20(1).webp" alt="3D developer room view 1" width="100%" /></a>
+<br /><sub><b>Room I</b></sub>
+</td>
+<td width="33%" align="center">
+<a href="docs/profile/3D-Room%20(2).webp"><img src="docs/profile/3D-Room%20(2).webp" alt="3D developer room view 2" width="100%" /></a>
+<br /><sub><b>Room II</b></sub>
+</td>
+<td width="33%" align="center">
+<a href="docs/profile/3D-Room%20(3).webp"><img src="docs/profile/3D-Room%20(3).webp" alt="3D developer room view 3" width="100%" /></a>
+<br /><sub><b>Room III</b></sub>
+</td>
+</tr>
+</table>
+
+> 🧊 **Explore the room live:** [`alifaniani.ir/room`](https://alifaniani.ir/room)
+
+---
+
 ## ✦ Architecture
 
 ```text
-                         ┌───────────────────────┐
-                         │      Browser          │
-                         └───────────┬───────────┘
-                                     │
-                                     ▼
-                         ┌───────────────────────┐
-                         │    Cloudflare Pages   │
-                         ├───────────────────────┤
-                         │ Route-specific HTML   │
-                         │ React application     │
-                         │ Static assets         │
-                         └───────────┬───────────┘
-                                     │
-                       ┌─────────────┴─────────────┐
-                       ▼                           ▼
-              Lightweight `/`                 Lazy `/room`
-              SEO-first landing              3D experience
-              No WebGL                         Three.js / R3F
-                       │                           │
-                       └─────────────┬─────────────┘
-                                     ▼
-                         ┌───────────────────────┐
-                         │ Pages Functions       │
-                         │ `/api/contact`        │
-                         └───────────┬───────────┘
-                                     ▼
-                              Turnstile + Resend
+                              ┌─────────────────────┐
+                              │       Browser       │
+                              └──────────┬──────────┘
+                                         │
+                                         ▼
+                              ┌─────────────────────┐
+                              │   Cloudflare Pages  │
+                              ├─────────────────────┤
+                              │ Route HTML shells   │
+                              │ React application   │
+                              │ Static assets       │
+                              └──────────┬──────────┘
+                                         │
+                       ┌─────────────────┴─────────────────┐
+                       ▼                                   ▼
+              ┌──────────────────┐                ┌──────────────────┐
+              │  Lightweight `/` │                │   Lazy `/room`   │
+              │ SEO-first        │                │ Three.js / R3F   │
+              │ No WebGL         │                │ GLB assets        │
+              │ Fast entry       │                │ Interactive scene │
+              └────────┬─────────┘                └────────┬─────────┘
+                       │                                   │
+                       └─────────────────┬─────────────────┘
+                                         ▼
+                              ┌─────────────────────┐
+                              │  Pages Functions    │
+                              │    /api/contact     │
+                              └──────────┬──────────┘
+                                         ▼
+                                  Turnstile + Resend
 ```
 
-### Core data flow
+### Shared data flow
 
 ```text
 src/data/projects.ts
         │
-        ├── Projects page
+        ├── Projects index
         ├── Project detail pages
         ├── 3D showcase board
         ├── Sitemap generation
         └── Route metadata / HTML shells
 ```
 
-The project is deliberately data-driven: project content lives in `src/data/`, while build-time tooling generates the sitemap and route-specific HTML shells from the same source of truth.
-
 ---
 
-## ✦ Interactive 3D Developer Room
+## ✦ Interactive 3D Room
 
-The `/room` route is the signature interactive experience of the portfolio.
+The `/room` route is the signature experience of the portfolio.
 
 ### Environment
 
 - Continuous day/night interpolation driven by the visitor's real clock.
 - Manual time-of-day simulation through the settings panel.
 - Custom GLSL sky material and interpolated atmosphere.
-- Dynamic sunlight, ambient lighting, stars, city lights, and RGB lighting.
+- Dynamic sunlight, ambient lighting, stars, city lights and RGB lighting.
 
 ### Interactive elements
 
-- Project showcase board linked to the real portfolio projects.
+- Project showcase board linked to portfolio projects.
 - Monitor with canvas-rendered animated scenes.
 - Wall clock and other focusable room elements.
 - Interactive PC/RGB state.
 - Cinematic camera presets.
 - Free Camera mode with mouse look and WASD/Q/E movement.
 
-### Rendering & effects
+### Rendering
 
-- React Three Fiber / Three.js scene graph.
+- React Three Fiber + Three.js scene graph.
 - Bloom, vignette and ACES filmic tone mapping on high-quality settings.
 - Canvas textures for dynamic screens.
 - Dust particles and ambient effects.
@@ -213,46 +259,46 @@ The 3D scene is lazy-loaded and code-split from the landing page. Optimized asse
 
 ## ✦ SEO
 
-SEO is treated as an architectural concern rather than a collection of meta tags.
+SEO is treated as part of the application architecture.
 
-- **Route-specific HTML shells** are generated at build time so the initial response for `/`, `/about`, `/projects`, every project detail route, `/contact`, and `/room` contains the correct title, description, canonical and Open Graph data.
-- **Canonical URLs** are normalized to HTTPS, the apex domain, lowercase clean paths, and no query strings.
+- **Route-specific HTML shells** provide correct initial metadata for every public route.
+- **Canonical URLs** are normalized to HTTPS, the apex domain, clean paths and no query strings.
 - **Sitemap generation** derives project URLs from `src/data/projects.ts`.
-- **Structured data** includes `Person`, `WebSite`, `ProfilePage`, `ItemList`, project `CreativeWork`, and the `/room` `WebPage` schema where appropriate.
-- **Social metadata** includes Open Graph and Twitter metadata with static, publicly fetchable imagery.
-- **Crawler-friendly HTML** includes a static bootstrap shell with a real homepage H1 and route-specific initial HTML.
-- **404 handling** returns real HTTP 404 responses with `X-Robots-Tag: noindex` for unknown routes.
+- **Structured data** includes `Person`, `WebSite`, `ProfilePage`, `ItemList`, project `CreativeWork` and the `/room` `WebPage` schema where appropriate.
+- **Open Graph + Twitter metadata** are included for share previews.
+- **Crawler-friendly HTML** includes a static bootstrap shell with a real H1 and crawlable navigation.
+- **404 handling** returns real HTTP 404 responses with `X-Robots-Tag: noindex`.
 - URL normalization handles trailing slashes, letter case and `.html` variants.
 
 ---
 
 ## ✦ Performance
 
-The project intentionally separates content performance from 3D richness.
+The portfolio intentionally separates content performance from 3D richness.
 
 - Landing page ships without Three.js, GLB assets or decoders.
-- Route-level code splitting keeps the 3D scene isolated to `/room`.
+- Route-level code splitting isolates the 3D scene to `/room`.
 - GLB assets are optimized with Meshopt/Draco where applicable.
-- GLB textures are resized and converted to optimized WebP assets where appropriate.
+- Textures are resized and converted to optimized WebP assets where appropriate.
 - Inter and JetBrains Mono are self-hosted.
 - Quality tiers adapt DPR, shadows, particles, effects and update rates.
-- The room's loading veil is tied to actual asset readiness rather than fake progress.
+- The room loading veil is tied to actual asset readiness rather than fake progress.
 - Reduced-motion preferences disable unnecessary animation and parallax.
 
-> No formal benchmark suite is included in the repository; performance claims should be evaluated with Lighthouse and browser DevTools against the production build.
+> No formal benchmark suite is included. Performance should be evaluated against the production build with Lighthouse and browser DevTools.
 
 ---
 
 ## ✦ Accessibility
 
-Accessibility is built into the page and room architecture:
+Accessibility is built into both the document structure and the interactive experience:
 
 - Semantic headings and landmarks.
 - A single meaningful H1 per page state.
-- Real links/buttons instead of click-only presentation elements.
-- `focus-visible` states for interactive controls.
+- Real links and buttons for interactive controls.
+- `focus-visible` states.
 - Accessible labels for navigation and icon controls.
-- Reduced-motion support in CSS and the room settings.
+- Reduced-motion support.
 - No-JS landing shell.
 - WebGL failure fallback with full navigation.
 - Descriptive alt text for content images.
@@ -271,12 +317,12 @@ Implemented security measures include:
 - `X-Frame-Options: DENY`.
 - `frame-ancestors 'none'`.
 - `Referrer-Policy`.
-- restrictive `Permissions-Policy`.
+- Restrictive `Permissions-Policy`.
 - Cloudflare Turnstile client + server verification.
 - Per-IP contact endpoint rate limiting.
 - Input validation and HTML escaping before email delivery.
-- Clear separation between public `VITE_*` values and server-only secrets.
-- Environment secrets stored in Cloudflare Pages rather than source control.
+- Separation between public `VITE_*` values and server-only secrets.
+- Production secrets stored through Cloudflare Pages rather than source control.
 
 See [`SECURITY.md`](SECURITY.md) for responsible vulnerability reporting.
 
@@ -301,25 +347,25 @@ See [`SECURITY.md`](SECURITY.md) for responsible vulnerability reporting.
 ```text
 AliFaniani-Portfolio/
 ├── src/
-│   ├── app/            # router, providers, site configuration
+│   ├── app/             # Router, providers and site configuration
 │   ├── components/
-│   │   ├── home/       # landing-page pieces
-│   │   ├── layout/     # navbar, footer, settings
-│   │   ├── room/       # 3D room overlay / loading UI
-│   │   ├── three/      # room scene components
-│   │   └── ui/         # reusable UI components
-│   ├── data/           # projects, profile, links, route metadata
-│   ├── hooks/          # metadata, JSON-LD and utility hooks
-│   ├── pages/          # route-level page components
-│   ├── services/       # API clients
-│   ├── stores/         # Zustand stores
-│   ├── styles/         # global styles and font declarations
-│   └── three/          # 3D engine, shaders, time/environment logic
-├── functions/           # Cloudflare Pages middleware + API
-├── public/              # fonts, icons, GLB/decoder assets, OG assets
-├── scripts/             # build-time SEO and asset tooling
-├── docs/                # profile, project and certificate assets
-├── .github/             # repository automation / dependency config
+│   │   ├── home/        # Landing-page components
+│   │   ├── layout/      # Navigation, footer and settings
+│   │   ├── room/        # 3D room overlay / loading UI
+│   │   ├── three/       # Room scene components
+│   │   └── ui/          # Reusable UI components
+│   ├── data/            # Projects, profile, links and route metadata
+│   ├── hooks/           # Metadata, JSON-LD and utility hooks
+│   ├── pages/           # Route-level pages
+│   ├── services/        # API clients
+│   ├── stores/          # Zustand stores
+│   ├── styles/          # Global styles and fonts
+│   └── three/           # 3D engine, shaders and environment logic
+├── functions/            # Cloudflare Pages middleware + API
+├── public/               # Fonts, icons, GLB/decoder and OG assets
+├── docs/                 # Portfolio, project and certificate assets
+├── scripts/              # SEO and asset build tooling
+├── .github/              # Repository automation
 ├── LICENSE
 ├── NOTICE.md
 ├── SECURITY.md
@@ -369,8 +415,6 @@ npm run preview
 npx wrangler pages dev dist
 ```
 
-This is useful for validating the real middleware, security headers, static route shells and 404 behavior.
-
 ---
 
 ## ✦ Environment Variables
@@ -386,7 +430,7 @@ Create a local `.env` from `.env.example` when needed.
 | `EMAIL_FROM` | Server secret | Sender address |
 | `EMAIL_TO` | Server secret | Recipient address |
 
-Never place secrets in `VITE_*` variables.
+> Never place secrets in `VITE_*` variables.
 
 ---
 
@@ -394,40 +438,41 @@ Never place secrets in `VITE_*` variables.
 
 | Command | Purpose |
 |---|---|
-| `npm run dev` | Vite development server |
-| `npm run build` | Typecheck + Vite build + sitemap + route-shell generation |
+| `npm run dev` | Start the Vite development server |
+| `npm run build` | Typecheck + build + sitemap + route-shell generation |
 | `npm run preview` | Preview the production build |
-| `npx wrangler pages dev dist` | Cloudflare-compatible local runtime |
-| `npm run lint` | ESLint |
-| `npm run format` | Prettier |
-| `npm run typecheck` | TypeScript check |
-| `npm run check:functions` | Pages Functions TypeScript check |
-| `npm run sitemap` | Regenerate sitemap |
+| `npx wrangler pages dev dist` | Run the Cloudflare-compatible local runtime |
+| `npm run lint` | Run ESLint |
+| `npm run format` | Run Prettier |
+| `npm run typecheck` | Run TypeScript checks |
+| `npm run check:functions` | Check Pages Functions TypeScript |
+| `npm run sitemap` | Regenerate the sitemap |
 | `npm run deploy` | Build and deploy to Cloudflare Pages |
 
 ---
 
 ## ✦ Validation
 
-The repository currently uses a production-oriented manual validation flow rather than a full automated test suite.
+The repository uses a production-oriented validation flow.
 
 ```text
-npm run build
-      ↓
-Cloudflare-compatible local runtime
-      ↓
-Route / HTTP status checks
-      ↓
-Initial HTML SEO checks
-      ↓
-Security header checks
-      ↓
-Accessibility checks
-      ↓
-Browser verification
+                 npm run build
+                      │
+                      ▼
+          Cloudflare-compatible runtime
+                      │
+          ┌───────────┼───────────┐
+          ▼           ▼           ▼
+       Routes       SEO       Security
+       / HTTP      HTML       headers
+       status      checks      checks
+          │           │           │
+          └───────────┼───────────┘
+                      ▼
+               Browser testing
 ```
 
-Useful verification scripts include:
+Useful verification scripts:
 
 ```bash
 node scripts/verify-route-html.mjs
@@ -440,7 +485,7 @@ No formal automated test framework or Lighthouse benchmark suite is included in 
 
 ## ✦ Deployment
 
-The site is deployed to **Cloudflare Pages** using Wrangler.
+The production site is deployed to **Cloudflare Pages** using Wrangler.
 
 ```bash
 npm run deploy
@@ -465,21 +510,21 @@ Add a project to:
 src/data/projects.ts
 ```
 
-That data source drives:
+That shared source drives:
 
-- project listings
-- detail pages
-- the in-room showcase board
-- sitemap generation
-- route metadata
+- Project listings.
+- Project detail pages.
+- The in-room showcase board.
+- Sitemap generation.
+- Route metadata.
 
-After adding or removing a project:
+Then run:
 
 ```bash
 npm run build
 ```
 
-will regenerate the sitemap and route-specific HTML shells.
+The build regenerates the sitemap and route-specific HTML shells.
 
 One manual synchronization point remains in:
 
@@ -493,28 +538,27 @@ where the valid project slug set is maintained for route validation and 404 hand
 
 ## ✦ Repository Documentation
 
-- [`CHANGELOG.md`](CHANGELOG.md) — release history.
-- [`LICENSE`](LICENSE) — proprietary license for original project work.
-- [`NOTICE.md`](NOTICE.md) — third-party asset attribution and licensing notes.
-- [`SECURITY.md`](SECURITY.md) — responsible vulnerability reporting.
-- `.github/dependabot.yml` — automated npm dependency update configuration.
+| File | Purpose |
+|---|---|
+| [`CHANGELOG.md`](CHANGELOG.md) | Version history and release notes |
+| [`LICENSE`](LICENSE) | Proprietary license for original project work |
+| [`NOTICE.md`](NOTICE.md) | Third-party asset attribution and licensing notes |
+| [`SECURITY.md`](SECURITY.md) | Responsible vulnerability reporting |
+| [`.github/dependabot.yml`](.github/dependabot.yml) | Automated npm dependency update configuration |
 
-Third-party assets are not relicensed by this repository; see `NOTICE.md` for attribution and applicable terms.
+Third-party assets are not relicensed by this repository. See [`NOTICE.md`](NOTICE.md) for attribution and applicable terms.
 
 ---
 
 ## ✦ License
 
-The original source code, visual design, and project materials in this repository are **proprietary** — Copyright © 2026 Ali Faniani. All rights reserved.
+The original source code, visual design and project materials in this repository are **proprietary** — Copyright © 2026 Ali Faniani. All rights reserved.
 
-The repository is publicly viewable for inspection, learning and inspiration. Viewing the code does not grant permission to reproduce, redistribute, republish, modify, sublicense, sell, or create derivative works from the original project without prior written permission.
+The repository is publicly viewable for inspection, learning and inspiration. Viewing the code does **not** grant permission to reproduce, redistribute, republish, modify, sublicense, sell or create derivative works from the original project without prior written permission.
 
 Third-party assets remain under their respective licenses and terms.
 
-See:
-
-- [`LICENSE`](LICENSE)
-- [`NOTICE.md`](NOTICE.md)
+See [`LICENSE`](LICENSE) and [`NOTICE.md`](NOTICE.md).
 
 ---
 
@@ -524,11 +568,11 @@ See:
 
 <p>
   <a href="https://alifaniani.ir">Website</a>
-  ·
+  &nbsp;·&nbsp;
   <a href="https://github.com/Greenhawk5">GitHub</a>
-  ·
+  &nbsp;·&nbsp;
   <a href="https://www.linkedin.com/in/ali-faniani">LinkedIn</a>
-  ·
+  &nbsp;·&nbsp;
   <a href="https://huggingface.co/Greenhawk5">Hugging Face</a>
 </p>
 
