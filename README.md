@@ -1,361 +1,452 @@
-﻿# Ali Faniani — Portfolio
+﻿<div align="center">
 
-[![Website](https://img.shields.io/website?url=https%3A%2F%2Falifaniani.ir&label=website&up_message=alifaniani.ir)](https://alifaniani.ir)
-[![Version](https://img.shields.io/badge/version-1.0.0-39ff8b?labelColor=05060a)](CHANGELOG.md)
-[![License](https://img.shields.io/badge/license-proprietary—All_rights_reserved-lightgrey?labelColor=05060a)](LICENSE)
-[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev)
-[![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
-[![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)](https://vite.dev)
-[![Three.js](https://img.shields.io/badge/Three.js-r185-000000?logo=threedotjs&logoColor=white)](https://threejs.org)
-[![Cloudflare Pages](https://img.shields.io/badge/Cloudflare_Pages-hosted-F38020?logo=cloudflarepages&logoColor=white)](https://pages.cloudflare.com)
+<a href="https://alifaniani.ir">
+  <img src="docs/profile/home.webp" alt="Ali Faniani — Portfolio" width="100%" />
+</a>
 
-A production developer portfolio built as a **Vite + React + TypeScript SPA**,
-deployed on **Cloudflare Pages**. The root route (`/`) is a deliberately
-lightweight, SEO-first landing page; the signature experience — a fully
-procedural, interactive **3D developer room** rendered with React Three
-Fiber — lives at `/room` and is strictly code-split so the two never load
-each other.
+# Ali Faniani — Portfolio
 
-**Live:** [alifaniani.ir](https://alifaniani.ir) · **Repository:**
-[Greenhawk5/AliFaniani-Portfolio](https://github.com/Greenhawk5/AliFaniani-Portfolio)
+### Software Developer · AI · Backend · Web · Automation
 
-![Ali Faniani — Software Developer](public/og-image.jpg)
+A production developer portfolio built with **React, TypeScript, Vite, Three.js, and Cloudflare Pages** — combining a lightweight, SEO-first landing page with a fully interactive 3D developer room at `/room`.
 
-## Overview
+<p>
+  <a href="https://alifaniani.ir">Live Website</a>
+  &nbsp;•&nbsp;
+  <a href="https://github.com/Greenhawk5/AliFaniani-Portfolio">Repository</a>
+  &nbsp;•&nbsp;
+  <a href="https://alifaniani.ir/room">3D Room</a>
+</p>
 
-Most portfolios choose between fast content pages and impressive interactive
-experiences. This repository implements both, as separate routes with a hard
-boundary between them:
+<p>
+  <img src="https://img.shields.io/badge/status-v1.0.0-39ff8b?style=for-the-badge&labelColor=05060a" alt="Version 1.0.0" />
+  <img src="https://img.shields.io/badge/license-proprietary-9CA3AF?style=for-the-badge&labelColor=05060a" alt="Proprietary license" />
+  <img src="https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=white" alt="React 19" />
+  <img src="https://img.shields.io/badge/TypeScript-strict-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript strict" />
+  <img src="https://img.shields.io/badge/Vite-8-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite 8" />
+  <img src="https://img.shields.io/badge/Three.js-r185-000000?style=for-the-badge&logo=threedotjs&logoColor=white" alt="Three.js r185" />
+  <img src="https://img.shields.io/badge/Cloudflare_Pages-hosted-F38020?style=for-the-badge&logo=cloudflarepages&logoColor=white" alt="Cloudflare Pages" />
+</p>
 
-- **`/`** — a landing page that ships a few kilobytes of application
-  JavaScript, a real semantic `<h1>` in the initial HTML, and zero WebGL.
-- **`/room`** — a fully procedural 3D developer room (models, lighting,
-  post-processing, interactive objects) that is lazy-loaded only when
-  requested.
+<img src="https://badges.pufler.dev/visits/Greenhawk5/AliFaniani-Portfolio" alt="Repository visit counter" />
 
-Everything content-related is **data-driven**: projects, profile identity,
-social links, sitemap entries, route metadata and static route shells all
-derive from `src/data/` at build time.
+</div>
 
-## Highlights
+---
 
-- **Landing/room separation** — the 3D experience is an isolated, lazy-loaded
-  route; the landing page never downloads Three.js, GLB assets or decoders.
-- **Crawler-first SPA** — build-time route-specific HTML shells give every
-  route a correct `<title>`, canonical, description and Open Graph metadata
-  in the *initial* response, plus a static bootstrap `<h1>` on the homepage.
-- **Data-driven architecture** — `projects.ts` drives the project index,
-  detail pages, the in-room showcase board, sitemap and route metadata.
-- **Real 404 semantics** — a Cloudflare Pages middleware returns actual
-  `HTTP 404` (+ `X-Robots-Tag: noindex`) for unknown routes instead of an
-  SPA soft-404, with URL normalization (trailing slash, letter case,
-  `.html`).
-- **Hardened** — enforced Content-Security-Policy, HSTS, hardened contact
-  endpoint (Turnstile verification, per-IP rate limiting, input escaping),
-  self-hosted fonts, strict environment-variable separation.
-- **Continuous day/night 3D environment** — a keyframed atmosphere model
-  sampled in real time from the visitor's clock, with a manual time-of-day
-  simulator.
+## ✦ Overview
 
-## Projects
+This portfolio is intentionally split into two experiences:
 
-| Project | Screenshot | Description |
-|---|---|---|
-| **GreenHawk AI** | ![GreenHawk AI](docs/project/GreenHawk%20AI/banner-1280.webp) | AI-powered black & white image colorization platform (CNN, GAN and diffusion models behind a FastAPI backend) |
-| **HawkBucks** | ![HawkBucks](docs/project/HawkBucks%20-%20Web/hawkbucks-header-1280.webp) | Fortnite Save The World V-Bucks mission tracker with a React/TypeScript frontend on a Cloudflare serverless backend |
-| **HawkBucks Bot** | ![HawkBucks Bot](docs/project/HawkBucks%20-%20Bot/banner-1280.webp) | Telegram automation bot with scheduled jobs, mission processing, reminders and image generation |
+- **`/` — Lightweight landing:** a fast, content-first entry point with a semantic H1 in the initial HTML, crawlable navigation, project links, and **no WebGL / Three.js dependency**.
+- **`/room` — Interactive 3D experience:** a code-split, fully interactive developer room with optimized GLB assets, dynamic lighting, animated screens, project discovery, camera controls, and a continuous day/night environment.
 
-## Tech Stack
+The architecture keeps these experiences independent: visitors who only want to explore the portfolio do not pay the cost of the 3D scene, while visitors who choose the room can enter it explicitly.
 
-| Layer | Technology | Why |
-|---|---|---|
-| UI | [React 19](https://react.dev) | Component model, suspense-based lazy routes |
-| Language | [TypeScript](https://www.typescriptlang.org) (strict) | Type safety across pages, data models and the 3D layer |
-| Build | [Vite 8](https://vite.dev) | Fast dev server, ESM output, route-level code splitting |
-| Routing | [React Router 7](https://reactrouter.com) | Data router with lazy route modules |
-| Styling | [Tailwind CSS 4](https://tailwindcss.com) | Utility-first system driven by CSS custom-property tokens |
-| 3D | [Three.js r185](https://threejs.org), [React Three Fiber](https://docs.pmnd.rs/react-three-fiber), [Drei](https://github.com/pmndrs/drei) | Declarative WebGL scene graph, loaders and helpers |
-| Animation | [GSAP](https://gsap.com), [Framer Motion](https://motion.dev) | Cinematic camera transitions; UI overlay motion |
-| State | [Zustand 5](https://zustand.docs.pmnd.rs) | Small stores (settings/time/UI/projects) with `localStorage` persistence |
-| Backend | [Cloudflare Pages Functions](https://developers.cloudflare.com/pages/functions/) | Contact endpoint: Turnstile verification, rate limiting, email delivery |
-| Hosting | [Cloudflare Pages](https://pages.cloudflare.com) | Global static delivery + Functions runtime + custom `_headers` |
+---
 
-## Architecture
+## ✦ Highlights
 
+| Area | Implementation |
+|---|---|
+| Landing | Lightweight SEO-first homepage with semantic HTML and a real initial-HTML H1 |
+| 3D | React Three Fiber + Three.js developer room at `/room` |
+| Routing | React Router with lazy route modules and route-level code splitting |
+| SEO | Route-specific HTML shells, canonical URLs, sitemap generation, JSON-LD, Open Graph |
+| Performance | Optimized GLB textures, Meshopt/Draco where applicable, self-hosted fonts, quality tiers |
+| Accessibility | Semantic landmarks, focus states, reduced-motion support, no-JS and WebGL fallbacks |
+| Security | HSTS, CSP, security headers, Turnstile verification, rate limiting, secret separation |
+| Backend | Cloudflare Pages Functions for the contact endpoint |
+| Deployment | Cloudflare Pages + Wrangler |
+
+---
+
+## ✦ Selected Projects
+
+<table>
+  <tr>
+    <td width="33%" align="center">
+      <a href="https://alifaniani.ir/projects/greenhawk-ai">
+        <img src="docs/project/GreenHawk%20AI/banner-1280.webp" alt="GreenHawk AI" width="100%" />
+      </a>
+      <br />
+      <b>GreenHawk AI</b>
+      <br />
+      <sub>AI image colorization platform</sub>
+    </td>
+    <td width="33%" align="center">
+      <a href="https://alifaniani.ir/projects/hawkbucks">
+        <img src="docs/project/HawkBucks%20-%20Web/hawkbucks-header-1280.webp" alt="HawkBucks" width="100%" />
+      </a>
+      <br />
+      <b>HawkBucks</b>
+      <br />
+      <sub>Fortnite V-Bucks mission tracker</sub>
+    </td>
+    <td width="33%" align="center">
+      <a href="https://alifaniani.ir/projects/hawkbucks-bot">
+        <img src="docs/project/HawkBucks%20-%20Bot/banner-1280.webp" alt="HawkBucks Bot" width="100%" />
+      </a>
+      <br />
+      <b>HawkBucks Bot</b>
+      <br />
+      <sub>Telegram automation bot</sub>
+    </td>
+  </tr>
+</table>
+
+---
+
+## ✦ Tech Stack
+
+### Frontend
+
+<p>
+  <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=white" alt="React 19" />
+  <img src="https://img.shields.io/badge/TypeScript-strict-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript strict" />
+  <img src="https://img.shields.io/badge/Vite-8-646CFF?style=flat-square&logo=vite&logoColor=white" alt="Vite 8" />
+  <img src="https://img.shields.io/badge/React_Router-7-CA4245?style=flat-square&logo=reactrouter&logoColor=white" alt="React Router 7" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white" alt="Tailwind CSS 4" />
+</p>
+
+### 3D & Motion
+
+<p>
+  <img src="https://img.shields.io/badge/Three.js-r185-000000?style=flat-square&logo=threedotjs&logoColor=white" alt="Three.js r185" />
+  <img src="https://img.shields.io/badge/React_Three_Fiber-9-20232A?style=flat-square&logo=react&logoColor=white" alt="React Three Fiber" />
+  <img src="https://img.shields.io/badge/Drei-10-20232A?style=flat-square&logo=react&logoColor=white" alt="Drei" />
+  <img src="https://img.shields.io/badge/GSAP-3-88CE02?style=flat-square&logo=greensock&logoColor=111111" alt="GSAP 3" />
+  <img src="https://img.shields.io/badge/Framer_Motion-13-111111?style=flat-square&logo=framer&logoColor=white" alt="Framer Motion" />
+</p>
+
+### Platform & State
+
+<p>
+  <img src="https://img.shields.io/badge/Zustand-5-433D3D?style=flat-square&logo=zustand&logoColor=white" alt="Zustand 5" />
+  <img src="https://img.shields.io/badge/Cloudflare_Pages-F38020?style=flat-square&logo=cloudflarepages&logoColor=white" alt="Cloudflare Pages" />
+  <img src="https://img.shields.io/badge/Cloudflare_Functions-F38020?style=flat-square&logo=cloudflare&logoColor=white" alt="Cloudflare Pages Functions" />
+</p>
+
+---
+
+## ✦ Architecture
+
+```text
+                         ┌───────────────────────┐
+                         │      Browser          │
+                         └───────────┬───────────┘
+                                     │
+                                     ▼
+                         ┌───────────────────────┐
+                         │    Cloudflare Pages   │
+                         ├───────────────────────┤
+                         │ Route-specific HTML   │
+                         │ React application     │
+                         │ Static assets         │
+                         └───────────┬───────────┘
+                                     │
+                       ┌─────────────┴─────────────┐
+                       ▼                           ▼
+              Lightweight `/`                 Lazy `/room`
+              SEO-first landing              3D experience
+              No WebGL                         Three.js / R3F
+                       │                           │
+                       └─────────────┬─────────────┘
+                                     ▼
+                         ┌───────────────────────┐
+                         │ Pages Functions       │
+                         │ `/api/contact`        │
+                         └───────────┬───────────┘
+                                     ▼
+                              Turnstile + Resend
 ```
-Browser
-  ↓
-Cloudflare Pages
-  ├── public/_headers          HSTS · CSP · security & cache headers
-  ├── Static route shells      /about.html, /room.html, … (build-time
-  │                            generated; route-correct title/canonical/OG)
-  ├── React application        SPA: landing, content pages, 3D room (code-split)
-  └── Pages Functions
-        └── /api/contact       Turnstile verification → rate limit → email
+
+### Core data flow
+
+```text
+src/data/projects.ts
+        │
+        ├── Projects page
+        ├── Project detail pages
+        ├── 3D showcase board
+        ├── Sitemap generation
+        └── Route metadata / HTML shells
 ```
 
-`functions/_middleware.js` runs before every request: it redirects the
-`pages.dev` subdomain, normalizes URLs (trailing slash, letter case,
-`.html`), serves the matching route shell for valid routes, passes static
-assets and API routes through, and returns real `HTTP 404` responses
-(+ `X-Robots-Tag: noindex`) for anything else.
+The project is deliberately data-driven: project content lives in `src/data/`, while build-time tooling generates the sitemap and route-specific HTML shells from the same source of truth.
 
-```
-src/
-├── app/            router, providers, error boundary, site config
-├── components/
-│   ├── home/       landing-page CTA pieces
-│   ├── layout/     navbar, footer, settings panel, back-to-top
-│   ├── room/       room overlay UI (hints, time chip, slider), loading veil
-│   ├── three/      3D scene components (room, desk, PC, boards, clocks)
-│   └── ui/         design-system components (buttons, cards, gallery, …)
-├── data/           single source of truth: projects, profile, links, route metadata
-├── hooks/          useDocumentMeta, useJsonLd, media/clock helpers
-├── pages/          Home (landing) · Room (3D) · About · Projects · ProjectDetail · Contact · NotFound
-├── services/       contact API client
-├── stores/         Zustand stores (settings, time, UI, projects)
-├── styles/         design tokens, font-faces, landing/boot styles
-└── three/          engine code: time engine, environment model, sky shader, canvas screens
-functions/          Cloudflare Pages middleware + contact API function
-public/             fonts, icons, GLB models, Draco decoders, OG image, manifest
-scripts/            build-time generation + asset optimization tooling
-docs/               project images and assets used across the site
-```
+---
 
-## Interactive 3D Developer Room
+## ✦ Interactive 3D Developer Room
 
-`/room` is a fully procedural 3D developer workspace — every surface, screen
-and light is generated in code or loaded as optimized GLB assets.
+The `/room` route is the signature interactive experience of the portfolio.
 
-- **Live day/night cycle** — a keyframed atmosphere model (`three/timeEngine`)
-  is sampled per frame from the visitor's real clock (local or UTC): sun/moon
-  position and color, a custom GLSL sky-gradient shader (`three/skyMaterial`),
-  light intensities, RGB strip strength, stars and city lights all interpolate
-  continuously — there are no discrete day/night states. A simulation mode
-  with a time-of-day slider is available from the settings panel.
-- **Canvas-textured screens** — the monitor (animated code/terminal scenes),
-  the project showcase board (a slideshow fed by real project data), the
-  social board and the digital wall clock are drawn to `<canvas>` textures in
-  real time and mapped onto 3D surfaces.
-- **Interactive objects** — click-to-focus the project board, monitor, wall
-  clock and PC (RGB toggle); objects highlight on hover and drive app
-  navigation (the board opens the matching project page).
-- **Two camera systems** — a GSAP-driven cinematic rig with focus presets, and
-  a Free Cam mode (drag to look, WASD movement, Q/E vertical, Shift sprint).
-- **Atmosphere** — dust particles, neon signage, custom GLSL sky shader, and
-  bloom + vignette + ACES filmic tone-mapping post-processing on the high
-  quality tier.
-- **Optimized assets** — GLB models compressed with Meshopt/Draco and WebP
-  textures, decoded at runtime via self-hosted decoders (see
-  [Performance](#performance)).
-- **Robust delivery** — a loading veil gated on *real* asset readiness (no
-  fake progress), a settings panel for quality/motion/timezone/camera, and a
-  static fallback with full navigation if WebGL is unavailable.
+### Environment
 
-## SEO
+- Continuous day/night interpolation driven by the visitor's real clock.
+- Manual time-of-day simulation through the settings panel.
+- Custom GLSL sky material and interpolated atmosphere.
+- Dynamic sunlight, ambient lighting, stars, city lights, and RGB lighting.
 
-The site is a static SPA, so crawler-visible HTML is generated deliberately:
+### Interactive elements
 
-- **Build-time route shells** — after `vite build`,
-  `scripts/generate-route-html.mjs` derives per-route metadata from
-  `src/data/route-meta.ts` (which reads `projects.ts` and the site config)
-  and emits a static HTML file per route with the correct `<title>`,
-  canonical URL, meta description, `og:url`, `og:title`, `og:description`
-  and Twitter tags. The middleware serves these shells to every visitor.
-- **Canonical URLs** — one canonical per route, normalized (HTTPS, apex
-  domain, lowercase, no trailing slash, no query strings), emitted in the
-  initial HTML and kept in sync during SPA navigation by
-  `useDocumentMeta`.
-- **Sitemap** — `public/sitemap.xml` is regenerated on every build from
-  `src/data/projects.ts`, so it can never drift from the real routes.
-- **Structured data (JSON-LD)** — a `Person` + `WebSite` graph ships in the
-  initial HTML; `ProfilePage` (/about), `ItemList` (/projects),
-  `CreativeWork` (project pages) and `WebPage` (/room) are injected per
-  route via a self-cleaning hook (`useJsonLd`) that removes stale schemas
-  during SPA navigation.
-- **Open Graph / Twitter** — an identity-first global card plus
-  route-correct titles, descriptions, URLs and image metadata per route.
-- **Crawlable initial HTML** — the homepage ships a static bootstrap shell
-  with a real `<h1>`, introduction and navigation, visible before React
-  mounts and to no-JS visitors.
-- **Clean failure** — unknown routes return real `404` responses with
-  `X-Robots-Tag: noindex`; `robots.txt` and the sitemap are served
-  statically.
+- Project showcase board linked to the real portfolio projects.
+- Monitor with canvas-rendered animated scenes.
+- Wall clock and other focusable room elements.
+- Interactive PC/RGB state.
+- Cinematic camera presets.
+- Free Camera mode with mouse look and WASD/Q/E movement.
 
-## Performance
+### Rendering & effects
 
-Performance work concentrates on keeping the landing page tiny while making
-the 3D room load as efficiently as possible:
+- React Three Fiber / Three.js scene graph.
+- Bloom, vignette and ACES filmic tone mapping on high-quality settings.
+- Canvas textures for dynamic screens.
+- Dust particles and ambient effects.
+- Quality presets for different hardware levels.
 
-- **Route-level code splitting** — every page (and the entire 3D scene) is a
-  separate lazy-loaded chunk; the landing page ships only a few kilobytes of
-  application JavaScript and never downloads Three.js, GLB assets or
-  decoders.
-- **3D asset pipeline** — GLB models are compressed with Meshopt (geometry)
-  and Draco (where beneficial), with WebP textures capped at sane dimensions;
-  embedded textures are decoded at runtime by self-hosted Draco/Meshopt
-  decoders. Tooling in `scripts/` audits and regenerates these assets.
-- **Self-hosted fonts** — Inter (latin variable) and JetBrains Mono
-  (400/600) are served from `public/fonts/` with `font-display: swap` and
-  preloaded; no external font requests.
-- **Optimized images** — project artwork is WebP, width-capped to display
-  sizes, with explicit dimensions and lazy loading below the fold.
-- **Quality tiers** — High / Medium / Performance presets (auto-detected from
-  pointer type, device memory and CPU cores, manually overridable) control
-  device pixel ratio, shadows, anti-aliasing, particles, bloom and
-  screen-update rates.
-- **Honest loading veil** — the room's loading state is driven by real asset
-  readiness via drei's `useProgress`; there is no fake progress, and loader
-  errors release the veil instead of trapping users.
-- **Reduced motion** — `prefers-reduced-motion` disables CSS animation and
-  the app-level camera parallax/ambient motion, with a manual override.
-- **First-paint shell** — the homepage renders a static, styled bootstrap
-  layout before any JavaScript executes.
+### Delivery
 
-No formal performance benchmark suite exists in the repository; measure with
-Lighthouse/DevTools against the production build.
+The 3D scene is lazy-loaded and code-split from the landing page. Optimized assets and self-hosted decoders are delivered only when the room is entered.
 
-## Accessibility
+---
 
-Accessibility considerations include:
+## ✦ SEO
 
-- A single, visible, semantic `<h1>` per route (including in the initial
-  HTML), with a logical heading hierarchy on content pages.
-- Semantic landmarks (`header`, `nav`, `main`, `section`, `footer`), labeled
-  navigation regions and real anchor/button elements throughout.
-- Visible `focus-visible` indicators and enlarged hit areas on compact icon
-  controls (room overlay, settings, gallery dots/arrows).
-- A contact form with labeled fields, `aria-invalid` error states, a
-  correctly hidden honeypot field and Turnstile verification.
-- `prefers-reduced-motion` support in CSS and as an in-app motion setting
-  that disables camera parallax and ambient animation.
-- A static no-JS bootstrap shell, and a WebGL failure fallback with full
-  navigation if the 3D room cannot start.
-- Alt text on content images and `aria-label`s on icon-only controls.
+SEO is treated as an architectural concern rather than a collection of meta tags.
 
-No formal WCAG audit has been performed; the implementation reflects
-deliberate accessibility engineering rather than certification.
+- **Route-specific HTML shells** are generated at build time so the initial response for `/`, `/about`, `/projects`, every project detail route, `/contact`, and `/room` contains the correct title, description, canonical and Open Graph data.
+- **Canonical URLs** are normalized to HTTPS, the apex domain, lowercase clean paths, and no query strings.
+- **Sitemap generation** derives project URLs from `src/data/projects.ts`.
+- **Structured data** includes `Person`, `WebSite`, `ProfilePage`, `ItemList`, project `CreativeWork`, and the `/room` `WebPage` schema where appropriate.
+- **Social metadata** includes Open Graph and Twitter metadata with static, publicly fetchable imagery.
+- **Crawler-friendly HTML** includes a static bootstrap shell with a real homepage H1 and route-specific initial HTML.
+- **404 handling** returns real HTTP 404 responses with `X-Robots-Tag: noindex` for unknown routes.
+- URL normalization handles trailing slashes, letter case and `.html` variants.
 
-## Security
+---
 
-Security posture (implemented in `public/_headers` and the Pages Functions):
+## ✦ Performance
 
-- **Strict-Transport-Security** — `max-age=31536000` (deliberately without
-  `includeSubDomains`/`preload`).
-- **Content-Security-Policy** — enforced, `default-src 'self'`. The only
-  non-self sources are Cloudflare Turnstile
-  (`challenges.cloudflare.com` for script/frame/connect) and
-  `'wasm-unsafe-eval'` for the Draco/Meshopt WASM decoders;
-  `style-src 'unsafe-inline'` is required by React inline style attributes,
-  and `img-src`/`connect-src` `blob:` by three.js GLB texture handling.
-- **Clickjacking / sniffing** — `X-Frame-Options: DENY`,
-  `frame-ancestors 'none'`, `X-Content-Type-Options: nosniff`.
-- **Referrer-Policy** `strict-origin-when-cross-origin`; **Permissions-Policy**
-  disables camera, microphone, geolocation and interest-cohort.
-- **Contact endpoint** — Cloudflare Turnstile (client widget + server-side
-  `siteverify`), per-IP rate limiting (5 requests / 10 minutes), strict input
-  validation and HTML escaping before email delivery via Resend.
-- **Environment separation** — `VITE_*` values are public client
-  configuration; all credentials (`TURNSTILE_SECRET`, `RESEND_API_KEY`,
-  `EMAIL_FROM`, `EMAIL_TO`) live only as Cloudflare Pages secrets read from
-  the Functions `env` binding. `.env*` files are git-ignored.
+The project intentionally separates content performance from 3D richness.
 
-No security claims beyond what is implemented here are made; report issues
-responsibly (see `SECURITY.md`).
+- Landing page ships without Three.js, GLB assets or decoders.
+- Route-level code splitting keeps the 3D scene isolated to `/room`.
+- GLB assets are optimized with Meshopt/Draco where applicable.
+- GLB textures are resized and converted to optimized WebP assets where appropriate.
+- Inter and JetBrains Mono are self-hosted.
+- Quality tiers adapt DPR, shadows, particles, effects and update rates.
+- The room's loading veil is tied to actual asset readiness rather than fake progress.
+- Reduced-motion preferences disable unnecessary animation and parallax.
 
-## Routes
+> No formal benchmark suite is included in the repository; performance claims should be evaluated with Lighthouse and browser DevTools against the production build.
+
+---
+
+## ✦ Accessibility
+
+Accessibility is built into the page and room architecture:
+
+- Semantic headings and landmarks.
+- A single meaningful H1 per page state.
+- Real links/buttons instead of click-only presentation elements.
+- `focus-visible` states for interactive controls.
+- Accessible labels for navigation and icon controls.
+- Reduced-motion support in CSS and the room settings.
+- No-JS landing shell.
+- WebGL failure fallback with full navigation.
+- Descriptive alt text for content images.
+
+The project does not claim formal WCAG certification.
+
+---
+
+## ✦ Security
+
+Implemented security measures include:
+
+- HSTS.
+- Content Security Policy.
+- `X-Content-Type-Options: nosniff`.
+- `X-Frame-Options: DENY`.
+- `frame-ancestors 'none'`.
+- `Referrer-Policy`.
+- restrictive `Permissions-Policy`.
+- Cloudflare Turnstile client + server verification.
+- Per-IP contact endpoint rate limiting.
+- Input validation and HTML escaping before email delivery.
+- Clear separation between public `VITE_*` values and server-only secrets.
+- Environment secrets stored in Cloudflare Pages rather than source control.
+
+See [`SECURITY.md`](SECURITY.md) for responsible vulnerability reporting.
+
+---
+
+## ✦ Routes
 
 | Route | Purpose |
 |---|---|
-| `/` | Lightweight SEO landing page |
-| `/about` | About — profile, skills, education, certificates |
+| `/` | Lightweight landing page |
+| `/about` | Profile, skills, education and certificates |
 | `/projects` | Project index |
-| `/projects/{slug}` | Project case study (`greenhawk-ai`, `hawkbucks`, `hawkbucks-bot`) |
-| `/contact` | Contact form (Turnstile-protected) with local time and availability |
+| `/projects/{slug}` | Individual project pages |
+| `/contact` | Contact form |
 | `/room` | Interactive 3D developer room |
-| anything else | Real `404` + `X-Robots-Tag: noindex` |
+| Unknown routes | Real `404` + `X-Robots-Tag: noindex` |
 
-URL normalization is enforced by the middleware: trailing slashes and letter
-case redirect (`308`) to the canonical path, `.html` variants redirect to
-clean paths, and `alifaniani.pages.dev` redirects to the apex domain.
+---
 
-## Getting Started
+## ✦ Project Structure
+
+```text
+AliFaniani-Portfolio/
+├── src/
+│   ├── app/            # router, providers, site configuration
+│   ├── components/
+│   │   ├── home/       # landing-page pieces
+│   │   ├── layout/     # navbar, footer, settings
+│   │   ├── room/       # 3D room overlay / loading UI
+│   │   ├── three/      # room scene components
+│   │   └── ui/         # reusable UI components
+│   ├── data/           # projects, profile, links, route metadata
+│   ├── hooks/          # metadata, JSON-LD and utility hooks
+│   ├── pages/          # route-level page components
+│   ├── services/       # API clients
+│   ├── stores/         # Zustand stores
+│   ├── styles/         # global styles and font declarations
+│   └── three/          # 3D engine, shaders, time/environment logic
+├── functions/           # Cloudflare Pages middleware + API
+├── public/              # fonts, icons, GLB/decoder assets, OG assets
+├── scripts/             # build-time SEO and asset tooling
+├── docs/                # profile, project and certificate assets
+├── .github/             # repository automation / dependency config
+├── LICENSE
+├── NOTICE.md
+├── SECURITY.md
+├── CHANGELOG.md
+├── package.json
+└── README.md
+```
+
+---
+
+## ✦ Getting Started
+
+### Requirements
+
+- Node.js 18+
+- npm
+
+### Installation
 
 ```bash
 git clone https://github.com/Greenhawk5/AliFaniani-Portfolio.git
 cd AliFaniani-Portfolio
 npm install
+```
+
+### Development
+
+```bash
 npm run dev
 ```
 
-The site runs at the Vite dev server URL. Node.js 18+ is recommended
-(developed on Node 22).
+### Production build
 
-### Environment Variables
+```bash
+npm run build
+```
 
-Copy `.env.example` to `.env` for local overrides — real `.env*` files are
-git-ignored and never committed.
+### Production preview
+
+```bash
+npm run preview
+```
+
+### Cloudflare-compatible local runtime
+
+```bash
+npx wrangler pages dev dist
+```
+
+This is useful for validating the real middleware, security headers, static route shells and 404 behavior.
+
+---
+
+## ✦ Environment Variables
+
+Create a local `.env` from `.env.example` when needed.
 
 | Variable | Scope | Purpose |
 |---|---|---|
-| `VITE_SITE_URL` | client (public) | Canonical production URL; defaults to `https://alifaniani.ir` |
-| `VITE_TURNSTILE_SITE_KEY` | client (public) | Cloudflare Turnstile site key — public by design |
-| `TURNSTILE_SECRET` | server (Cloudflare secret) | Turnstile server-side verification |
-| `RESEND_API_KEY` | server (Cloudflare secret) | Contact-form email delivery |
-| `EMAIL_FROM` / `EMAIL_TO` | server (Cloudflare secret) | Contact-form addresses |
+| `VITE_SITE_URL` | Client | Canonical production URL |
+| `VITE_TURNSTILE_SITE_KEY` | Client | Public Cloudflare Turnstile site key |
+| `TURNSTILE_SECRET` | Server secret | Turnstile server verification |
+| `RESEND_API_KEY` | Server secret | Contact-form email delivery |
+| `EMAIL_FROM` | Server secret | Sender address |
+| `EMAIL_TO` | Server secret | Recipient address |
 
-`VITE_*` values are embedded in client JavaScript — never put secrets there.
-Server-only values are set with `wrangler pages secret put …` and read from
-the Functions `env` binding in `functions/api/contact.ts`.
+Never place secrets in `VITE_*` variables.
 
-## Development Commands
+---
+
+## ✦ Development Commands
 
 | Command | Purpose |
 |---|---|
-| `npm run dev` | Vite dev server |
-| `npm run build` | Typecheck + production build + sitemap & route-shell generation |
-| `npm run preview` | Serve the production build locally |
-| `npx wrangler pages dev dist` | Cloudflare-compatible runtime (real middleware, `_headers`, 404 behavior) |
+| `npm run dev` | Vite development server |
+| `npm run build` | Typecheck + Vite build + sitemap + route-shell generation |
+| `npm run preview` | Preview the production build |
+| `npx wrangler pages dev dist` | Cloudflare-compatible local runtime |
 | `npm run lint` | ESLint |
 | `npm run format` | Prettier |
-| `npm run typecheck` | TypeScript project check |
-| `npm run check:functions` | TypeScript check for Pages Functions |
-| `npm run sitemap` | Regenerate `public/sitemap.xml` only |
-| `npm run deploy` | Production build + `wrangler pages deploy dist` |
+| `npm run typecheck` | TypeScript check |
+| `npm run check:functions` | Pages Functions TypeScript check |
+| `npm run sitemap` | Regenerate sitemap |
+| `npm run deploy` | Build and deploy to Cloudflare Pages |
 
-## Validation
+---
 
-There is no automated test framework in this repository. Validation is a
-manual production-checklist flow:
+## ✦ Validation
+
+The repository currently uses a production-oriented manual validation flow rather than a full automated test suite.
 
 ```text
 npm run build
-  ↓  typecheck + bundle + sitemap/route-shell generation
-npm run preview            (or npx wrangler pages dev dist)
-  ↓  Cloudflare-compatible runtime: middleware, headers, real 404s
-Route checks               all valid routes 200 · unknown routes 404 + noindex
-SEO checks                 per-route title/canonical/OG in the initial HTML
-Security headers           HSTS/CSP/nosniff/X-Frame/Referrer/Permissions
-Accessibility               headings, keyboard navigation, no-JS shell, room fallback
-scripts/verify-route-html.mjs · scripts/verify-headers.mjs
-                           scripted per-route metadata + header assertions
-                           against the local runtime
+      ↓
+Cloudflare-compatible local runtime
+      ↓
+Route / HTTP status checks
+      ↓
+Initial HTML SEO checks
+      ↓
+Security header checks
+      ↓
+Accessibility checks
+      ↓
+Browser verification
 ```
 
-Both verify scripts accept the runtime base URL constant at the top of the
-file and are the fastest way to re-check the initial-HTML metadata matrix
-after content changes.
-
-## Deployment
-
-The site deploys to **Cloudflare Pages** with
-`wrangler.toml` (`pages_build_output_dir = "dist"`):
+Useful verification scripts include:
 
 ```bash
-npm run deploy     # npm run build + wrangler pages deploy dist
+node scripts/verify-route-html.mjs
+node scripts/verify-headers.mjs
 ```
 
-Server-only secrets are configured once per project:
+No formal automated test framework or Lighthouse benchmark suite is included in the repository.
+
+---
+
+## ✦ Deployment
+
+The site is deployed to **Cloudflare Pages** using Wrangler.
+
+```bash
+npm run deploy
+```
+
+Production secrets are configured through Cloudflare Pages:
 
 ```bash
 wrangler pages secret put TURNSTILE_SECRET
@@ -364,69 +455,87 @@ wrangler pages secret put EMAIL_FROM
 wrangler pages secret put EMAIL_TO
 ```
 
-Production headers (HSTS, CSP, caching) come from `public/_headers`, which
-Cloudflare Pages applies at the edge.
+---
 
-## Adding a Project
+## ✦ Adding a Project
 
-Add an entry to **`src/data/projects.ts`** — it is the single source of truth
-for the Projects page, the detail pages, the 3D showcase board, route
-metadata and the generated shells.
+Add a project to:
 
-`npm run build` then automatically:
+```text
+src/data/projects.ts
+```
 
-1. Regenerates `public/sitemap.xml` from the project slugs
-   (`scripts/generate-sitemap.mjs`).
-2. Regenerates the static route shell for the new detail page
-   (`scripts/generate-route-html.mjs`, driven by `src/data/route-meta.ts`).
+That data source drives:
 
-**One manual step remains:** update the `PROJECT_SLUGS` set in
-`functions/_middleware.js` — it powers real 404 responses and URL
-normalization for project routes.
+- project listings
+- detail pages
+- the in-room showcase board
+- sitemap generation
+- route metadata
 
-## Documentation
+After adding or removing a project:
 
-- `docs/` — project artwork, profile images and certificates used by the site.
-- `scripts/` — build-time generators and asset optimization tooling (each
-  script documents its own usage).
-- `public/_headers` — deployed security/caching header definitions.
-- [NOTICE.md](NOTICE.md) — third-party asset attribution and licensing notes.
-- [CHANGELOG.md](CHANGELOG.md) — release history.
-- `Project Details/` — local design notes, git-ignored, not part of the
-  deployed repository.
+```bash
+npm run build
+```
 
-## Contributing
+will regenerate the sitemap and route-specific HTML shells.
 
-This is a personal portfolio, developed and maintained independently.
-Genuine bug reports are welcome via
-[GitHub issues](https://github.com/Greenhawk5/AliFaniani-Portfolio/issues).
+One manual synchronization point remains in:
 
-## License
+```text
+functions/_middleware.js
+```
 
-The original source code, visual design, and project materials in this
-repository are **proprietary** — Copyright © 2026 Ali Faniani. All rights
-reserved.
+where the valid project slug set is maintained for route validation and 404 handling.
 
-The repository is publicly viewable: inspecting the implementation and using
-it for learning or inspiration is welcome. However, reproduction,
-redistribution, republication, modification, sublicensing, or creation of
-derivative works from the original project — including presenting it as
-another person's portfolio — is not permitted without prior written
-permission.
+---
 
-Third-party assets (3D models, loading animations) are **not** covered by
-this license and remain governed by their own terms — see
-[NOTICE.md](NOTICE.md) for full attribution and conditions.
+## ✦ Repository Documentation
 
-- Full terms: [LICENSE](LICENSE)
-- Third-party attribution: [NOTICE.md](NOTICE.md)
-- Release history: [CHANGELOG.md](CHANGELOG.md)
+- [`CHANGELOG.md`](CHANGELOG.md) — release history.
+- [`LICENSE`](LICENSE) — proprietary license for original project work.
+- [`NOTICE.md`](NOTICE.md) — third-party asset attribution and licensing notes.
+- [`SECURITY.md`](SECURITY.md) — responsible vulnerability reporting.
+- `.github/dependabot.yml` — automated npm dependency update configuration.
 
-## Author
+Third-party assets are not relicensed by this repository; see `NOTICE.md` for attribution and applicable terms.
+
+---
+
+## ✦ License
+
+The original source code, visual design, and project materials in this repository are **proprietary** — Copyright © 2026 Ali Faniani. All rights reserved.
+
+The repository is publicly viewable for inspection, learning and inspiration. Viewing the code does not grant permission to reproduce, redistribute, republish, modify, sublicense, sell, or create derivative works from the original project without prior written permission.
+
+Third-party assets remain under their respective licenses and terms.
+
+See:
+
+- [`LICENSE`](LICENSE)
+- [`NOTICE.md`](NOTICE.md)
+
+---
+
+## ✦ Author
 
 **Ali Faniani** — Software Developer
 
-- Website: [alifaniani.ir](https://alifaniani.ir)
-- GitHub: [@Greenhawk5](https://github.com/Greenhawk5)
-- LinkedIn: [ali-faniani](https://www.linkedin.com/in/ali-faniani)
-- Hugging Face: [Greenhawk5](https://huggingface.co/Greenhawk5)
+<p>
+  <a href="https://alifaniani.ir">Website</a>
+  ·
+  <a href="https://github.com/Greenhawk5">GitHub</a>
+  ·
+  <a href="https://www.linkedin.com/in/ali-faniani">LinkedIn</a>
+  ·
+  <a href="https://huggingface.co/Greenhawk5">Hugging Face</a>
+</p>
+
+---
+
+<div align="center">
+
+<sub>Built with React, TypeScript, Three.js and Cloudflare Pages.</sub>
+
+</div>
