@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { useDocumentMeta } from '@/hooks/useDocumentMeta'
 import { useJsonLd } from '@/hooks/useJsonLd'
 import { SITE } from '@/app/config'
+import { BrandLogo } from '@/components/ui/BrandLogo'
 import { projects } from '@/data/projects'
 import { ROOM_META } from '@/data/route-meta'
 import { LoadingVeil } from '@/components/room/LoadingVeil'
@@ -22,8 +23,8 @@ const Scene = lazyWithChunkRecovery(() => import('@/components/three/Scene'))
 function RoomErrorFallback({ resetErrorBoundary }: { resetErrorBoundary: () => void }) {
   return (
     <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 overflow-y-auto bg-void p-8 text-center">
-      <span className="flex h-12 w-12 items-center justify-center rounded-xl border border-accent/40 bg-accent/10 font-mono text-lg font-bold text-accent shadow-[0_0_30px_-6px_rgba(57,255,139,0.7)]">
-        {SITE.shortName}
+      <span className="flex h-12 w-12 items-center justify-center">
+        <BrandLogo />
       </span>
       <div>
         <h1 className="text-xl font-semibold text-frost">

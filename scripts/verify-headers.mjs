@@ -34,7 +34,7 @@ const forHumans = [
   '/sitemap.xml',
   '/robots.txt',
   '/manifest.webmanifest',
-  '/og-image.jpg',
+  '/og-image.webp',
   '/fonts/inter-latin-var.woff2',
 ]
 for (const p of forHumans) {

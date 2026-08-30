@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { NAV_LINKS, SITE } from '@/app/config'
+import { BrandLogo } from '@/components/ui/BrandLogo'
 import { useUiStore } from '@/stores/uiStore'
 import { cn } from '@/lib/cn'
 import { GearIcon, MenuIcon, CloseIcon } from '@/components/ui/icons'
@@ -45,8 +46,8 @@ export function Navbar() {
     >
       <nav className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-5 md:px-8">
         <Link to="/" className="group flex items-center gap-2.5" aria-label="Home">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-accent/40 bg-accent/10 font-mono text-sm font-bold text-accent shadow-[0_0_18px_-4px_rgba(57,255,139,0.5)] transition-shadow group-hover:shadow-[0_0_26px_-4px_rgba(57,255,139,0.8)]">
-            {SITE.shortName}
+          <span className="flex h-8 w-8 items-center justify-center">
+            <BrandLogo />
           </span>
           <span className="hidden text-sm font-semibold tracking-wide text-frost sm:block">
             {SITE.name}

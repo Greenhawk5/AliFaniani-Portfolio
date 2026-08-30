@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useDocumentMeta } from '@/hooks/useDocumentMeta'
 import { SITE } from '@/app/config'
+import { BrandLogo } from '@/components/ui/BrandLogo'
 import { projects } from '@/data/projects'
 import { ArrowRightIcon } from '@/components/ui/icons'
 import { GooExperienceIcon } from '@/components/home/GooExperienceIcon'
@@ -38,8 +39,8 @@ export default function Home() {
         {/* Top meta row */}
         <header className="flex items-center justify-between pt-6 animate-fade-up">
           <div className="flex items-center gap-2.5">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-accent/40 bg-accent/10 font-mono text-sm font-bold text-accent shadow-[0_0_18px_-4px_rgba(57,255,139,0.5)]">
-              {SITE.shortName}
+            <span className="flex h-8 w-8 items-center justify-center">
+              <BrandLogo />
             </span>
             <span className="font-mono text-[10px] tracking-[0.3em] text-mist uppercase">
               Portfolio

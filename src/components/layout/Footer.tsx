@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { NAV_LINKS, SITE } from '@/app/config'
+import { BrandLogo } from '@/components/ui/BrandLogo'
 import { socialLinks } from '@/data/links'
 import {
   GitHubIcon,
@@ -26,8 +27,8 @@ export function Footer() {
         {/* Brand */}
         <div>
           <div className="flex items-center gap-2.5">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-accent/40 bg-accent/10 font-mono text-sm font-bold text-accent">
-              {SITE.shortName}
+            <span className="flex h-8 w-8 items-center justify-center">
+              <BrandLogo />
             </span>
             <span className="text-sm font-semibold text-frost">{SITE.name}</span>
           </div>

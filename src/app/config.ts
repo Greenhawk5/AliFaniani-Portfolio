@@ -9,7 +9,7 @@ export const SITE = {
   // Production URL, overridable via VITE_SITE_URL (see .env.example).
   url: envSiteUrl || 'https://alifaniani.ir',
   // Default Open Graph / Twitter share image (lives in public/).
-  ogImageUrl: '/og-image.jpg',
+  ogImageUrl: '/og-image.webp',
   email: 'ali.faniani@gmail.com',
   location: 'Jahrom County, Fars Province, Iran',
   availability: 'Freelance & full-time work · Remote / Worldwide',

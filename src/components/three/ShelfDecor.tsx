@@ -1,7 +1,6 @@
 import { useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
-import { createPosterTexture } from '@/three/textures'
 import { env } from '@/three/env'
 import { Interactable } from './Interactable'
 import { useUiStore } from '@/stores/uiStore'
@@ -84,7 +83,36 @@ function Shelf() {
 }
 
 function Posters() {
-  const posterB = useMemo(() => createPosterTexture(21, '#a06bff', '#ff5470'), [])
+  /**
+   * Branded board: displays the approved geometric Ali Faniani logo
+   * (public/favicon.svg — used as-is, never redrawn). The SVG is loaded once
+   * as an image and drawn centered on a dark panel matching the board's
+   * portrait ratio (0.56 x 0.74), preserving the logo's aspect ratio with no
+   * stretching. Same canvas-texture pipeline as the room's other screens, so
+   * the logo picks up the existing green-accent emissive treatment and the
+   * scene's existing bloom — no new lights, passes or dependencies.
+   */
+  const logoTexture = useMemo(() => {
+    const W = 560
+    const H = 740
+    const canvas = document.createElement('canvas')
+    canvas.width = W
+    canvas.height = H
+    const ctx = canvas.getContext('2d')!
+    ctx.fillStyle = '#070a0f'
+    ctx.fillRect(0, 0, W, H)
+    const tex = new THREE.CanvasTexture(canvas)
+    tex.colorSpace = THREE.SRGBColorSpace
+    tex.anisotropy = 4
+    const img = new Image()
+    img.onload = () => {
+      const size = W * 0.78
+      ctx.drawImage(img, (W - size) / 2, (H - size) / 2, size, size)
+      tex.needsUpdate = true
+    }
+    img.src = '/favicon.svg'
+    return tex
+  }, [])
 
   const frame = useMemo(
     () => new THREE.MeshStandardMaterial({ color: '#0b0e16', roughness: 0.4, metalness: 0.5 }),
@@ -99,7 +127,16 @@ function Posters() {
         </mesh>
         <mesh position={[0, 0, 0.025]}>
           <planeGeometry args={[0.56, 0.74]} />
-          <meshStandardMaterial map={posterB} roughness={0.9} />
+          {/* Subtle green-tinged emissive, consistent with the clock/board
+              screens (0.75–1.1 range) — soft glow via the existing bloom. */}
+          <meshStandardMaterial
+            map={logoTexture}
+            emissive="#ffffff"
+            emissiveMap={logoTexture}
+            emissiveIntensity={0.85}
+            roughness={0.9}
+            metalness={0}
+          />
         </mesh>
       </group>
     </group>

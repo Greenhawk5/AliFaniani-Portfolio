@@ -23,7 +23,7 @@ const STATIC_FILES = new Set([
   '/robots.txt',
   '/sitemap.xml',
   '/favicon.svg',
-  '/og-image.jpg',
+  '/og-image.webp',
   '/manifest.webmanifest',
   '/apple-touch-icon.png',
   '/icon-192.png',

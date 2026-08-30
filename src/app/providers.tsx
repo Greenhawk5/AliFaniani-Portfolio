@@ -1,5 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
 import { SITE } from '@/app/config'
+import { BrandLogo } from '@/components/ui/BrandLogo'
 
 interface Props {
   children: ReactNode
@@ -27,8 +28,8 @@ export class ErrorBoundary extends Component<Props, State> {
       // and real navigation instead of a dead end.
       return (
         <div className="flex min-h-dvh flex-col items-center justify-center gap-6 bg-void p-8 text-center">
-          <span className="flex h-12 w-12 items-center justify-center rounded-xl border border-accent/40 bg-accent/10 font-mono text-lg font-bold text-accent shadow-[0_0_30px_-6px_rgba(57,255,139,0.7)]">
-            {SITE.shortName}
+          <span className="flex h-12 w-12 items-center justify-center">
+            <BrandLogo />
           </span>
           <div>
             <h1 className="text-xl font-semibold text-frost">
