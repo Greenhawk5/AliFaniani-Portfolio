@@ -24,6 +24,12 @@ import type {
  */
 export type { SkillLevel, SkillItem }
 
+// The snapshot stores each profile section as a section OBJECT
+// (e.g. focus: { items: [...] }); the public facade unwraps them into the
+// plain arrays/objects the page components have always consumed. Typed
+// destructuring (not a cast) keeps the shapes honest at compile time.
+const sections = snapshot.profile
+
 export const profile: {
   hero: HeroSection
   about: AboutSection['paragraphs']
@@ -33,15 +39,17 @@ export const profile: {
   technologies: TechnologiesSection['items']
   certificates: CertificatesSection['items']
   experience: ExperienceSection['items']
-} = snapshot.profile as unknown as {
-  hero: HeroSection
-  about: AboutSection['paragraphs']
-  focus: FocusSection['items']
-  education: EducationSection
-  skillGroups: SkillsSection['groups']
-  technologies: TechnologiesSection['items']
-  certificates: CertificatesSection['items']
-  experience: ExperienceSection['items']
+} = {
+  hero: sections.hero,
+  about: sections.about.paragraphs,
+  focus: sections.focus.items,
+  education: sections.education,
+  // JSON imports widen literals ('level': string) — the snapshot was already
+  // Zod-validated against the discriminated union by the exporter.
+  skillGroups: sections.skills.groups as SkillsSection['groups'],
+  technologies: sections.technologies.items,
+  certificates: sections.certificates.items,
+  experience: sections.experience.items,
 }
 
 export type SkillGroup = (typeof profile.skillGroups)[number]

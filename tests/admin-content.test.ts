@@ -399,3 +399,80 @@ describe('public isolation', () => {
     expect(raw).not.toContain('admin_session=')
   })
 })
+
+/* ------------------- Phase 7C: minimal project creation ------------------- */
+
+describe('Phase 7C: new-project creation UX contract', () => {
+  /** Mirrors the NewRecordDialog starter payload exactly. */
+  const MINIMAL_DIALOG_PROJECT = (slug: string, title: string, repository: string) => ({
+    slug,
+    title,
+    subtitle: 'Coming soon',
+    shortDescription: 'Project description coming soon.',
+    overview: 'Project overview coming soon.',
+    category: 'Uncategorized',
+    year: new Date().getFullYear(),
+    banner: '/media/profile/projects.webp',
+    screenshots: [{ src: '/media/profile/projects.webp', caption: 'Screenshot coming soon' }],
+    technologies: ['TBD'],
+    techGroups: [{ label: 'Core', items: ['TBD'] }],
+    features: ['TBD'],
+    architecture: ['TBD'],
+    repository,
+  })
+
+  it('creates a valid minimal draft project from the dialog payload', async () => {
+    const { cookies, csrf } = await loginContext()
+    const response = await createHandler(
+      makeContext(
+        putJson('/api/admin/content', { kind: 'project', key: 'dialog-proj', data: MINIMAL_DIALOG_PROJECT('dialog-proj', 'Dialog Project', 'https://github.com/x/dialog-proj') }, cookies, csrf),
+        env
+      )
+    )
+    expect(response.status).toBe(201)
+    const body = (await response.json()) as { content: { state: string } }
+    expect(body.content.state).toBe('draft')
+  })
+
+  it('rejects invalid dialog input with field-level issues (no schema weakening)', async () => {
+    const { cookies, csrf } = await loginContext()
+    const bad = { ...MINIMAL_DIALOG_PROJECT('bad-proj', 'Bad', 'not-a-url') }
+    const response = await createHandler(
+      makeContext(putJson('/api/admin/content', { kind: 'project', key: 'bad-proj', data: bad }, cookies, csrf), env)
+    )
+    expect(response.status).toBe(400)
+    const body = (await response.json()) as { issues: { path: string; message: string }[] }
+    expect(body.issues.some((i) => i.path.includes('repository'))).toBe(true)
+  })
+
+  it('dialog-created draft is invisible to public content (snapshot untouched)', async () => {
+    const fs = await import('node:fs')
+    const before = fs.readFileSync('src/data/generated/content.json', 'utf8')
+    const { cookies, csrf } = await loginContext()
+    await createHandler(
+      makeContext(
+        putJson('/api/admin/content', { kind: 'project', key: 'hidden-proj', data: MINIMAL_DIALOG_PROJECT('hidden-proj', 'Hidden', 'https://github.com/x/hidden') }, cookies, csrf),
+        env
+      )
+    )
+    expect(fs.readFileSync('src/data/generated/content.json', 'utf8')).toBe(before)
+  })
+
+  it('full editor can load the dialog-created draft (GET returns working copy)', async () => {
+    const { cookies, csrf } = await loginContext()
+    await createHandler(
+      makeContext(
+        putJson('/api/admin/content', { kind: 'project', key: 'editable-proj', data: MINIMAL_DIALOG_PROJECT('editable-proj', 'Editable', 'https://github.com/x/editable') }, cookies, csrf),
+        env
+      )
+    )
+    const response = await getItemHandler(
+      makeContext({ request: getRequest('/api/admin/content/project/editable-proj', cookies), env, params: { kind: 'project', key: 'editable-proj' } }, env)
+    )
+    expect(response.status).toBe(200)
+    const body = (await response.json()) as { content: { data: { title: string; repository: string }; state: string } }
+    expect(body.content.state).toBe('draft')
+    expect(body.content.data.title).toBe('Editable')
+    expect(body.content.data.repository).toBe('https://github.com/x/editable')
+  })
+})

@@ -17,7 +17,7 @@
     "preview": "vite preview",
     "lint": "eslint src functions",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\" \"functions/**/*.ts\"",
-    "typecheck": "tsc -b",
+    "typecheck": "node scripts/generate-version.mjs && tsc -b",
     "check:functions": "tsc --noEmit -p tsconfig.functions.json",
     "verify:build": "node scripts/verify-build.mjs",
     "test": "vitest run",

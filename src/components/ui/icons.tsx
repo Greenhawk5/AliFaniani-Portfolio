@@ -136,6 +136,23 @@ export function ArrowRightIcon({ className }: IconProps) {
   )
 }
 
+export function ShieldIcon({ className }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M12 3 5 6v5c0 4.6 3 8.4 7 10 4-1.6 7-5.4 7-10V6l-7-3Z" />
+    </svg>
+  )
+}
+
 export function ExternalLinkIcon({ className }: IconProps) {
   return (
     <svg

@@ -9,20 +9,24 @@ import { Button } from '@/components/ui/Button'
 import { createContent, type ContentKind } from './contentApi'
 import { Field, inputClasses, Notice } from './Field'
 
+// A new project must satisfy the FULL canonical projectSchema even as a
+// draft (server validation is schema-complete by design). Fields the owner
+// hasn't provided yet get clearly-marked placeholder values they complete in
+// the editor; repository is a real URL so it is requested up front.
 const STARTER_PROJECT = {
   slug: '',
   title: '',
-  subtitle: '',
-  shortDescription: '',
-  overview: '',
-  category: '',
+  subtitle: 'Coming soon',
+  shortDescription: 'Project description coming soon.',
+  overview: 'Project overview coming soon.',
+  category: 'Uncategorized',
   year: new Date().getFullYear(),
-  banner: '',
-  screenshots: [{ src: '', caption: 'Screenshot' }],
-  technologies: [''],
-  techGroups: [{ label: 'Core', items: [''] }],
-  features: [''],
-  architecture: [''],
+  banner: '/media/profile/projects.webp', // neutral manifest asset; replace via MediaPicker
+  screenshots: [{ src: '/media/profile/projects.webp', caption: 'Screenshot coming soon' }],
+  technologies: ['TBD'],
+  techGroups: [{ label: 'Core', items: ['TBD'] }],
+  features: ['TBD'],
+  architecture: ['TBD'],
   repository: '',
 }
 
@@ -32,6 +36,7 @@ export function NewRecordDialog({ onCreated, onClose }: { onCreated: (kind: Cont
   const [kind, setKind] = useState<ContentKind>('project')
   const [key, setKey] = useState('')
   const [title, setTitle] = useState('')
+  const [repository, setRepository] = useState('')
   const [href, setHref] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -42,7 +47,7 @@ export function NewRecordDialog({ onCreated, onClose }: { onCreated: (kind: Cont
     setError('')
     setIssues([])
     try {
-      const data = kind === 'project' ? { ...STARTER_PROJECT, slug: key, title } : { ...STARTER_LINK, label: key, href }
+      const data = kind === 'project' ? { ...STARTER_PROJECT, slug: key, title, repository } : { ...STARTER_LINK, label: key, href }
       await createContent({ kind, key, data })
       onCreated(kind, key)
     } catch (e) {
@@ -92,13 +97,22 @@ export function NewRecordDialog({ onCreated, onClose }: { onCreated: (kind: Cont
       )}
 
       {kind === 'project' ? (
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="Slug" hint="e.g. my-new-app">
-            <input value={key} onChange={(e) => setKey(e.target.value)} className={`${inputClasses} font-mono text-xs`} spellCheck={false} />
+        <div className="space-y-3">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Field label="Slug" hint="e.g. my-new-app">
+              <input value={key} onChange={(e) => setKey(e.target.value)} className={`${inputClasses} font-mono text-xs`} spellCheck={false} />
+            </Field>
+            <Field label="Title">
+              <input value={title} onChange={(e) => setTitle(e.target.value)} className={inputClasses} />
+            </Field>
+          </div>
+          <Field label="Repository URL" hint="required — must be a valid URL">
+            <input value={repository} onChange={(e) => setRepository(e.target.value)} className={inputClasses} placeholder="https://github.com/…" />
           </Field>
-          <Field label="Title">
-            <input value={title} onChange={(e) => setTitle(e.target.value)} className={inputClasses} />
-          </Field>
+          <p className="text-xs text-mist/70">
+            Placeholder values are filled in for the remaining fields — complete them in the editor after
+            creation.
+          </p>
         </div>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
@@ -114,7 +128,7 @@ export function NewRecordDialog({ onCreated, onClose }: { onCreated: (kind: Cont
       <p className="text-xs text-mist/70">
         Created as a <strong>draft</strong> — invisible to the public site until you publish.
       </p>
-      <Button size="sm" onClick={() => void submit()} disabled={busy || !key || (kind === 'link' ? !href : !title)}>
+      <Button size="sm" onClick={() => void submit()} disabled={busy || !key || (kind === 'link' ? !href : !title || !repository)}>
         {busy ? 'Creating…' : 'Create draft'}
       </Button>
     </div>
