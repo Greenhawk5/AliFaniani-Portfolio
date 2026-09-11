@@ -1,6 +1,6 @@
 /**
- * Cloudflare Pages middleware (runs for every request, before static assets
- * and other functions).
+ * Cloudflare Pages middleware (runs for every non-excluded request, before
+ * static assets and other functions).
  *
  * 1. Redirects the default pages.dev subdomain to the production domain.
  * 2. Normalizes URLs: lowercases paths and strips trailing slashes
@@ -11,13 +11,13 @@
  *    the client-side NotFound page renders for human visitors, and carries
  *    `X-Robots-Tag: noindex` as a crawl-safe signal.
  *
- * ROUTES and PROJECT_SLUGS below must be kept in sync with
- * src/app/router.tsx and src/data/projects.ts.
- * `npm run build` regenerates public/sitemap.xml from src/data/projects.ts;
- * this list is the one manual copy that remains.
+ * Valid routes and project slugs come from dist/_content_meta.json, which is
+ * generated from the canonical content snapshot at build time
+ * (scripts/generate-content-meta.mjs) — no hand-maintained lists remain.
+ * The file is read via env.ASSETS and memoized per isolate.
  */
 
-const STATIC_PREFIXES = ['/assets/', '/models/', '/draco/', '/icons/', '/api/']
+const STATIC_PREFIXES = ['/assets/', '/models/', '/draco/', '/icons/', '/fonts/', '/media/', '/api/']
 
 const STATIC_FILES = new Set([
   '/robots.txt',
@@ -28,29 +28,29 @@ const STATIC_FILES = new Set([
   '/apple-touch-icon.png',
   '/icon-192.png',
   '/icon-512.png',
+  '/media-manifest.json',
+  '/_content_meta.json',
 ])
 
-/** Valid SPA routes (without trailing slashes). */
-const ROUTES = new Set(['/', '/about', '/projects', '/contact', '/room'])
+/** Fallbacks used only if _content_meta.json cannot be loaded. */
+const FALLBACK_ROUTES = ['/', '/about', '/projects', '/contact', '/room']
 
-/**
- * Route-specific HTML shells generated at build time
- * (scripts/generate-route-html.mjs) — served to crawlers/no-JS visitors so
- * the initial response carries route-correct title/canonical/OG metadata.
- * `/` uses index.html directly.
- */
-const ROUTE_SHELLS = new Set([
-  '/about',
-  '/projects',
-  '/contact',
-  '/room',
-  '/projects/greenhawk-ai',
-  '/projects/hawkbucks',
-  '/projects/hawkbucks-bot',
-])
+/** Per-isolate memo for the generated content meta. */
+let contentMetaCache = null
 
-/** Valid project slugs — keep in sync with src/data/projects.ts. */
-const PROJECT_SLUGS = new Set(['greenhawk-ai', 'hawkbucks', 'hawkbucks-bot'])
+async function loadContentMeta(env, url) {
+  if (contentMetaCache) return contentMetaCache
+  try {
+    const res = await env.ASSETS.fetch(new URL('/_content_meta.json', url.origin).toString())
+    if (res.status === 200) {
+      contentMetaCache = await res.json()
+      return contentMetaCache
+    }
+  } catch {
+    // fall through to fallbacks
+  }
+  return null
+}
 
 function isStaticAsset(pathname) {
   return (
@@ -67,13 +67,28 @@ function redirect(url, pathname, status) {
   return Response.redirect(target.toString(), status)
 }
 
-function isValidRoute(pathname) {
-  if (ROUTES.has(pathname)) return true
-  if (pathname.startsWith('/projects/')) {
-    const slug = pathname.split('/')[2] ?? ''
-    return PROJECT_SLUGS.has(slug)
+/**
+ * Private, unlisted routes. Served like valid routes (SPA) but ALWAYS with
+ * `X-Robots-Tag: noindex`, and intentionally absent from _content_meta.json,
+ * the sitemap, robots.txt, and all public metadata — the admin surface must
+ * not be advertised or indexable.
+ */
+const PRIVATE_ROUTES = ['/admin']
+
+async function isValidRoute(pathname, env, url) {
+  if (FALLBACK_ROUTES.includes(pathname)) return true
+  const meta = await loadContentMeta(env, url)
+  if (meta) {
+    if (meta.staticRoutes.includes(pathname)) return true
+    if (pathname.startsWith('/projects/')) {
+      const slug = pathname.split('/')[2] ?? ''
+      return meta.projectSlugs.includes(slug)
+    }
+    return false
   }
-  return false
+  // Meta unavailable (unexpected): fall back to prefix-level match for
+  // project detail URLs; specific unknown slugs then 404 client-side.
+  return pathname.startsWith('/projects/')
 }
 
 export async function onRequest(context) {
@@ -100,7 +115,7 @@ export async function onRequest(context) {
     return redirect(url, pathname.slice(0, -5), 308)
   }
 
-  // Static assets, hashed bundles, models and the API functions pass through.
+  // Static assets, hashed bundles, models, media and the API functions pass through.
   if (isStaticAsset(pathname)) {
     return context.next()
   }
@@ -113,14 +128,22 @@ export async function onRequest(context) {
     return redirect(url, pathname.replace(/\/+$/, '') || '/', 308)
   }
 
-  if (isValidRoute(pathname)) {
+  // Private routes (e.g. /admin): serve the SPA with noindex — never 404,
+  // never a generated shell, never in any public metadata.
+  if (PRIVATE_ROUTES.includes(pathname)) {
+    const response = await context.next()
+    const headers = new Headers(response.headers)
+    headers.set('X-Robots-Tag', 'noindex')
+    headers.set('Cache-Control', 'no-store')
+    return new Response(response.body, { status: response.status, statusText: response.statusText, headers })
+  }
+
+  if (await isValidRoute(pathname, env, url)) {
     // Serve the route-specific generated shell (route-correct initial
     // <head>) when it exists; `/` and any missing shell fall back to the
     // standard SPA response.
-    if (ROUTE_SHELLS.has(pathname)) {
-      const shell = await env.ASSETS.fetch(new URL(pathname + '.html', url.origin).toString())
-      if (shell.status === 200) return shell
-    }
+    const shell = await env.ASSETS.fetch(new URL(pathname + '.html', url.origin).toString())
+    if (shell.status === 200) return shell
     return context.next()
   }
 

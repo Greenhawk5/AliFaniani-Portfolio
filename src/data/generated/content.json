@@ -1,0 +1,436 @@
+{
+  "schemaVersion": 1,
+  "exportedAt": "2026-09-11T21:29:39.948Z",
+  "projects": [
+    {
+      "slug": "greenhawk-ai",
+      "title": "GreenHawk AI",
+      "subtitle": "AI-powered black & white image colorization platform",
+      "shortDescription": "An AI-powered web application for black-and-white image colorization using CNN, GAN, and diffusion-based deep learning approaches through a FastAPI backend.",
+      "overview": "GreenHawk AI is an AI-powered web application for black-and-white image colorization. It brings multiple deep-learning approaches, including CNN, GAN, and diffusion-based models, together behind a FastAPI backend and web interface so users can explore colorization results through a practical software system.",
+      "category": "AI · Computer Vision",
+      "year": 2026,
+      "banner": "/media/project/greenhawk-ai/banner-1280.webp",
+      "bannerConfig": {
+        "desktop": {
+          "objectPosition": "50% 40%",
+          "scale": 1.02
+        },
+        "mobile": {
+          "objectPosition": "50% 30%",
+          "scale": 1.15
+        }
+      },
+      "screenshots": [
+        {
+          "src": "/media/project/greenhawk-ai/home.webp",
+          "caption": "Home interface"
+        },
+        {
+          "src": "/media/project/greenhawk-ai/models.webp",
+          "caption": "AI models overview"
+        },
+        {
+          "src": "/media/project/greenhawk-ai/comparison.webp",
+          "caption": "Comparison studio"
+        },
+        {
+          "src": "/media/project/greenhawk-ai/results.webp",
+          "caption": "Generated results"
+        }
+      ],
+      "technologies": [
+        "Python",
+        "FastAPI",
+        "PyTorch",
+        "OpenCV",
+        "Computer Vision",
+        "Deep Learning"
+      ],
+      "techGroups": [
+        {
+          "label": "Backend",
+          "items": [
+            "Python",
+            "FastAPI",
+            "OpenCV"
+          ]
+        },
+        {
+          "label": "AI",
+          "items": [
+            "PyTorch",
+            "CNN",
+            "GAN",
+            "Diffusion"
+          ]
+        },
+        {
+          "label": "Web",
+          "items": [
+            "REST API",
+            "Responsive UI"
+          ]
+        }
+      ],
+      "features": [
+        "Multiple colorization models: Zhang CNN, DeOldify GAN, and FLUX diffusion enhancement",
+        "Comparison studio to process one grayscale image through several AI pipelines",
+        "Side-by-side result comparison with downloadable outputs",
+        "FastAPI backend with REST API architecture and background job management",
+        "Image preprocessing, result management, and storage handling"
+      ],
+      "architecture": [
+        "User uploads a grayscale image through the web interface",
+        "FastAPI backend receives the request and orchestrates AI services",
+        "Colorization pipeline runs the selected models (Zhang / DeOldify / FLUX)",
+        "Storage manager persists generated outputs",
+        "Results are returned to the user for comparison and download"
+      ],
+      "repository": "https://github.com/Greenhawk5/GreenHawk-AI",
+      "demo": "https://greenhawkai.ir",
+      "demoStatus": "Currently unavailable"
+    },
+    {
+      "slug": "hawkbucks",
+      "title": "HawkBucks",
+      "subtitle": "Fortnite Save The World V-Bucks mission tracker",
+      "shortDescription": "A Fortnite Save The World mission tracking platform using React, TypeScript, Cloudflare serverless technologies, APIs, and automation.",
+      "overview": "HawkBucks is a Fortnite Save The World mission tracking platform. Its React and TypeScript web application works with Cloudflare serverless technologies, APIs, data processing, persistent storage, and automated workflows to turn mission information into a usable web experience.",
+      "category": "Web · Cloud",
+      "year": 2026,
+      "banner": "/media/project/hawkbucks/hawkbucks-header-1280.webp",
+      "bannerConfig": {
+        "desktop": {
+          "objectPosition": "50% 45%",
+          "scale": 1.02
+        },
+        "mobile": {
+          "objectPosition": "50% 40%",
+          "scale": 1.1
+        }
+      },
+      "screenshots": [
+        {
+          "src": "/media/project/hawkbucks/home.webp",
+          "caption": "Mission dashboard"
+        },
+        {
+          "src": "/media/project/hawkbucks/v-bucks-missions.webp",
+          "caption": "V-Bucks missions history"
+        },
+        {
+          "src": "/media/project/hawkbucks/about.webp",
+          "caption": "About page"
+        }
+      ],
+      "technologies": [
+        "React",
+        "TypeScript",
+        "Cloudflare Workers",
+        "D1",
+        "KV",
+        "REST APIs"
+      ],
+      "techGroups": [
+        {
+          "label": "Frontend",
+          "items": [
+            "React",
+            "TypeScript",
+            "Tailwind CSS"
+          ]
+        },
+        {
+          "label": "Backend",
+          "items": [
+            "Cloudflare Workers",
+            "REST APIs"
+          ]
+        },
+        {
+          "label": "Data",
+          "items": [
+            "Cloudflare KV",
+            "Cloudflare D1"
+          ]
+        }
+      ],
+      "features": [
+        "Automatic detection of V-Bucks reward missions from Fortnite mission data",
+        "Mission type, area, zone, and Power Level resolution into player-facing information",
+        "Fast mission dashboard prioritizing reward, area, mission, and Power Level",
+        "Persistent daily mission history stored in Cloudflare D1",
+        "Historical summaries with previous-period comparisons",
+        "Current mission response cached in Cloudflare KV"
+      ],
+      "architecture": [
+        "A Cloudflare Worker retrieves Fortnite mission world data on a schedule",
+        "Mission alerts are filtered to detect V-Bucks rewards",
+        "Mission types, Power Levels, and zones are resolved into readable results",
+        "The current response is cached in KV and daily snapshots persist in D1",
+        "The React frontend reads normalized mission and history data through the Worker API"
+      ],
+      "repository": "https://github.com/Greenhawk5/HawkBucks-Web",
+      "demo": "https://hawkbucks.pages.dev"
+    },
+    {
+      "slug": "hawkbucks-bot",
+      "title": "HawkBucks Bot",
+      "subtitle": "Telegram V-Bucks mission assistant",
+      "shortDescription": "A Telegram automation bot with scheduled jobs, mission data processing, reminders, image generation, and persistent user management.",
+      "overview": "HawkBucks Bot is a Telegram automation system for mission information. It combines scheduled jobs, mission data processing, reminders, image generation, webhooks, and persistent user and group management to support automated delivery through Telegram.",
+      "category": "Automation · Telegram",
+      "year": 2026,
+      "banner": "/media/project/hawkbucks-bot/banner-1280.webp",
+      "bannerConfig": {
+        "desktop": {
+          "objectPosition": "50% 40%",
+          "scale": 1.02
+        },
+        "mobile": {
+          "objectPosition": "42% 40%",
+          "scale": 1.15
+        }
+      },
+      "screenshots": [
+        {
+          "src": "/media/project/hawkbucks-bot/in-chat.webp",
+          "caption": "Daily mission message in chat"
+        },
+        {
+          "src": "/media/project/hawkbucks-bot/multiple-missions-available.webp",
+          "caption": "Multiple missions available"
+        },
+        {
+          "src": "/media/project/hawkbucks-bot/no-mission-1280.webp",
+          "caption": "No missions available today"
+        }
+      ],
+      "technologies": [
+        "Python",
+        "Telegram Bot",
+        "Cloudflare Workers",
+        "D1",
+        "Automation"
+      ],
+      "techGroups": [
+        {
+          "label": "Backend",
+          "items": [
+            "Python",
+            "Cloudflare Workers"
+          ]
+        },
+        {
+          "label": "Automation",
+          "items": [
+            "Scheduled jobs",
+            "Reminders",
+            "Webhooks"
+          ]
+        },
+        {
+          "label": "Data",
+          "items": [
+            "Cloudflare D1",
+            "Mission data pipeline"
+          ]
+        }
+      ],
+      "features": [
+        "Telegram automation system for Fortnite Save The World V-Bucks missions",
+        "Scheduled jobs that process mission data and deliver daily updates",
+        "Reminder system for mission resets and availability",
+        "Generated mission summary images sent directly to Telegram",
+        "Persistent user, group, and channel management",
+        "Cloudflare Workers architecture with D1 persistence"
+      ],
+      "architecture": [
+        "Scheduled jobs fetch and process Fortnite mission data",
+        "The mission data pipeline detects V-Bucks rewards and resolves mission details",
+        "Summary images are generated from the processed mission data",
+        "Messages and reminders are delivered through the Telegram Bot API",
+        "Users, groups, and channels are persisted for reliable delivery"
+      ],
+      "repository": "https://github.com/Greenhawk5/HawkBucks-Bot",
+      "demo": "https://t.me/HawkBucks_bot"
+    }
+  ],
+  "profile": {
+    "hero": {
+      "name": "Ali Faniani",
+      "role": "Computer Science Graduate | Software Developer | AI, Backend & Web Development",
+      "intro": "I build practical software systems at the intersection of Artificial Intelligence, backend engineering, web technologies, and automation.",
+      "avatarInitials": "AF",
+      "avatarSrc": "/media/profile/pic2.webp"
+    },
+    "about": {
+      "paragraphs": [
+        "I am a Computer Science graduate and software developer interested in building practical software systems at the intersection of Artificial Intelligence, backend engineering, web technologies, and automation.",
+        "My development experience includes Python, FastAPI, REST APIs, React, TypeScript, JavaScript, Tailwind CSS, and cloud/serverless technologies including Cloudflare Workers, D1, and KV."
+      ]
+    },
+    "focus": {
+      "items": [
+        "Artificial Intelligence",
+        "Deep Learning",
+        "Computer Vision",
+        "Backend Engineering",
+        "Web Applications",
+        "Automation",
+        "Cloud Technologies"
+      ]
+    },
+    "education": {
+      "degree": "B.Sc. in Computer Science",
+      "school": "Shahid Chamran University of Ahvaz",
+      "period": "Graduated",
+      "notes": "Focused on software development, Artificial Intelligence, and practical software systems."
+    },
+    "skills": {
+      "groups": [
+        {
+          "label": "AI & Computer Vision",
+          "skills": [
+            {
+              "name": "Python",
+              "level": "Advanced"
+            },
+            {
+              "name": "PyTorch",
+              "level": "Strong"
+            },
+            {
+              "name": "OpenCV",
+              "level": "Strong"
+            },
+            {
+              "name": "Computer Vision",
+              "level": "Strong"
+            },
+            {
+              "name": "Deep Learning",
+              "level": "Strong"
+            }
+          ]
+        },
+        {
+          "label": "Backend & Cloud",
+          "skills": [
+            {
+              "name": "FastAPI",
+              "level": "Strong"
+            },
+            {
+              "name": "REST APIs",
+              "level": "Strong"
+            },
+            {
+              "name": "Cloudflare Workers",
+              "level": "Strong"
+            },
+            {
+              "name": "D1",
+              "level": "Familiar"
+            },
+            {
+              "name": "KV",
+              "level": "Familiar"
+            },
+            {
+              "name": "SQL",
+              "level": "Familiar"
+            }
+          ]
+        },
+        {
+          "label": "Frontend & Tools",
+          "skills": [
+            {
+              "name": "React",
+              "level": "Strong"
+            },
+            {
+              "name": "TypeScript",
+              "level": "Strong"
+            },
+            {
+              "name": "JavaScript",
+              "level": "Strong"
+            },
+            {
+              "name": "Tailwind CSS",
+              "level": "Strong"
+            },
+            {
+              "name": "Git",
+              "level": "Advanced"
+            },
+            {
+              "name": "GitHub",
+              "level": "Advanced"
+            }
+          ]
+        }
+      ]
+    },
+    "technologies": {
+      "items": [
+        "Python",
+        "FastAPI",
+        "PyTorch",
+        "OpenCV",
+        "Computer Vision",
+        "Deep Learning",
+        "React",
+        "TypeScript",
+        "JavaScript",
+        "Tailwind CSS",
+        "Cloudflare Workers",
+        "D1",
+        "KV",
+        "Git",
+        "GitHub",
+        "REST APIs",
+        "SQL"
+      ]
+    },
+    "certificates": {
+      "items": [
+        {
+          "title": "Project-Oriented Course In Creating Telegram Bot Using Python",
+          "provider": "Quera",
+          "date": "March 2024",
+          "href": "https://quera.org/certificate/QvyE6bky/",
+          "image": "/media/certificates/telegram-bot-certificate.webp"
+        }
+      ]
+    },
+    "experience": {
+      "items": []
+    }
+  },
+  "links": [
+    {
+      "label": "GitHub",
+      "href": "https://github.com/Greenhawk5"
+    },
+    {
+      "label": "LinkedIn",
+      "href": "https://www.linkedin.com/in/ali-faniani"
+    },
+    {
+      "label": "Telegram",
+      "href": "https://t.me/HawkProjects"
+    },
+    {
+      "label": "Hugging Face",
+      "href": "https://huggingface.co/Greenhawk5"
+    },
+    {
+      "label": "Email",
+      "href": "mailto:ali.faniani@gmail.com"
+    }
+  ]
+}

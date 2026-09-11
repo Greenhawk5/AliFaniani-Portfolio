@@ -3,7 +3,7 @@ const BASE = 'http://127.0.0.1:8788'
 const checks = [
   ['/room', 'Explore the interactive 3D developer room'],
   ['/about', 'About Ali Faniani — software developer focused on AI'],
-  ['/projects/hawkbucks-bot', 'A Telegram automation system'],
+  ['/projects/hawkbucks-bot', 'A Telegram automation bot'],
   ['/contact', 'Contact Ali Faniani — Freelance'],
   ['/projects/greenhawk-ai', 'An AI-powered web application'],
 ]

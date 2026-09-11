@@ -3,7 +3,6 @@ import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { env } from '@/three/env'
 import { Interactable } from './Interactable'
-import { useUiStore } from '@/stores/uiStore'
 import { SocialBoard } from './SocialBoard'
 import { ShelfCharacters } from './ShelfCharacters'
 

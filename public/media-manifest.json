@@ -1,0 +1,173 @@
+{
+  "generatedAt": "2026-09-11T21:28:56.772Z",
+  "media": {
+    "/media/project/greenhawk-ai/banner-1280.webp": {
+      "source": "docs:project/GreenHawk AI/banner-1280.webp",
+      "bytes": 80478,
+      "width": 1280,
+      "height": 853
+    },
+    "/media/project/greenhawk-ai/banner.webp": {
+      "source": "docs:project/GreenHawk AI/banner.webp",
+      "bytes": 184958,
+      "width": 1536,
+      "height": 1024
+    },
+    "/media/project/greenhawk-ai/comparison.webp": {
+      "source": "docs:project/GreenHawk AI/comparison.webp",
+      "bytes": 193152,
+      "width": 998,
+      "height": 897
+    },
+    "/media/project/greenhawk-ai/home.webp": {
+      "source": "docs:project/GreenHawk AI/home.webp",
+      "bytes": 93638,
+      "width": 1080,
+      "height": 1993
+    },
+    "/media/project/greenhawk-ai/models.webp": {
+      "source": "docs:project/GreenHawk AI/models.webp",
+      "bytes": 116060,
+      "width": 1080,
+      "height": 2755
+    },
+    "/media/project/greenhawk-ai/results.webp": {
+      "source": "docs:project/GreenHawk AI/results.webp",
+      "bytes": 113082,
+      "width": 1080,
+      "height": 1396
+    },
+    "/media/project/hawkbucks-bot/banner-1280.webp": {
+      "source": "docs:project/HawkBucks - Bot/banner-1280.webp",
+      "bytes": 73618,
+      "width": 1280,
+      "height": 853
+    },
+    "/media/project/hawkbucks-bot/banner.webp": {
+      "source": "docs:project/HawkBucks - Bot/banner.webp",
+      "bytes": 175324,
+      "width": 1536,
+      "height": 1024
+    },
+    "/media/project/hawkbucks-bot/in-chat.webp": {
+      "source": "docs:project/HawkBucks - Bot/in chat.webp",
+      "bytes": 51028,
+      "width": 431,
+      "height": 707
+    },
+    "/media/project/hawkbucks-bot/multiple-missions-available.webp": {
+      "source": "docs:project/HawkBucks - Bot/multiple missions available.webp",
+      "bytes": 65314,
+      "width": 800,
+      "height": 796
+    },
+    "/media/project/hawkbucks-bot/no-mission.webp": {
+      "source": "docs:project/HawkBucks - Bot/no mission.webp",
+      "bytes": 127562,
+      "width": 1715,
+      "height": 917
+    },
+    "/media/project/hawkbucks-bot/no-mission-1280.webp": {
+      "source": "docs:project/HawkBucks - Bot/no-mission-1280.webp",
+      "bytes": 44850,
+      "width": 1280,
+      "height": 684
+    },
+    "/media/project/hawkbucks/about.webp": {
+      "source": "docs:project/HawkBucks - Web/about.webp",
+      "bytes": 108536,
+      "width": 1080,
+      "height": 1959
+    },
+    "/media/project/hawkbucks/hawkbucks-header-1280.webp": {
+      "source": "docs:project/HawkBucks - Web/hawkbucks-header-1280.webp",
+      "bytes": 129356,
+      "width": 1280,
+      "height": 853
+    },
+    "/media/project/hawkbucks/hawkbucks-header.webp": {
+      "source": "docs:project/HawkBucks - Web/hawkbucks-header.webp",
+      "bytes": 324130,
+      "width": 1536,
+      "height": 1024
+    },
+    "/media/project/hawkbucks/home.webp": {
+      "source": "docs:project/HawkBucks - Web/home.webp",
+      "bytes": 45352,
+      "width": 1080,
+      "height": 801
+    },
+    "/media/project/hawkbucks/v-bucks-missions.webp": {
+      "source": "docs:project/HawkBucks - Web/v-bucks-missions.webp",
+      "bytes": 53482,
+      "width": 1080,
+      "height": 884
+    },
+    "/media/profile/3d-room-1.webp": {
+      "source": "docs:profile/3D-Room (1).webp",
+      "bytes": 45790,
+      "width": 1866,
+      "height": 912
+    },
+    "/media/profile/3d-room-2.webp": {
+      "source": "docs:profile/3D-Room (2).webp",
+      "bytes": 20476,
+      "width": 1866,
+      "height": 912
+    },
+    "/media/profile/3d-room-3.webp": {
+      "source": "docs:profile/3D-Room (3).webp",
+      "bytes": 106824,
+      "width": 1866,
+      "height": 912
+    },
+    "/media/profile/about.webp": {
+      "source": "docs:profile/about.webp",
+      "bytes": 72310,
+      "width": 1862,
+      "height": 913
+    },
+    "/media/profile/banner.webp": {
+      "source": "docs:profile/banner.webp",
+      "bytes": 85184,
+      "width": 1672,
+      "height": 941
+    },
+    "/media/profile/contact.webp": {
+      "source": "docs:profile/contact.webp",
+      "bytes": 41702,
+      "width": 1854,
+      "height": 913
+    },
+    "/media/profile/home.webp": {
+      "source": "docs:profile/home.webp",
+      "bytes": 30324,
+      "width": 1080,
+      "height": 527
+    },
+    "/media/profile/pic1.webp": {
+      "source": "docs:profile/pic1.webp",
+      "bytes": 26502,
+      "width": 460,
+      "height": 460
+    },
+    "/media/profile/pic2.webp": {
+      "source": "docs:profile/pic2.webp",
+      "bytes": 12660,
+      "width": 480,
+      "height": 480
+    },
+    "/media/profile/projects.webp": {
+      "source": "docs:profile/projects.webp",
+      "bytes": 93082,
+      "width": 1862,
+      "height": 916
+    },
+    "/media/certificates/telegram-bot-certificate.webp": {
+      "source": "docs:certificates/telegram-bot-certificate.webp",
+      "bytes": 50486,
+      "width": 800,
+      "height": 566
+    }
+  }
+}

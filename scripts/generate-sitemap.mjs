@@ -3,28 +3,36 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 /**
- * Generates public/sitemap.xml from the real site routes.
+ * Generates public/sitemap.xml from the canonical content snapshot.
  *
- * Project URLs are derived from src/data/projects.ts (the single source of
- * truth shared by the Projects page, detail pages and the 3D showcase board),
- * so the sitemap can no longer drift from the actual routes.
+ * Project URLs derive from src/data/generated/content.json — the same
+ * validated snapshot consumed by the public app (v2.0.0 CMS architecture),
+ * so the sitemap cannot drift from actual published routes. Drafts and
+ * archived projects never appear in the snapshot and therefore never appear
+ * in the sitemap.
  *
- * Runs automatically before `npm run build` (see the "prebuild" script).
+ * Runs in the build pipeline AFTER snapshot export (Guardrail A order).
  */
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 
-const projectsSource = readFileSync(resolve(root, 'src/data/projects.ts'), 'utf8')
-const slugs = [...new Set([...projectsSource.matchAll(/slug:\s*'([\w-]+)'/g)].map((m) => m[1]))]
+const snapshotPath = resolve(root, 'src/data/generated/content.json')
+const snapshot = JSON.parse(readFileSync(snapshotPath, 'utf8'))
 
-if (slugs.length === 0) {
-  throw new Error('No project slugs found in src/data/projects.ts — refusing to write an empty sitemap.')
+const slugs = snapshot.projects.map((project) => project.slug)
+const uniqueSlugs = [...new Set(slugs)]
+
+if (uniqueSlugs.length !== slugs.length) {
+  throw new Error('Duplicate project slugs in content snapshot — refusing to write sitemap.')
+}
+if (uniqueSlugs.length === 0) {
+  throw new Error('Content snapshot has no published projects — refusing to write an empty sitemap.')
 }
 
 const SITE_URL = 'https://alifaniani.ir'
 const lastmod = new Date().toISOString().slice(0, 10)
 
 // Order: homepage, main pages, project details, contact, room experience.
-const paths = ['/', '/about', '/projects', ...slugs.map((slug) => `/projects/${slug}`), '/contact', '/room']
+const paths = ['/', '/about', '/projects', ...uniqueSlugs.map((slug) => `/projects/${slug}`), '/contact', '/room']
 
 const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -40,4 +48,4 @@ ${paths
 `
 
 writeFileSync(resolve(root, 'public/sitemap.xml'), xml)
-console.log(`✓ sitemap.xml generated — ${paths.length} URLs (${slugs.length} project routes)`)
+console.log(`✓ sitemap.xml generated from snapshot — ${paths.length} URLs (${uniqueSlugs.length} project routes)`)

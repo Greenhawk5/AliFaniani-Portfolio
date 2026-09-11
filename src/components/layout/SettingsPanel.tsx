@@ -4,6 +4,7 @@ import { useSettingsStore, type Quality, type MotionMode, type TimezoneMode, typ
 import { useTimeStore } from '@/stores/timeStore'
 import { useUiStore } from '@/stores/uiStore'
 import { useClockText } from '@/hooks/useClockText'
+import { Link } from 'react-router-dom'
 import { cn } from '@/lib/cn'
 import { CloseIcon, ClockIcon } from '@/components/ui/icons'
 
@@ -222,6 +223,13 @@ export function SettingsPanel() {
               >
                 Reset to defaults
               </button>
+              <Link
+                to="/admin"
+                aria-label="Admin"
+                className="mt-2 block text-center text-[10px] text-mist/30 transition-colors hover:text-mist/60 focus-visible:text-mist/60"
+              >
+                🔑
+              </Link>
             </footer>
           </motion.aside>
         </>

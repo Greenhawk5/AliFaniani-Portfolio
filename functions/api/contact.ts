@@ -12,6 +12,7 @@ interface Env {
   EMAIL_FROM?: string
   EMAIL_TO?: string
   TURNSTILE_SECRET?: string
+  SITE_URL?: string
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
@@ -75,9 +76,9 @@ async function sendEmail(env: Env, body: ContactBody, ip: string): Promise<void>
   const email = escapeHtml(body.email)
   const phone = escapeHtml(body.phone)
   const message = escapeHtml(body.message).replaceAll('\n', '<br />')
-  const websiteUrl = 'https://alifaniani.ir'
+  const websiteUrl = (env.SITE_URL ?? 'https://alifaniani.ir').replace(/\/+$/, '')
   const submittedAt = new Date().toISOString()
-  await fetch('https://api.resend.com/emails', {
+  const ownerResponse = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${env.RESEND_API_KEY}`,
@@ -118,6 +119,9 @@ async function sendEmail(env: Env, body: ContactBody, ip: string): Promise<void>
       `,
     }),
   })
+  if (!ownerResponse.ok) {
+    throw new Error(`Resend owner notification failed (${ownerResponse.status})`)
+  }
 
   try {
     const response = await fetch('https://api.resend.com/emails', {
