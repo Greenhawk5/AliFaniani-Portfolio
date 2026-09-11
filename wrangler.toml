@@ -1,3 +1,25 @@
 name = "ali-faniani-portfolio"
 compatibility_date = "2026-07-29"
 pages_build_output_dir = "dist"
+
+# Non-secret build/deployment configuration. Strict snapshot mode makes the
+# production build fail closed when the D1 snapshot cannot be exported or
+# validated — the previous successful deployment stays live. (The exporter
+# additionally defaults to strict whenever production D1 credentials are
+# present, so this guarantee does not depend on build-time var injection.)
+[vars]
+CMS_SNAPSHOT_MODE = "strict"
+
+# D1 — CMS content source of truth (admin API + build-time snapshot export).
+# Database ID is supplied via the Cloudflare dashboard (or CLOUDFLARE_D1_ID
+# env during local dev); it is a resource identifier, not a secret.
+[[d1_databases]]
+binding = "DB"
+database_name = "ali-faniani-portfolio-db"
+database_id = "ace40a08-b291-419d-b96a-e9f557ea2ca1"
+
+# KV — admin login rate limiting only (per-IP counters for
+# Turnstile-passed/password-failed attempts). Never a content store.
+[[kv_namespaces]]
+binding = "RATE_LIMIT"
+id = "5c29dc9556ce49cc87b749212dbaedd7"

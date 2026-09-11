@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { NAV_LINKS, SITE } from '@/app/config'
 import { BrandLogo } from '@/components/ui/BrandLogo'
 import { socialLinks } from '@/data/links'
+import { APP_VERSION } from '@/version'
 import {
   GitHubIcon,
   LinkedInIcon,
@@ -10,7 +11,7 @@ import {
   MailIcon,
 } from '@/components/ui/icons'
 
-const SITE_VERSION = 'v1.0.0'
+const SITE_VERSION = `v${APP_VERSION}`
 
 function SocialIcon({ label }: { label: string }) {
   if (label === 'GitHub') return <GitHubIcon className="h-4.5 w-4.5" />

@@ -1,8 +1,7 @@
-import { useMemo, useRef } from 'react'
+import { useRef } from 'react'
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { useSettingsStore } from '@/stores/settingsStore'
-import { useUiStore } from '@/stores/uiStore'
 import { env } from '@/three/env'
 
 export function LightingSystem() {

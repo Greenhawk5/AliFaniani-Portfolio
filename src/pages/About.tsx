@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { ExternalLinkIcon, ArrowRightIcon } from '@/components/ui/icons'
 import { profile, skillLevels, profileImageConfig, type SkillItem } from '@/data/profile'
+import { projects } from '@/data/projects'
 import { socialLinks } from '@/data/links'
 import { SITE } from '@/app/config'
 import { ROUTE_META } from '@/data/route-meta'
@@ -100,17 +101,13 @@ function FocusCard({ title, index }: { title: string; index: number }) {
 }
 
 function ProjectCarousel() {
-  const projects = profile.projects
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
   const touchStartX = useRef<number | null>(null)
 
-  const go = useCallback(
-    (dir: 1 | -1) => {
-      setIndex((i) => (i + dir + projects.length) % projects.length)
-    },
-    [projects.length]
-  )
+  const go = useCallback((dir: 1 | -1) => {
+    setIndex((i) => (i + dir + projects.length) % projects.length)
+  }, [])
 
   useEffect(() => {
     if (paused) return
@@ -161,7 +158,7 @@ function ProjectCarousel() {
                     {p.title}
                   </h3>
                   <p className="mt-4 max-w-2xl leading-relaxed text-frost/75">
-                    {p.description}
+                    {p.shortDescription}
                   </p>
                 </div>
               </Card>

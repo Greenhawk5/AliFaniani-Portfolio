@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Functions check
+        run: npm run check:functions
+
+      - name: Unit/static tests (excludes credential-dependent SEO E2E)
+        run: npm run test:ci
+
+      # Build needs no Cloudflare credentials: the snapshot exporter falls
+      # back to the committed snapshot in warn mode (documented behavior).
+      # Production builds run with CMS_SNAPSHOT_MODE=strict set in the
+      # Cloudflare Pages dashboard — never in CI.
+      - name: Build
+        run: npm run build
+
+      - name: Verify build output
+        run: npm run verify:build

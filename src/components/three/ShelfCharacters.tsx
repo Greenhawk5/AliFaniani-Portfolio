@@ -98,6 +98,7 @@ function TFigurine() {
  * be posed via its skeleton. Instead it is displayed as a gliding hawk —
  * a safe whole-model tilt/bank that reads as an intentional display pose.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- temporarily disabled below, kept for restoration
 function JetFigurine() {
   const { scene } = useGLTF('/models/workstation/jet_the_hawk.glb')
   const model = useNormalized(scene, { axis: 'x', size: 0.55 })

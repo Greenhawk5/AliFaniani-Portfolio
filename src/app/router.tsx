@@ -12,6 +12,9 @@ const ProjectsPage = lazyWithChunkRecovery(() => import('@/pages/Projects'))
 const ProjectDetailPage = lazyWithChunkRecovery(() => import('@/pages/ProjectDetail'))
 const ContactPage = lazyWithChunkRecovery(() => import('@/pages/Contact'))
 const NotFoundPage = lazyWithChunkRecovery(() => import('@/pages/NotFound'))
+// Admin: separate lazy chunk outside the public Layout — never part of the
+// public route graph, sitemap, metadata, or navigation.
+const AdminAppPage = lazyWithChunkRecovery(() => import('@/admin/AdminApp'))
 
 function LazyPage({ children }: { children: React.ReactNode }) {
   return (
@@ -23,6 +26,16 @@ function LazyPage({ children }: { children: React.ReactNode }) {
 }
 
 export const router = createBrowserRouter([
+  {
+    // Admin surface — private, unlisted, no public layout/chrome. The edge
+    // middleware adds X-Robots-Tag: noindex for /admin.
+    path: '/admin',
+    element: (
+      <Suspense fallback={<LazyPage>{null}</LazyPage>}>
+        <AdminAppPage />
+      </Suspense>
+    ),
+  },
   {
     path: '/',
     element: <Layout />,
