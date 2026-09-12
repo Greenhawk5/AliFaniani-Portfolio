@@ -107,6 +107,9 @@ export async function dispatchSnapshotSync(
           Accept: 'application/vnd.github+json',
           'X-GitHub-Api-Version': '2022-11-28',
           'Content-Type': 'application/json',
+          // GitHub rejects API requests without a User-Agent with 403 —
+          // and Workers' fetch does not attach a default one.
+          'User-Agent': 'alifaniani-portfolio-cms-sync',
         },
         body: JSON.stringify({ event_type: EVENT_TYPE }),
       }

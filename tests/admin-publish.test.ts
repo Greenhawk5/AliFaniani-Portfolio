@@ -353,15 +353,15 @@ describe('GitHub snapshot sync dispatch (v2.0.1 diagnostics)', () => {
    * fetch (deploy hook + GitHub dispatch + Turnstile). A default sync token
    * is injected unless the test overrides it explicitly. */
   async function publishWith(
-    handler: (url: string) => Response | null,
+    handler: (url: string, init?: RequestInit) => Response | null,
     overrides: { token?: string } = {}
   ): Promise<{ body: Record<string, any>; raw: string }> {
     seedPublished('live-proj', {}, { ...PROJECT, slug: 'live-proj', title: 'Draft' })
     ;(env as Record<string, unknown>).GITHUB_SYNC_TOKEN =
       'token' in overrides ? overrides.token : 'test-sync-token'
-    interceptFetch((url) => {
+    interceptFetch((url, init) => {
       if (url.includes('deploy-hooks')) return new Response('ok', { status: 200 })
-      return handler(url)
+      return handler(url, init)
     })
     const { cookies, csrf } = await loginCtx()
     const response = await publishHandler(makeContext(publishRequest(cookies, csrf), env))
@@ -514,6 +514,18 @@ describe('GitHub snapshot sync dispatch (v2.0.1 diagnostics)', () => {
       throw new Error('connection refused')
     })
     expect(net.body.sync).toEqual({ status: 'dispatch_failed', reason: 'network_error' })
+  })
+
+  it('dispatch request carries the required User-Agent header (GitHub rejects requests without one)', async () => {
+    let capturedHeaders: Headers | null = null
+    await publishWith((url, init) => {
+      if (githubUrl(url)) {
+        capturedHeaders = new Headers(init?.headers)
+        return new Response(null, { status: 204 })
+      }
+      return null
+    })
+    expect(capturedHeaders!.get('User-Agent')).toBe('alifaniani-portfolio-cms-sync')
   })
 })
 
