@@ -19,8 +19,10 @@ snapshot files after a publish.
   regenerates `src/data/generated/content.json` and `public/sitemap.xml`,
   and commits them only when they actually differ. Triggered solely by
   dispatch (never on push) — no GitHub ↔ Cloudflare build loop is possible.
-  Synchronization is secondary to production: failures never block a publish
-  or affect the live site, and the workflow can be re-run manually.
+  Sync commits carry `[CI Skip]` so Cloudflare Pages skips rebuilding them;
+  regular commits deploy normally and carry the sync implementation with
+  them. Synchronization is secondary to production: failures never block a
+  publish or affect the live site, and the workflow can be re-run manually.
 - **Deterministic generators** — the snapshot `exportedAt` derives from the
   exported rows (`MAX(updated_at)`) and the sitemap `lastmod` from the
   snapshot, so re-exporting unchanged D1 state is byte-identical and the
