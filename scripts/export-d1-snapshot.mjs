@@ -23,8 +23,10 @@ import { createServer } from 'vite'
  *   - Never printed, never written to disk, never embedded in output.
  *   - Diagnostics print status codes and row counts only.
  *
- * The snapshot is deterministic apart from exportedAt: only published rows,
- * ordered by (kind, sort_order, key).
+ * The snapshot is deterministic: only published rows, ordered by
+ * (kind, sort_order, key), with exportedAt derived from the rows themselves
+ * (MAX(updated_at)) so re-exporting unchanged D1 state produces identical
+ * bytes — required for idempotent repository synchronization.
  */
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
@@ -261,9 +263,16 @@ async function fetchPublishedRowsLocal() {
 async function exportRows(rows, manifest, schemas) {
   try {
     const records = rowsToRecords(rows, schemas)
+    // exportedAt is derived from the exported rows (MAX(updated_at)), not the
+    // wall clock, so re-exporting unchanged D1 state yields byte-identical
+    // output — the invariant the repository sync workflow relies on.
+    const exportedAt = rows
+      .map((row) => row.updated_at ?? row.created_at ?? '')
+      .sort()
+      .at(-1) ?? new Date().toISOString()
     const snapshot = {
       schemaVersion: 1,
-      exportedAt: new Date().toISOString(),
+      exportedAt,
       projects: records.projects,
       profile: {
         hero: records.profile.hero,

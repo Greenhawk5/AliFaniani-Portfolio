@@ -8,6 +8,7 @@
  *   3. preparePublish: validate ALL drafts (Zod + media refs) → 400, no writes
  *   4. db.batch(statements) — atomic promotion        → 500, no partial state
  *   5. Trigger DEPLOY_HOOK_URL (server-side secret)   → recorded, non-fatal
+ *   6. Dispatch GitHub snapshot sync (GITHUB_SYNC_TOKEN secret) → non-fatal
  *
  * Honest reporting: D1 publish success is reported even when the hook fails
  * ("trigger_failed"); the CMS never claims deployment succeeded — hook 2xx
@@ -22,9 +23,10 @@ import { jsonResponse, unauthorizedResponse, clientIp } from '../../lib/http'
 import { requireMutationAuth } from '../../lib/session-auth'
 import { preparePublish, ValidationError } from '../../lib/publish'
 import { triggerDeployHook, recordDeployState } from '../../lib/deploy-state'
+import { dispatchSnapshotSync } from '../../lib/github-sync'
 import { logAuthEvent } from '../../lib/auth-log'
 
-type Env = AdminEnv & { DEPLOY_HOOK_URL?: string }
+type Env = AdminEnv & { DEPLOY_HOOK_URL?: string; GITHUB_SYNC_TOKEN?: string }
 
 interface ManifestShape {
   media?: Record<string, unknown>
@@ -117,11 +119,22 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     note: trigger.ok ? `status ${trigger.status}` : trigger.category,
   })
 
+  // 6 — repository synchronization dispatch (post-commit; failure does not
+  // roll back the publish and never affects production). The dispatched
+  // workflow reads production D1 itself, mirroring generated files only.
+  const sync = await dispatchSnapshotSync(env.GITHUB_SYNC_TOKEN)
+  await logAuthEvent(env.DB, sync.ok ? 'sync_dispatched' : 'sync_dispatch_failed', {
+    ip,
+    ok: sync.ok,
+    note: sync.ok ? `status ${sync.status}` : sync.category,
+  })
+
   return jsonResponse({
     ok: true,
     published: counts,
     deployment: trigger.ok
       ? { status: 'queued' }
       : { status: 'trigger_failed', reason: trigger.category },
+    sync: sync.ok ? { status: 'dispatched' } : { status: 'dispatch_failed', reason: sync.category },
   })
 }

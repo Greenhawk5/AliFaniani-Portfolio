@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] — 2026-09-12
+
+Maintenance release: automatic repository synchronization of generated CMS
+snapshot files after a publish.
+
+### Added
+
+- **GitHub snapshot sync** — after a successful publish, the endpoint
+  dispatches a `repository_dispatch` event (`GITHUB_SYNC_TOKEN` secret,
+  failure reported honestly and non-fatal). A dedicated GitHub Actions
+  workflow re-exports the published Production D1 snapshot in strict mode,
+  regenerates `src/data/generated/content.json` and `public/sitemap.xml`,
+  and commits them only when they actually differ. Triggered solely by
+  dispatch (never on push) — no GitHub ↔ Cloudflare build loop is possible.
+  Synchronization is secondary to production: failures never block a publish
+  or affect the live site, and the workflow can be re-run manually.
+- **Deterministic generators** — the snapshot `exportedAt` derives from the
+  exported rows (`MAX(updated_at)`) and the sitemap `lastmod` from the
+  snapshot, so re-exporting unchanged D1 state is byte-identical and the
+  sync creates no empty commits.
+
+### Changed
+
+- Version is now sourced from `package.json` (2.0.1) at build time.
+
 ## [2.0.0] — Unreleased
 
 Major architecture upgrade: a private, D1-backed CMS with secure

@@ -74,10 +74,14 @@ Only the latest version deployed to production (`main` branch) is supported.
 ### Secrets
 
 - `ADMIN_PASSWORD`, `DEPLOY_HOOK_URL`, `CLOUDFLARE_D1_READ_TOKEN` (read-only,
-  used exclusively by the build's snapshot export) and `TURNSTILE_SECRET` are
-  server-side only: never bundled, never returned by any endpoint, never
-  logged. The deploy hook URL is requested solely from server-side publish
-  code.
+  used exclusively by the build's snapshot export), `GITHUB_SYNC_TOKEN`
+  (fine-grained PAT used solely to dispatch the repository snapshot-sync
+  workflow) and `TURNSTILE_SECRET` are server-side only: never bundled,
+  never returned by any endpoint, never logged. The deploy hook URL is
+  requested solely from server-side publish code.
+- The snapshot-sync workflow itself authenticates with the repository's
+  built-in `GITHUB_TOKEN` (least-privilege `contents: write`); the fine-
+  grained sync PAT never enters GitHub Actions.
 
 ### Content security
 
@@ -87,6 +91,17 @@ Only the latest version deployed to production (`main` branch) is supported.
 - Publishing validates every record against canonical Zod schemas and the
   media manifest before any write, and applies all promotions in a single
   atomic D1 batch.
+
+### Repository synchronization
+
+- The sync workflow mirrors only two generated files (content snapshot +
+  sitemap) from the published D1 state; D1 remains the source of truth and
+  production never depends on synchronization.
+- Workflow runs serialize via a concurrency group and always re-read
+  production D1 at execution time, so stale state cannot overwrite newer
+  content. Commits are created only when generated files actually differ
+  (byte-deterministic generators), and only the publish endpoint can
+  dispatch the workflow — no build/push recursion is possible.
 
 ### Transport and headers
 

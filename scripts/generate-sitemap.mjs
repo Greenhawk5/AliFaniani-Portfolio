@@ -29,7 +29,10 @@ if (uniqueSlugs.length === 0) {
 }
 
 const SITE_URL = 'https://alifaniani.ir'
-const lastmod = new Date().toISOString().slice(0, 10)
+// Derived from the snapshot's exportedAt (itself derived from row timestamps),
+// so the sitemap is byte-stable across re-runs of unchanged content —
+// required for idempotent repository synchronization.
+const lastmod = (snapshot.exportedAt ?? new Date().toISOString()).slice(0, 10)
 
 // Order: homepage, main pages, project details, contact, room experience.
 const paths = ['/', '/about', '/projects', ...uniqueSlugs.map((slug) => `/projects/${slug}`), '/contact', '/room']

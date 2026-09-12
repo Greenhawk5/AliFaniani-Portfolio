@@ -65,6 +65,7 @@ const forbidden = [
   { needle: 'ADMIN_PASSWORD', label: 'ADMIN_PASSWORD secret name' },
   { needle: 'DEPLOY_HOOK_URL', label: 'DEPLOY_HOOK_URL secret name' },
   { needle: 'CLOUDFLARE_D1_READ_TOKEN', label: 'CLOUDFLARE_D1_READ_TOKEN secret name' },
+  { needle: 'GITHUB_SYNC_TOKEN', label: 'GITHUB_SYNC_TOKEN secret name' },
   { needle: 'api.cloudflare.com/client/v4', label: 'Cloudflare API endpoint (server-only)' },
   { needle: 'af_admin', label: 'admin session cookie marker' },
 ]

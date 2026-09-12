@@ -117,9 +117,20 @@ Edit in /admin → validated draft in D1
       → Pages build: D1 snapshot export → validation → static build
       → route HTML + sitemap + _content_meta.json → verification
       → deployment
+      → GitHub snapshot sync (repository_dispatch, non-fatal)
 ```
 
 The public site is **fully static** — it never queries D1 at runtime. Deployments are asynchronous: the CMS reports a queued deployment honestly and never claims the site has updated until a build has actually completed. A failed build leaves the previous deployment live.
+
+### Repository snapshot synchronization (v2.0.1)
+
+The repository mirrors the published D1 state in two generated files — `src/data/generated/content.json` and `public/sitemap.xml`. After a successful publish, the endpoint dispatches a `repository_dispatch` event (secret: `GITHUB_SYNC_TOKEN`, a fine-grained personal access token limited to this repository with Contents: Read/Write). A GitHub Actions workflow then re-exports Production D1 with the same strict exporter the production build uses, regenerates both files, and commits them only when they differ:
+
+- **Loop prevention:** the workflow triggers only on `repository_dispatch` / `workflow_dispatch` — never on push — and sync commits carry `[CI Skip]` so Pages skips them. The only dispatcher is the publish endpoint; builds cannot re-trigger the workflow.
+- **Idempotency:** the generators are deterministic per D1 state (`exportedAt` and `lastmod` derive from row timestamps), so unchanged content produces byte-identical files and no commit.
+- **Consistency:** the workflow always reads D1 at execution time (never a payload copy), runs one at a time (`concurrency` group), and therefore can never overwrite newer content with stale state.
+- **Failure behavior:** synchronization is secondary to production. Dispatch or workflow failure never blocks a publish, never rolls back D1, and never affects the live site. Re-run from the Actions tab ("CMS snapshot sync" → Run workflow).
+- `public/media-manifest.json` is generated **from repository media** (`docs/`), not from D1 — it is updated by committing media files, exactly as before. The sync never touches media files or dist artifacts.
 
 ### Authentication
 
@@ -376,6 +387,7 @@ Implemented security measures include:
 - Cloudflare Turnstile client + server verification (contact + admin login).
 - Per-IP contact endpoint rate limiting and layered admin-login rate limiting.
 - Admin session auth with HttpOnly/Secure/SameSite=Strict cookies and CSRF protection on every mutation.
+- `GITHUB_SYNC_TOKEN` is server-side only (used solely to dispatch the snapshot-sync workflow); the sync workflow itself uses the repository's built-in `GITHUB_TOKEN` with `contents: write`.
 - Zod validation of all content writes; only published content ever reaches the public snapshot.
 - Bundle isolation: Zod runtime and server-only code never ship in public chunks (build-verified).
 - Input validation and HTML escaping before email delivery.
@@ -500,6 +512,7 @@ Create a local `.env` from `.env.example` when needed. Secrets never live in sou
 | `CLOUDFLARE_ACCOUNT_ID` | Build env (Production) | D1 snapshot export target account |
 | `D1_DATABASE_ID` | Build env (Production) | D1 snapshot export target database |
 | `CLOUDFLARE_D1_READ_TOKEN` | Build env secret (Production) | Read-only D1 REST token for snapshot export |
+| `GITHUB_SYNC_TOKEN` | Server secret (Production) | Fine-grained PAT (this repository only, Contents: Read/Write) for the post-publish `repository_dispatch` |
 | `CMS_SNAPSHOT_MODE` | Build env (Production) | Set to `strict` in production — build fails if the D1 snapshot cannot be exported/validated |
 
 **Local development** needs none of the production credentials: builds use the committed content snapshot (fallback with a warning), and `wrangler pages dev` reads secrets from `.dev.vars` (gitignored).

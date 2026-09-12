@@ -21,6 +21,8 @@ export type AuthEvent =
   | 'publish_failed'
   | 'deploy_triggered'
   | 'deploy_trigger_failed'
+  | 'sync_dispatched'
+  | 'sync_dispatch_failed'
 
 export async function logAuthEvent(
   db: D1Database,

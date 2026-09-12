@@ -1,0 +1,89 @@
+name: CMS snapshot sync
+
+# Mirrors the generated repository files (src/data/generated/content.json,
+# public/sitemap.xml) from the published Production D1 state after a CMS
+# publish. Dispatched by the publish endpoint (functions/lib/github-sync.ts)
+# and also runnable manually for retries.
+#
+# Loop prevention:
+#   - The workflow is triggered ONLY by repository_dispatch / workflow_dispatch
+#     — never on push — so the sync commit's own Pages build (and any other
+#     pushes) cannot re-trigger it. The only dispatcher is the publish
+#     endpoint; a Pages build of a sync commit re-exports the same D1 state,
+#     produces identical generated files, and dispatches nothing.
+#   - The commit message carries [CI Skip] so Cloudflare Pages skips the
+#     rebuild for the sync commit itself.
+#
+# Idempotency: the generators are deterministic per D1 state (exportedAt and
+# sitemap lastmod derive from row timestamps), so an unchanged D1 state
+# produces byte-identical files → `git diff --quiet` → no commit, no push.
+# The committed media manifest is the validation source and is NOT
+# regenerated here (it derives from repository media, which this workflow
+# never changes; regenerating it would churn its wall-clock generatedAt).
+#
+# Concurrency: one run at a time; queued runs are NOT cancelled. Every run
+# reads production D1 at execution time, so a queued run always exports the
+# newest published state — stale-overwrite is impossible.
+
+on:
+  repository_dispatch:
+    types: [cms-snapshot-sync]
+  workflow_dispatch:
+
+concurrency:
+  group: cms-snapshot-sync
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Push with the workflow's own credentials; see the push step.
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # No media-manifest regeneration here: the manifest is generated from
+      # repository media (docs/), which this workflow never changes. The
+      # committed manifest is the validation source for the snapshot export.
+
+      - name: Export published D1 snapshot (strict)
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          D1_DATABASE_ID: ${{ secrets.D1_DATABASE_ID }}
+          CLOUDFLARE_D1_READ_TOKEN: ${{ secrets.CLOUDFLARE_D1_READ_TOKEN }}
+        run: node scripts/export-d1-snapshot.mjs
+
+      - name: Regenerate sitemap
+        run: npm run sitemap
+
+      - name: Check for changes
+        id: diff
+        run: |
+          git add src/data/generated/content.json public/sitemap.xml
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Generated files already match Production D1 — nothing to commit."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            git diff --cached --stat
+          fi
+
+      - name: Commit and push
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore: sync generated CMS snapshot from production D1 [CI Skip]"
+          git push
