@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-11T22:47:12.898Z",
+  "generatedAt": "2026-09-12T15:53:04.869Z",
   "media": {
     "/media/project/greenhawk-ai/banner-1280.webp": {
       "source": "docs:project/GreenHawk AI/banner-1280.webp",
@@ -102,6 +102,24 @@
       "bytes": 53482,
       "width": 1080,
       "height": 884
+    },
+    "/media/project/morsemate/banner.webp": {
+      "source": "docs:project/MorseMate/banner.webp",
+      "bytes": 122014,
+      "width": 1774,
+      "height": 887
+    },
+    "/media/project/morsemate/bot-1.webp": {
+      "source": "docs:project/MorseMate/bot-1.webp",
+      "bytes": 126006,
+      "width": 1080,
+      "height": 2072
+    },
+    "/media/project/morsemate/bot-2.webp": {
+      "source": "docs:project/MorseMate/bot-2.webp",
+      "bytes": 83960,
+      "width": 1080,
+      "height": 2110
     },
     "/media/profile/3d-room-1.webp": {
       "source": "docs:profile/3D-Room (1).webp",
