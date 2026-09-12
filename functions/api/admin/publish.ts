@@ -136,6 +136,12 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     deployment: trigger.ok
       ? { status: 'queued' }
       : { status: 'trigger_failed', reason: trigger.category },
-    sync: sync.ok ? { status: 'dispatched' } : { status: 'dispatch_failed', reason: syncReason },
+    sync: sync.ok
+      ? { status: 'dispatched' }
+      : {
+          status: 'dispatch_failed',
+          reason: syncReason,
+          ...(sync.diagnostics ?? {}),
+        },
   })
 }

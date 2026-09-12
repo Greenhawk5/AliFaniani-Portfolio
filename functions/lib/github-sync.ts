@@ -15,7 +15,10 @@
  *   - GITHUB_SYNC_TOKEN is read from the environment only (a fine-grained
  *     PAT limited to this repository with Contents: Read/Write).
  *   - Never printed, never logged, never returned in responses.
- *   - Diagnostics use failure categories only.
+ *   - Diagnostics expose only non-sensitive GitHub error fields: the HTTP
+ *     status, GitHub's own `message` and `documentation_url` (from the JSON
+ *     error body), and the `X-Accepted-GitHub-Permissions` header. The raw
+ *     response body, request headers, and the token are never returned.
  */
 
 export type DispatchStatus =
@@ -25,10 +28,53 @@ export type DispatchStatus =
   | 'http_error'
   | 'invalid_response'
 
+export interface DispatchDiagnostics {
+  /** GitHub's own error message from the JSON body (e.g. "Resource not
+   * accessible by personal access token"). */
+  message?: string
+  /** GitHub docs URL from the JSON body, when present. */
+  documentationUrl?: string
+  /** X-Accepted-GitHub-Permissions header — the permissions the endpoint
+   * requires, e.g. "contents=write". */
+  acceptedPermissions?: string
+  /** HTTP statusText, when the JSON body is absent. */
+  statusText?: string
+}
+
 export interface DispatchResult {
   ok: boolean
   category: DispatchStatus
   status?: number
+  /** Sanitized diagnostics — populated only for non-204 HTTP responses. */
+  diagnostics?: DispatchDiagnostics
+}
+
+/** Upper bound on how much of the error body we ever read. */
+const MAX_BODY_BYTES = 2048
+
+/** Extracts ONLY whitelisted, non-sensitive fields from a GitHub error
+ * response. JSON bodies are parsed for `message`/`documentation_url`;
+ * non-JSON bodies fall back to statusText. Nothing else is read, and the
+ * body is never returned verbatim. */
+async function extractDiagnostics(response: Response): Promise<DispatchDiagnostics> {
+  const diagnostics: DispatchDiagnostics = {}
+  try {
+    const text = (await response.text()).slice(0, MAX_BODY_BYTES)
+    try {
+      const json = JSON.parse(text) as { message?: unknown; documentation_url?: unknown }
+      if (typeof json.message === 'string') diagnostics.message = json.message.slice(0, 200)
+      if (typeof json.documentation_url === 'string') {
+        diagnostics.documentationUrl = json.documentation_url.slice(0, 200)
+      }
+    } catch {
+      diagnostics.statusText = response.statusText.slice(0, 120) || undefined
+    }
+  } catch {
+    // body unreadable — leave diagnostics empty
+  }
+  const accepted = response.headers.get('X-Accepted-GitHub-Permissions')
+  if (accepted) diagnostics.acceptedPermissions = accepted.slice(0, 120)
+  return diagnostics
 }
 
 /** Safe, loggable diagnostic for a dispatch result. Folds the HTTP status
@@ -66,7 +112,12 @@ export async function dispatchSnapshotSync(
       }
     )
     if (response.status === 204) return { ok: true, category: 'ok', status: 204 }
-    return { ok: false, category: 'http_error', status: response.status }
+    return {
+      ok: false,
+      category: 'http_error',
+      status: response.status,
+      diagnostics: await extractDiagnostics(response),
+    }
   } catch {
     return { ok: false, category: 'network_error' }
   }

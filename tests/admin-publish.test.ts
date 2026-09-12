@@ -452,6 +452,69 @@ describe('GitHub snapshot sync dispatch (v2.0.1 diagnostics)', () => {
     expect(logged).not.toContain('test-sync-token')
     expect(logged).not.toContain('Bearer')
   })
+
+  it('403 with GitHub JSON error → sanitized message surfaced, raw body never returned', async () => {
+    const { body, raw } = await publishWith((url) =>
+      githubUrl(url)
+        ? new Response(
+            JSON.stringify({
+              message: 'Resource not accessible by personal access token',
+              documentation_url: 'https://docs.github.com/rest/repos/repos#create-a-repository-dispatch-event',
+            }),
+            { status: 403 }
+          )
+        : null
+    )
+    expect(body.sync).toEqual({
+      status: 'dispatch_failed',
+      reason: 'github_http_403',
+      message: 'Resource not accessible by personal access token',
+      documentationUrl: 'https://docs.github.com/rest/repos/repos#create-a-repository-dispatch-event',
+    })
+    expect(raw).not.toContain('test-sync-token')
+    expect(raw).not.toContain('Bearer')
+  })
+
+  it('403 with X-Accepted-GitHub-Permissions → header surfaced as acceptedPermissions', async () => {
+    const { body } = await publishWith((url) =>
+      githubUrl(url)
+        ? new Response(JSON.stringify({ message: 'Resource not accessible by integration' }), {
+            status: 403,
+            headers: { 'X-Accepted-GitHub-Permissions': 'contents=write' },
+          })
+        : null
+    )
+    expect(body.sync).toEqual({
+      status: 'dispatch_failed',
+      reason: 'github_http_403',
+      message: 'Resource not accessible by integration',
+      acceptedPermissions: 'contents=write',
+    })
+  })
+
+  it('malformed non-JSON error body → statusText fallback only, body content never exposed', async () => {
+    const { body, raw } = await publishWith((url) =>
+      githubUrl(url)
+        ? new Response('<html>internal gateway error page</html>', { status: 502, statusText: 'Bad Gateway' })
+        : null
+    )
+    expect(body.sync).toEqual({
+      status: 'dispatch_failed',
+      reason: 'github_http_502',
+      statusText: 'Bad Gateway',
+    })
+    expect(raw).not.toContain('gateway error page')
+  })
+
+  it('diagnostics are absent on 204 success and network failure', async () => {
+    const ok = await publishWith((url) => (githubUrl(url) ? new Response(null, { status: 204 }) : null))
+    expect(ok.body.sync).toEqual({ status: 'dispatched' })
+
+    const net = await publishWith(() => {
+      throw new Error('connection refused')
+    })
+    expect(net.body.sync).toEqual({ status: 'dispatch_failed', reason: 'network_error' })
+  })
 })
 
 /* --------------------------- end-to-end integration ------------------------ */
