@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "exportedAt": "2026-09-12T23:23:33.423Z",
+  "exportedAt": "2026-09-12T23:25:20.027Z",
   "projects": [
     {
       "slug": "greenhawk-ai",
@@ -143,8 +143,7 @@
         "Text → Morse encoding & Morse → Text decoding",
         "Independent UI and input language selection",
         "Continuous Encode/Decode sessions",
-        "Punctuation and Unicode-aware conversion",
-        "Persian character and digit normalization"
+        "Punctuation and Unicode-aware conversion"
       ],
       "architecture": [
         "Telegram Bot API → Cloudflare Worker → Router / Callbacks / Menus → KV-backed User State",
