@@ -8,7 +8,7 @@
       "subtitle": "AI-powered black & white image colorization platform",
       "shortDescription": "An AI-powered web application for black-and-white image colorization using CNN, GAN, and diffusion-based deep learning approaches through a FastAPI backend.",
       "overview": "GreenHawk AI is an AI-powered web application for black-and-white image colorization. It brings multiple deep-learning approaches, including CNN, GAN, and diffusion-based models, together behind a FastAPI backend and web interface so users can explore colorization results through a practical software system.",
-      "category": "AI Â· Computer Vision",
+      "category": "AI · Computer Vision",
       "year": 2026,
       "banner": "/media/project/greenhawk-ai/banner-1280.webp",
       "bannerConfig": {
@@ -94,10 +94,10 @@
     {
       "slug": "morsemate",
       "title": "MorseMate Bot",
-      "subtitle": "Bilingual Telegram bot for Text â†” Morse conversion",
-      "shortDescription": "A bilingual English/Persian Telegram bot for reliable Text â†” Morse conversion, built on Cloudflare Workers.",
+      "subtitle": "Bilingual Telegram bot for Text ↔ Morse conversion",
+      "shortDescription": "A bilingual English/Persian Telegram bot for reliable Text ↔ Morse conversion, built on Cloudflare Workers.",
       "overview": "MorseMate is a lightweight bilingual Telegram bot that converts text to Morse code and Morse code back to text in English and Persian. It runs entirely on Cloudflare Workers, uses Cloudflare KV for persistent user state, and keeps the Morse engine independent from Telegram-specific logic.",
-      "category": "Automation Â· Cloud",
+      "category": "Automation · Cloud",
       "year": 2026,
       "banner": "/media/project/morsemate/banner.webp",
       "screenshots": [
@@ -133,20 +133,20 @@
           "items": [
             "International Morse",
             "Persian Morse",
-            "Text â†” Morse Conversion",
+            "Text ↔ Morse Conversion",
             "Unicode Normalization"
           ]
         }
       ],
       "features": [
         "English and Persian bilingual interface",
-        "Text â†’ Morse encoding & Morse â†’ Text decoding",
+        "Text → Morse encoding & Morse → Text decoding",
         "Independent UI and input language selection",
         "Continuous Encode/Decode sessions"
       ],
       "architecture": [
-        "Telegram Bot API â†’ Cloudflare Worker â†’ Router / Callbacks / Menus â†’ KV-backed User State",
-        "User Input â†’ Language Selection â†’ Morse Encoder/Decoder â†’ Telegram Response",
+        "Telegram Bot API → Cloudflare Worker → Router / Callbacks / Menus → KV-backed User State",
+        "User Input → Language Selection → Morse Encoder/Decoder → Telegram Response",
         "The Morse engine is isolated from Telegram-specific logic and supports separate English/Latin and Persian mappings, deterministic normalization, and non-crashing handling of unsupported characters."
       ],
       "repository": "https://github.com/Greenhawk5/MorseMate",
@@ -158,7 +158,7 @@
       "subtitle": "Fortnite Save The World V-Bucks mission tracker",
       "shortDescription": "A Fortnite Save The World mission tracking platform using React, TypeScript, Cloudflare serverless technologies, APIs, and automation.",
       "overview": "HawkBucks is a Fortnite Save The World mission tracking platform. Its React and TypeScript web application works with Cloudflare serverless technologies, APIs, data processing, persistent storage, and automated workflows to turn mission information into a usable web experience.",
-      "category": "Web Â· Cloud",
+      "category": "Web · Cloud",
       "year": 2026,
       "banner": "/media/project/hawkbucks/hawkbucks-header-1280.webp",
       "bannerConfig": {
@@ -241,7 +241,7 @@
       "subtitle": "Telegram V-Bucks mission assistant",
       "shortDescription": "A Telegram automation bot with scheduled jobs, mission data processing, reminders, image generation, and persistent user management.",
       "overview": "HawkBucks Bot is a Telegram automation system for mission information. It combines scheduled jobs, mission data processing, reminders, image generation, webhooks, and persistent user and group management to support automated delivery through Telegram.",
-      "category": "Automation Â· Telegram",
+      "category": "Automation · Telegram",
       "year": 2026,
       "banner": "/media/project/hawkbucks-bot/banner-1280.webp",
       "bannerConfig": {
