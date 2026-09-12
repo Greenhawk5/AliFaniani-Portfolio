@@ -88,19 +88,33 @@ export function PublishPanel({ draftCount, onPublished }: Props) {
         <Notice kind="success">
           {total === 0 ? (
             'Nothing to publish — content already up to date.'
-          ) : result.deployment?.status === 'queued' ? (
-            <>Published successfully ({summary(counts)}). Deployment queued — the public site updates after the Pages build completes.</>
+          ) : result.deployment?.status === 'pending_sync' && result.sync?.status === 'dispatched' ? (
+            <>Published successfully ({summary(counts)}). Repository snapshot sync dispatched — the GitHub workflow mirrors the content and then queues the Cloudflare deployment. The public site updates after that build completes (usually 2–4 minutes).</>
           ) : (
-            <>Published to D1 ({summary(counts)}), but the deployment trigger failed. The public site has not changed — retry publishing from the dashboard once the issue is resolved.</>
+            <>Published to D1 ({summary(counts)}), but the snapshot-sync dispatch failed ({result.sync?.reason ?? 'unknown reason'}). The public site has not changed — re-run the "CMS snapshot sync" workflow from the GitHub Actions tab to retry.</>
           )}
         </Notice>
       )}
 
+      {deployState?.status === 'sync_dispatch_failed' && !result && (
+        <Notice kind="error">
+          Last publish reached D1 but its snapshot-sync dispatch failed ({deployState.lastError}).
+          The public site has not changed — re-run the "CMS snapshot sync" workflow from the GitHub
+          Actions tab to retry.
+        </Notice>
+      )}
       {deployState?.status === 'trigger_failed' && !result && (
         <Notice kind="error">
           Last deployment trigger failed ({deployState.lastError}). Content published to D1 is not live
           until a build runs — use Publish to retry.
         </Notice>
+      )}
+      {deployState?.status === 'pending_sync' && !result && (
+        <p className="text-xs text-mist/70">
+          Last publish: snapshot sync dispatched at {deployState.requestedAt ?? 'unknown time'}.
+          The GitHub workflow mirrors the content and queues the Cloudflare deployment — check the
+          Actions tab and the Cloudflare Pages dashboard for progress.
+        </p>
       )}
       {deployState?.status === 'queued' && !result && (
         <p className="text-xs text-mist/70">

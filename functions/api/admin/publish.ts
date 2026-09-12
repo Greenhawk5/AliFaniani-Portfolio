@@ -1,32 +1,38 @@
 /**
  * POST /api/admin/publish — promote all validated draft overlays atomically,
- * then trigger the Cloudflare Pages deploy hook.
+ * then hand deployment off to the GitHub snapshot-sync workflow.
  *
  * Order of operations (each step's failure semantics):
  *   1. requireMutationAuth (session + CSRF)          → 401
  *   2. Load media manifest via env.ASSETS            → 500 on failure
  *   3. preparePublish: validate ALL drafts (Zod + media refs) → 400, no writes
  *   4. db.batch(statements) — atomic promotion        → 500, no partial state
- *   5. Trigger DEPLOY_HOOK_URL (server-side secret)   → recorded, non-fatal
- *   6. Dispatch GitHub snapshot sync (GITHUB_SYNC_TOKEN secret) → non-fatal
+ *   5. Dispatch GitHub snapshot sync (GITHUB_SYNC_TOKEN secret) → non-fatal
  *
- * Honest reporting: D1 publish success is reported even when the hook fails
- * ("trigger_failed"); the CMS never claims deployment succeeded — hook 2xx
- * only means the build is queued.
+ * The Cloudflare Deploy Hook is triggered by the GitHub Actions snapshot-sync
+ * workflow (cms-snapshot-sync.yml, secret CLOUDFLARE_DEPLOY_HOOK_URL) AFTER
+ * the regenerated snapshot is committed to main. Publish itself never calls
+ * the hook — a Pages build can therefore never start from a stale snapshot
+ * (the ordering race that produced stale production content is impossible
+ * in this direction).
  *
- * No-draft publish is a safe no-op: 200 with counts of zero and NO deploy
- * trigger (nothing changed → no rebuild needed).
+ * Honest reporting: `pending_sync` means D1 is published and the sync
+ * workflow has been dispatched; the deployment is queued only when the
+ * workflow's hook POST succeeds. The CMS never claims deployment succeeded.
+ *
+ * No-draft publish is a safe no-op: 200 with counts of zero and NO dispatch
+ * (nothing changed → no rebuild needed).
  */
 
 import type { AdminEnv } from '../../lib/auth-env'
 import { jsonResponse, unauthorizedResponse, clientIp } from '../../lib/http'
 import { requireMutationAuth } from '../../lib/session-auth'
 import { preparePublish, ValidationError } from '../../lib/publish'
-import { triggerDeployHook, recordDeployState } from '../../lib/deploy-state'
+import { recordDeployState } from '../../lib/deploy-state'
 import { dispatchSnapshotSync, dispatchSyncReason } from '../../lib/github-sync'
 import { logAuthEvent } from '../../lib/auth-log'
 
-type Env = AdminEnv & { DEPLOY_HOOK_URL?: string; GITHUB_SYNC_TOKEN?: string }
+type Env = AdminEnv & { GITHUB_SYNC_TOKEN?: string }
 
 interface ManifestShape {
   media?: Record<string, unknown>
@@ -106,24 +112,17 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     note: `${counts.projects}p/${counts.profileSections}s/${counts.links}l`,
   })
 
-  // 5 — deploy hook (post-commit; failure does not roll back)
-  const trigger = await triggerDeployHook(env.DEPLOY_HOOK_URL)
-  await recordDeployState(env.RATE_LIMIT, {
-    status: trigger.ok ? 'queued' : 'trigger_failed',
-    requestedAt: new Date().toISOString(),
-    lastError: trigger.ok ? undefined : trigger.category,
-  })
-  await logAuthEvent(env.DB, trigger.ok ? 'deploy_triggered' : 'deploy_trigger_failed', {
-    ip,
-    ok: trigger.ok,
-    note: trigger.ok ? `status ${trigger.status}` : trigger.category,
-  })
-
-  // 6 — repository synchronization dispatch (post-commit; failure does not
+  // 5 — repository synchronization dispatch (post-commit; failure does not
   // roll back the publish and never affects production). The dispatched
-  // workflow reads production D1 itself, mirroring generated files only.
+  // workflow reads production D1 itself, mirrors generated files to main,
+  // and only then triggers the Cloudflare deploy hook.
   const sync = await dispatchSnapshotSync(env.GITHUB_SYNC_TOKEN)
   const syncReason = dispatchSyncReason(sync)
+  await recordDeployState(env.RATE_LIMIT, {
+    status: sync.ok ? 'pending_sync' : 'sync_dispatch_failed',
+    requestedAt: new Date().toISOString(),
+    lastError: sync.ok ? undefined : syncReason,
+  })
   await logAuthEvent(env.DB, sync.ok ? 'sync_dispatched' : 'sync_dispatch_failed', {
     ip,
     ok: sync.ok,
@@ -133,9 +132,9 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   return jsonResponse({
     ok: true,
     published: counts,
-    deployment: trigger.ok
-      ? { status: 'queued' }
-      : { status: 'trigger_failed', reason: trigger.category },
+    deployment: sync.ok
+      ? { status: 'pending_sync' }
+      : { status: 'pending_sync', reason: 'sync_dispatch_failed' },
     sync: sync.ok
       ? { status: 'dispatched' }
       : {

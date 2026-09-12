@@ -78,7 +78,9 @@ Only the latest version deployed to production (`main` branch) is supported.
   (fine-grained PAT used solely to dispatch the repository snapshot-sync
   workflow) and `TURNSTILE_SECRET` are server-side only: never bundled,
   never returned by any endpoint, never logged. The deploy hook URL is
-  requested solely from server-side publish code.
+  requested solely from server-side code (the publish endpoint stores it
+  only as a Cloudflare secret; the GitHub snapshot-sync workflow receives
+  it as the `CLOUDFLARE_DEPLOY_HOOK_URL` Actions secret and never logs it).
 - The snapshot-sync workflow itself authenticates with the repository's
   built-in `GITHUB_TOKEN` (least-privilege `contents: write`); the fine-
   grained sync PAT never enters GitHub Actions.
@@ -97,6 +99,9 @@ Only the latest version deployed to production (`main` branch) is supported.
 - The sync workflow mirrors only two generated files (content snapshot +
   sitemap) from the published D1 state; D1 remains the source of truth and
   production never depends on synchronization.
+- Deployment ordering: the Cloudflare deploy hook fires only after the
+  regenerated snapshot is committed to main, so production builds always
+  use snapshot state that matches the published D1 content.
 - Workflow runs serialize via a concurrency group and always re-read
   production D1 at execution time, so stale state cannot overwrite newer
   content. Commits are created only when generated files actually differ

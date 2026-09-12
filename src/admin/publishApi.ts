@@ -14,9 +14,13 @@ export interface PublishResult {
   ok: boolean
   published?: PublishCounts
   deployment?: {
-    status: 'queued' | 'trigger_failed' | 'idle'
+    status: 'pending_sync' | 'queued' | 'trigger_failed' | 'idle'
     reason?: string
     note?: string
+  }
+  sync?: {
+    status: 'dispatched' | 'dispatch_failed'
+    reason?: string
   }
   error?: string
 }
@@ -33,7 +37,7 @@ export async function publishAll(): Promise<PublishResult> {
 }
 
 export interface DeployStateInfo {
-  status: 'queued' | 'trigger_failed' | null
+  status: 'pending_sync' | 'sync_dispatch_failed' | 'queued' | 'trigger_failed' | null
   requestedAt: string | null
   lastError?: string
 }

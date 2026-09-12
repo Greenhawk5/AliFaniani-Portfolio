@@ -2,8 +2,15 @@ name: CMS snapshot sync
 
 # Mirrors the generated repository files (src/data/generated/content.json,
 # public/sitemap.xml) from the published Production D1 state after a CMS
-# publish. Dispatched by the publish endpoint (functions/lib/github-sync.ts)
-# and also runnable manually for retries.
+# publish, then triggers the Cloudflare Pages deploy hook. Dispatched by the
+# publish endpoint (functions/lib/github-sync.ts) and also runnable manually
+# for retries.
+#
+# Deployment ordering guarantee: publish NEVER calls the deploy hook itself.
+# This workflow calls it (secret CLOUDFLARE_DEPLOY_HOOK_URL) only AFTER the
+# regenerated snapshot has been committed and pushed to main — or, in the
+# no-change case, after the export confirms main already matches D1. A Pages
+# build can therefore never start from a stale snapshot.
 #
 # Loop prevention:
 #   - The workflow is triggered ONLY by repository_dispatch / workflow_dispatch
@@ -87,3 +94,18 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "chore: sync generated CMS snapshot from production D1 [CI Skip]"
           git push
+
+      # Runs only if every step above succeeded (snapshot on main, or main
+      # already matched D1). A failure in export/commit/push skips this step
+      # and fails the workflow — the deployment can be retried by re-running
+      # the workflow (D1 and the pushed snapshot are never rolled back).
+      - name: Trigger Cloudflare Pages deploy hook
+        run: |
+          status=$(curl -sS -o /dev/null -w '%{http_code}' -X POST "$CLOUDFLARE_DEPLOY_HOOK_URL")
+          echo "Deploy hook responded with HTTP $status"
+          case "$status" in
+            2*) echo "Deployment queued."; ;;
+            *) echo "::error::Deploy hook failed with HTTP $status — deployment NOT queued. Re-run this workflow to retry."; exit 1; ;;
+          esac
+        env:
+          CLOUDFLARE_DEPLOY_HOOK_URL: ${{ secrets.CLOUDFLARE_DEPLOY_HOOK_URL }}

@@ -23,6 +23,13 @@ snapshot files after a publish.
   regular commits deploy normally and carry the sync implementation with
   them. Synchronization is secondary to production: failures never block a
   publish or affect the live site, and the workflow can be re-run manually.
+- **Ordered deployment** — the Cloudflare Deploy Hook is triggered by the
+  snapshot-sync workflow (secret `CLOUDFLARE_DEPLOY_HOOK_URL`) only AFTER
+  the regenerated snapshot is on main — never by publish directly. A Pages
+  build can therefore never start from a stale generated snapshot. Publish
+  reports `pending_sync` (D1 published, sync dispatched) honestly; if the
+  sync dispatch fails, deployment can be retried by re-running the
+  workflow.
 - **Deterministic generators** — the snapshot `exportedAt` derives from the
   exported rows (`MAX(updated_at)`) and the sitemap `lastmod` from the
   snapshot, so re-exporting unchanged D1 state is byte-identical and the

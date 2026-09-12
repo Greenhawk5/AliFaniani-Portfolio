@@ -1,14 +1,19 @@
 /**
- * CMS-side deployment state (Phase 5) — deliberately minimal.
+ * CMS-side deployment state — deliberately minimal.
  *
  * Cloudflare Pages deployment state is external; the only fully reliable
- * states the CMS can know are its own:
- *   idle → queued (deploy hook POST returned 2xx)
- *        → trigger_failed (hook request failed; D1 content IS published)
+ * states the CMS can know are its own. Since v2.0.1's orchestration fix,
+ * the deploy hook is triggered BY the GitHub snapshot-sync workflow (after
+ * the generated snapshot is committed to main), not by publish directly:
  *
- * 'building' / 'deployed' / 'failed' are reported to the UI as
- * "unknown — check the Pages dashboard": POSTing the hook only queues a
- * build and the CMS never polls (no D1/KV churn, no Pages API token).
+ *   idle → pending_sync (D1 published + snapshot-sync dispatch accepted)
+ *        → sync_dispatch_failed (dispatch failed; sync can be retried)
+ *        → trigger_failed (reserved: kept for backward compatibility with
+ *          previously recorded KV state; no longer written by publish)
+ *
+ * 'building' / 'deployed' / 'failed' remain unknown to the CMS ("check the
+ * Pages dashboard"): the workflow's hook POST only queues a build and the
+ * CMS never polls (no D1/KV churn, no Pages API token).
  *
  * Storage: a single KV key written once per publish (well inside KV free
  * limits). Failures to record state are non-fatal.
@@ -16,7 +21,7 @@
 
 export const DEPLOY_STATE_KEY = 'deploy:state'
 
-export type TriggerStatus = 'queued' | 'trigger_failed'
+export type TriggerStatus = 'pending_sync' | 'sync_dispatch_failed' | 'queued' | 'trigger_failed'
 
 export interface DeployState {
   status: TriggerStatus
@@ -41,17 +46,9 @@ export async function readDeployState(kv: KVNamespace): Promise<DeployState | nu
   }
 }
 
-/** POSTs the secret deploy hook URL. Returns true only on a 2xx response.
- * The URL is never included in errors (only its failure category). */
-export async function triggerDeployHook(
-  hookUrl: string | undefined
-): Promise<{ ok: boolean; category: 'ok' | 'not_configured' | 'network_error' | 'http_error' | 'invalid_response'; status?: number }> {
-  if (!hookUrl) return { ok: false, category: 'not_configured' }
-  try {
-    const response = await fetch(hookUrl, { method: 'POST' })
-    if (response.ok) return { ok: true, category: 'ok', status: response.status }
-    return { ok: false, category: 'http_error', status: response.status }
-  } catch {
-    return { ok: false, category: 'network_error' }
-  }
-}
+/** The deploy hook is now triggered by the GitHub snapshot-sync workflow
+ * (cms-snapshot-sync.yml) after the generated snapshot is on main — publish
+ * itself never calls it, so a Pages build can never start from a stale
+ * snapshot. This function is retained as the shared description of the
+ * handoff contract for tests and future server-side callers. */
+export const DEPLOY_HOOK_TRIGGERED_BY = 'github-actions:cms-snapshot-sync'

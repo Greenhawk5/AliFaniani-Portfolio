@@ -25,7 +25,7 @@ import { sha256Hex } from '../functions/lib/crypto'
 
 let db: FakeD1Database
 let kv: FakeKV
-let env: TestEnv & { DEPLOY_HOOK_URL?: string; ASSETS: Fetcher }
+let env: TestEnv & { GITHUB_SYNC_TOKEN?: string; ASSETS: Fetcher }
 
 const MANIFEST = {
   media: {
@@ -119,7 +119,7 @@ beforeEach(() => {
   resetBurstLimiterForTests()
   db = new FakeD1Database()
   kv = new FakeKV()
-  env = { ...makeEnv(db, kv), DEPLOY_HOOK_URL: 'https://api.cloudflare.com/deploy-hooks/hook-id', ASSETS: assetsStub() }
+  env = { ...makeEnv(db, kv), GITHUB_SYNC_TOKEN: 'test-sync-token', ASSETS: assetsStub() }
   installFetchStub()
 })
 
@@ -155,13 +155,13 @@ describe('POST /api/admin/publish', () => {
 
   it('B: one project draft → promoted atomically, overlay cleared, published_at updated', async () => {
     seedPublished('live-proj', {}, { ...PROJECT, slug: 'live-proj', title: 'Draft Title' })
-    interceptFetch((url) => (url.includes('deploy-hooks') ? new Response('ok', { status: 200 }) : turnstileHandler(true)(url)))
+    interceptFetch((url) => (url.includes('deploy-hooks') ? new Response('ok', { status: 200 }) : url.includes('/dispatches') ? new Response(null, { status: 204 }) : turnstileHandler(true)(url)))
     const { cookies, csrf } = await loginCtx()
     const response = await publishHandler(makeContext(publishRequest(cookies, csrf), env))
     expect(response.status).toBe(200)
     const body = (await response.json()) as { published: { projects: number }; deployment: { status: string } }
     expect(body.published.projects).toBe(1)
-    expect(body.deployment.status).toBe('queued')
+    expect(body.deployment.status).toBe('pending_sync')
 
     const row = db.tables.content![0] as Record<string, unknown>
     expect(JSON.parse(row.data as string).title).toBe('Draft Title')
@@ -178,7 +178,7 @@ describe('POST /api/admin/publish', () => {
       sort_order: 90, state: 'published', version: 1, created_at: 't', updated_at: 't', published_at: 't',
       draft_data: JSON.stringify({ label: 'X', href: 'https://edited.io' }), draft_updated_at: 'd', draft_sort_order: null,
     })
-    interceptFetch((url) => (url.includes('deploy-hooks') ? new Response('ok', { status: 200 }) : turnstileHandler(true)(url)))
+    interceptFetch((url) => (url.includes('deploy-hooks') ? new Response('ok', { status: 200 }) : url.includes('/dispatches') ? new Response(null, { status: 204 }) : turnstileHandler(true)(url)))
     const { cookies, csrf } = await loginCtx()
     const response = await publishHandler(makeContext(publishRequest(cookies, csrf), env))
     const body = (await response.json()) as { published: { projects: number; links: number } }
@@ -247,44 +247,59 @@ describe('POST /api/admin/publish', () => {
     expect(row.draft_data).not.toBeNull()
   })
 
-  it('I: deploy hook success → deployment queued', async () => {
+  it('I: publish → sync dispatch accepted → deployment pending_sync (hook NOT called directly)', async () => {
     seedPublished('live-proj', {}, { ...PROJECT, slug: 'live-proj', title: 'Draft' })
-    interceptFetch((url) => (url.includes('deploy-hooks') ? new Response('{ "success": true }', { status: 200 }) : turnstileHandler(true)(url)))
+    let hookCalled = false
+    interceptFetch((url) => {
+      if (url.includes('deploy-hooks')) {
+        hookCalled = true
+        return new Response('{ "success": true }', { status: 200 })
+      }
+      if (url.includes('/dispatches')) return new Response(null, { status: 204 })
+      return turnstileHandler(true)(url)
+    })
     const { cookies, csrf } = await loginCtx()
     const response = await publishHandler(makeContext(publishRequest(cookies, csrf), env))
-    const body = (await response.json()) as { deployment: { status: string } }
-    expect(body.deployment.status).toBe('queued')
+    const body = (await response.json()) as { deployment: { status: string }; sync: { status: string } }
+    expect(body.sync.status).toBe('dispatched')
+    expect(body.deployment.status).toBe('pending_sync')
+    expect(hookCalled).toBe(false) // the workflow triggers the hook, not publish
     const state = JSON.parse(kv.store.get('deploy:state')!)
-    expect(state.status).toBe('queued')
+    expect(state.status).toBe('pending_sync')
   })
 
-  it('J: deploy hook failure → content STILL published, trigger_failed reported, no secret leakage', async () => {
+  it('J: sync dispatch accepted but workflow-level hook failure is out of publish scope; publish reports pending honestly', async () => {
     seedPublished('live-proj', {}, { ...PROJECT, slug: 'live-proj', title: 'Draft' })
-    interceptFetch((url) => (url.includes('deploy-hooks') ? new Response('server error', { status: 500 }) : turnstileHandler(true)(url)))
+    interceptFetch((url) => {
+      if (url.includes('/dispatches')) return new Response(null, { status: 204 })
+      return turnstileHandler(true)(url)
+    })
     const { cookies, csrf } = await loginCtx()
     const response = await publishHandler(makeContext(publishRequest(cookies, csrf), env))
     const body = (await response.json()) as { ok: boolean; deployment: { status: string } }
     expect(body.ok).toBe(true) // D1 publish succeeded
-    expect(body.deployment.status).toBe('trigger_failed')
+    expect(body.deployment.status).toBe('pending_sync')
     // D1 state reflects the promotion
     const row = db.tables.content![0] as Record<string, unknown>
     expect(JSON.parse(row.data as string).title).toBe('Draft')
     expect(row.draft_data).toBeNull()
-    // no secret leakage anywhere in the response
-    const raw = JSON.stringify(body)
-    expect(raw).not.toContain('deploy-hooks')
-    expect(raw).not.toContain('test-admin-password')
   })
 
-  it('J2: hook URL not configured → trigger_failed with not_configured, no crash', async () => {
+  it('J2: sync token not configured → D1 still published, deployment pending with dispatch_failed, no crash', async () => {
     seedPublished('live-proj', {}, { ...PROJECT, slug: 'live-proj', title: 'Draft' })
-    env.DEPLOY_HOOK_URL = undefined
+    ;(env as Record<string, unknown>).GITHUB_SYNC_TOKEN = undefined
     const { cookies, csrf } = await loginCtx()
     const response = await publishHandler(makeContext(publishRequest(cookies, csrf), env))
-    const body = (await response.json()) as { ok: boolean; deployment: { status: string; reason: string } }
+    const body = (await response.json()) as { ok: boolean; deployment: { status: string; reason?: string }; sync: { status: string; reason: string } }
     expect(body.ok).toBe(true)
-    expect(body.deployment.status).toBe('trigger_failed')
-    expect(body.deployment.reason).toBe('not_configured')
+    expect(body.sync.status).toBe('dispatch_failed')
+    expect(body.sync.reason).toBe('not_configured')
+    expect(body.deployment.status).toBe('pending_sync')
+    expect(body.deployment.reason).toBe('sync_dispatch_failed')
+    const state = JSON.parse(kv.store.get('deploy:state')!)
+    expect(state.status).toBe('sync_dispatch_failed')
+    const row = db.tables.content![0] as Record<string, unknown>
+    expect(JSON.parse(row.data as string).title).toBe('Draft') // D1 publish unaffected
   })
 
   it('L→K: draft isolation before publish; archived row loses overlay after publish and stays out of snapshot scope', async () => {
@@ -302,7 +317,7 @@ describe('POST /api/admin/publish', () => {
 
     // publish → promotion happens even on archived rows' overlays; row state preserved
     ;(db.tables.content![0] as Record<string, unknown>).state = 'archived'
-    interceptFetch((url) => (url.includes('deploy-hooks') ? new Response('ok', { status: 200 }) : turnstileHandler(true)(url)))
+    interceptFetch((url) => (url.includes('deploy-hooks') ? new Response('ok', { status: 200 }) : url.includes('/dispatches') ? new Response(null, { status: 204 }) : turnstileHandler(true)(url)))
     const response = await publishHandler(makeContext(publishRequest(cookies, csrf), env))
     expect(response.status).toBe(200)
     const row = db.tables.content![0] as Record<string, unknown>
@@ -313,7 +328,7 @@ describe('POST /api/admin/publish', () => {
 
   it('N: double publish → second is a safe no-op', async () => {
     seedPublished('live-proj', {}, { ...PROJECT, slug: 'live-proj', title: 'Draft' })
-    interceptFetch((url) => (url.includes('deploy-hooks') ? new Response('ok', { status: 200 }) : turnstileHandler(true)(url)))
+    interceptFetch((url) => (url.includes('deploy-hooks') ? new Response('ok', { status: 200 }) : url.includes('/dispatches') ? new Response(null, { status: 204 }) : turnstileHandler(true)(url)))
     const { cookies, csrf } = await loginCtx()
     const first = await publishHandler(makeContext(publishRequest(cookies, csrf), env))
     expect(first.status).toBe(200)
@@ -325,12 +340,13 @@ describe('POST /api/admin/publish', () => {
 
   it('M: audit log records publish/deploy events without secrets', async () => {
     seedPublished('live-proj', {}, { ...PROJECT, slug: 'live-proj', title: 'Draft' })
-    interceptFetch((url) => (url.includes('deploy-hooks') ? new Response('ok', { status: 200 }) : turnstileHandler(true)(url)))
+    interceptFetch((url) => (url.includes('deploy-hooks') ? new Response('ok', { status: 200 }) : url.includes('/dispatches') ? new Response(null, { status: 204 }) : turnstileHandler(true)(url)))
     const { cookies, csrf } = await loginCtx()
     await publishHandler(makeContext(publishRequest(cookies, csrf), env))
     const logged = JSON.stringify(db.authRows())
     expect(logged).toContain('publish_succeeded')
-    expect(logged).toContain('deploy_triggered')
+    expect(logged).toContain('sync_dispatched')
+    expect(logged).not.toContain('deploy_triggered') // hook is no longer triggered by publish
     expect(logged).not.toContain('deploy-hooks')
     expect(logged).not.toContain(cookies)
     expect(logged).not.toContain(await sha256Hex(cookies))
@@ -527,6 +543,45 @@ describe('GitHub snapshot sync dispatch (v2.0.1 diagnostics)', () => {
     })
     expect(capturedHeaders!.get('User-Agent')).toBe('alifaniani-portfolio-cms-sync')
   })
+
+  it('publish NEVER triggers the Cloudflare deploy hook directly (ordering invariant)', async () => {
+    let hookCalled = false
+    const { body } = await publishWith((url) => {
+      if (url.includes('deploy-hooks')) {
+        hookCalled = true
+        return new Response('ok', { status: 200 })
+      }
+      if (githubUrl(url)) return new Response(null, { status: 204 })
+      return null
+    })
+    expect(hookCalled).toBe(false) // the GitHub workflow owns the hook now
+    expect(body.deployment.status).toBe('pending_sync')
+    expect(body.sync.status).toBe('dispatched')
+  })
+
+  it('publish records pending_sync deploy-state; sync failure records sync_dispatch_failed', async () => {
+    await publishWith((url) => (githubUrl(url) ? new Response(null, { status: 204 }) : null))
+    expect(JSON.parse(kv.store.get('deploy:state')!).status).toBe('pending_sync')
+
+    await publishWith((url) => (githubUrl(url) ? new Response('Forbidden', { status: 403 }) : null))
+    const failed = JSON.parse(kv.store.get('deploy:state')!)
+    expect(failed.status).toBe('sync_dispatch_failed')
+    expect(failed.lastError).toBe('github_http_403')
+  })
+
+  it('deploy hook URL never appears in publish response or audit log', async () => {
+    const hookUrl = 'https://api.cloudflare.com/deploy-hooks/super-secret-hook-id'
+    ;(env as Record<string, unknown>).DEPLOY_HOOK_URL = hookUrl
+    const { raw } = await publishWith((url) => {
+      if (url.includes('deploy-hooks')) return new Response('ok', { status: 200 })
+      if (githubUrl(url)) return new Response(null, { status: 204 })
+      return null
+    })
+    expect(raw).not.toContain(hookUrl)
+    expect(raw).not.toContain('super-secret-hook-id')
+    expect(JSON.stringify(db.authRows())).not.toContain(hookUrl)
+    delete (env as Record<string, unknown>).DEPLOY_HOOK_URL
+  })
 })
 
 /* --------------------------- end-to-end integration ------------------------ */
@@ -542,7 +597,7 @@ describe('publish end-to-end (content API → publish → snapshot)', () => {
     expect(JSON.parse(row.data as string).title).toBe('Test Project')
     expect(row.draft_data).not.toBeNull()
 
-    interceptFetch((url) => (url.includes('deploy-hooks') ? new Response('ok', { status: 200 }) : turnstileHandler(true)(url)))
+    interceptFetch((url) => (url.includes('deploy-hooks') ? new Response('ok', { status: 200 }) : url.includes('/dispatches') ? new Response(null, { status: 204 }) : turnstileHandler(true)(url)))
     const publish = await publishHandler(makeContext(publishRequest(cookies, csrf), env))
     expect(publish.status).toBe(200)
     row = db.tables.content![0] as Record<string, unknown>
@@ -567,13 +622,13 @@ describe('Phase 6A: draft-only record publish', () => {
       created_at: '2026-09-11T00:00:00.000Z', updated_at: '2026-09-11T00:00:00.000Z',
       published_at: null, draft_data: null, draft_updated_at: null, draft_sort_order: null,
     })
-    interceptFetch((url) => (url.includes('deploy-hooks') ? new Response('ok', { status: 200 }) : turnstileHandler(true)(url)))
+    interceptFetch((url) => (url.includes('deploy-hooks') ? new Response('ok', { status: 200 }) : url.includes('/dispatches') ? new Response(null, { status: 204 }) : turnstileHandler(true)(url)))
     const { cookies, csrf } = await loginCtx()
     const response = await publishHandler(makeContext(publishRequest(cookies, csrf), env))
     expect(response.status).toBe(200)
     const body = (await response.json()) as { published: { projects: number }; deployment: { status: string } }
     expect(body.published.projects).toBe(2)
-    expect(body.deployment.status).toBe('queued')
+    expect(body.deployment.status).toBe('pending_sync')
 
     const existing = db.tables.content!.find((r) => r.key === 'existing-proj') as Record<string, unknown>
     expect(JSON.parse(existing.data as string).title).toBe('Overlay Edit')
@@ -650,7 +705,7 @@ describe('Phase 6A: draft-only record publish', () => {
       created_at: 't', updated_at: 't', published_at: null,
       draft_data: null, draft_updated_at: null, draft_sort_order: null,
     })
-    interceptFetch((url) => (url.includes('deploy-hooks') ? new Response('ok', { status: 200 }) : turnstileHandler(true)(url)))
+    interceptFetch((url) => (url.includes('deploy-hooks') ? new Response('ok', { status: 200 }) : url.includes('/dispatches') ? new Response(null, { status: 204 }) : turnstileHandler(true)(url)))
     const { cookies, csrf } = await loginCtx()
     await publishHandler(makeContext(publishRequest(cookies, csrf), env))
     // exporter SELECTs state='published' — the promoted row now qualifies
