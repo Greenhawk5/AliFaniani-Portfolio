@@ -55,7 +55,7 @@ export function CmsView() {
       published: all.filter((i) => i.state === 'published').length,
       draft: all.filter((i) => i.state === 'draft').length,
       archived: all.filter((i) => i.state === 'archived').length,
-      edited: all.filter((i) => i.hasDraft).length,
+      edited: all.filter((i) => i.hasDraft || i.state === 'draft').length,
       lastUpdated: all.reduce<string | null>((latest, i) => (latest && latest > i.updatedAt ? latest : i.updatedAt), null),
     }
   }, [items])
