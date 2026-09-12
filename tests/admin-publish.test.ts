@@ -346,6 +346,114 @@ describe('POST /api/admin/publish', () => {
   })
 })
 
+/* ------------------------- GitHub snapshot sync dispatch ------------------- */
+
+describe('GitHub snapshot sync dispatch (v2.0.1 diagnostics)', () => {
+  /** Seeds one draft, logs in, publishes; the interceptor controls every
+   * fetch (deploy hook + GitHub dispatch + Turnstile). A default sync token
+   * is injected unless the test overrides it explicitly. */
+  async function publishWith(
+    handler: (url: string) => Response | null,
+    overrides: { token?: string } = {}
+  ): Promise<{ body: Record<string, any>; raw: string }> {
+    seedPublished('live-proj', {}, { ...PROJECT, slug: 'live-proj', title: 'Draft' })
+    ;(env as Record<string, unknown>).GITHUB_SYNC_TOKEN =
+      'token' in overrides ? overrides.token : 'test-sync-token'
+    interceptFetch((url) => {
+      if (url.includes('deploy-hooks')) return new Response('ok', { status: 200 })
+      return handler(url)
+    })
+    const { cookies, csrf } = await loginCtx()
+    const response = await publishHandler(makeContext(publishRequest(cookies, csrf), env))
+    expect(response.status).toBe(200)
+    const raw = JSON.stringify(await response.json())
+    return { body: JSON.parse(raw), raw }
+  }
+
+  const githubUrl = (url: string) => url.includes('/dispatches')
+
+  afterEach(() => {
+    delete (env as Record<string, unknown>).GITHUB_SYNC_TOKEN
+  })
+
+  it('dispatch succeeds → sync.dispatched, audit logs sync_dispatched, no secret leakage', async () => {
+    const { body, raw } = await publishWith((url) =>
+      githubUrl(url) ? new Response(null, { status: 204 }) : null
+    )
+    expect(body.sync).toEqual({ status: 'dispatched' })
+    const logged = JSON.stringify(db.authRows())
+    expect(logged).toContain('sync_dispatched')
+    expect(logged).not.toContain('test-sync-token')
+    expect(raw).not.toContain('test-sync-token')
+  })
+
+  it('401 → dispatch_failed reason github_http_401, publish still succeeds', async () => {
+    const { body } = await publishWith((url) =>
+      githubUrl(url) ? new Response('Bad credentials', { status: 401 }) : null
+    )
+    expect(body.ok).toBe(true)
+    expect(body.sync).toEqual({ status: 'dispatch_failed', reason: 'github_http_401' })
+    const row = db.tables.content![0] as Record<string, unknown>
+    expect(JSON.parse(row.data as string).title).toBe('Draft') // D1 publish unaffected
+  })
+
+  it('403 → reason github_http_403 (least-privilege PAT missing Contents: write)', async () => {
+    const { body } = await publishWith((url) =>
+      githubUrl(url) ? new Response('Forbidden', { status: 403 }) : null
+    )
+    expect(body.sync.reason).toBe('github_http_403')
+  })
+
+  it('404 → reason github_http_404', async () => {
+    const { body } = await publishWith((url) =>
+      githubUrl(url) ? new Response('Not Found', { status: 404 }) : null
+    )
+    expect(body.sync.reason).toBe('github_http_404')
+  })
+
+  it('422 → reason github_http_422', async () => {
+    const { body } = await publishWith((url) =>
+      githubUrl(url) ? new Response('Unprocessable', { status: 422 }) : null
+    )
+    expect(body.sync.reason).toBe('github_http_422')
+  })
+
+  it('500 → reason github_http_500', async () => {
+    const { body } = await publishWith((url) =>
+      githubUrl(url) ? new Response('oops', { status: 500 }) : null
+    )
+    expect(body.sync.reason).toBe('github_http_500')
+  })
+
+  it('network error → reason network_error, publish unaffected', async () => {
+    const { body } = await publishWith(() => {
+      throw new Error('connection refused')
+    })
+    expect(body.ok).toBe(true)
+    expect(body.sync).toEqual({ status: 'dispatch_failed', reason: 'network_error' })
+  })
+
+  it('token not configured → reason not_configured, no GitHub request attempted', async () => {
+    let dispatchAttempted = false
+    const { body } = await publishWith((url) => {
+      if (githubUrl(url)) dispatchAttempted = true
+      return null
+    }, { token: undefined })
+    expect(body.sync).toEqual({ status: 'dispatch_failed', reason: 'not_configured' })
+    expect(dispatchAttempted).toBe(false)
+  })
+
+  it('audit log records sync_dispatch_failed with safe reason only', async () => {
+    await publishWith((url) => (githubUrl(url) ? new Response('Bad credentials', { status: 401 }) : null))
+    const logged = JSON.stringify(db.authRows())
+    expect(logged).toContain('sync_dispatch_failed')
+    expect(logged).toContain('github_http_401')
+    expect(logged).not.toContain('Bad credentials') // response body never logged
+    expect(logged).not.toContain('test-sync-token')
+    expect(logged).not.toContain('Bearer')
+  })
+})
+
 /* --------------------------- end-to-end integration ------------------------ */
 
 describe('publish end-to-end (content API → publish → snapshot)', () => {

@@ -23,7 +23,7 @@ import { jsonResponse, unauthorizedResponse, clientIp } from '../../lib/http'
 import { requireMutationAuth } from '../../lib/session-auth'
 import { preparePublish, ValidationError } from '../../lib/publish'
 import { triggerDeployHook, recordDeployState } from '../../lib/deploy-state'
-import { dispatchSnapshotSync } from '../../lib/github-sync'
+import { dispatchSnapshotSync, dispatchSyncReason } from '../../lib/github-sync'
 import { logAuthEvent } from '../../lib/auth-log'
 
 type Env = AdminEnv & { DEPLOY_HOOK_URL?: string; GITHUB_SYNC_TOKEN?: string }
@@ -123,10 +123,11 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   // roll back the publish and never affects production). The dispatched
   // workflow reads production D1 itself, mirroring generated files only.
   const sync = await dispatchSnapshotSync(env.GITHUB_SYNC_TOKEN)
+  const syncReason = dispatchSyncReason(sync)
   await logAuthEvent(env.DB, sync.ok ? 'sync_dispatched' : 'sync_dispatch_failed', {
     ip,
     ok: sync.ok,
-    note: sync.ok ? `status ${sync.status}` : sync.category,
+    note: syncReason,
   })
 
   return jsonResponse({
@@ -135,6 +136,6 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     deployment: trigger.ok
       ? { status: 'queued' }
       : { status: 'trigger_failed', reason: trigger.category },
-    sync: sync.ok ? { status: 'dispatched' } : { status: 'dispatch_failed', reason: sync.category },
+    sync: sync.ok ? { status: 'dispatched' } : { status: 'dispatch_failed', reason: syncReason },
   })
 }

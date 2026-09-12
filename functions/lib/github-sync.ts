@@ -31,6 +31,18 @@ export interface DispatchResult {
   status?: number
 }
 
+/** Safe, loggable diagnostic for a dispatch result. Folds the HTTP status
+ * into the failure category (`github_http_401`, `github_http_403`, …) so the
+ * admin response and audit log pinpoint the GitHub failure. Never exposes
+ * the token, request headers, or the response body — only the status code,
+ * which carries no secret material. */
+export function dispatchSyncReason(result: DispatchResult): string {
+  if (result.category === 'http_error' && typeof result.status === 'number') {
+    return `github_http_${result.status}`
+  }
+  return result.category
+}
+
 const REPO_OWNER = 'Greenhawk5'
 const REPO_NAME = 'AliFaniani-Portfolio'
 const EVENT_TYPE = 'cms-snapshot-sync'
