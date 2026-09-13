@@ -17,6 +17,7 @@ declare global {
     turnstile?: {
       render: (container: HTMLElement, options: Record<string, unknown>) => string
       reset: (widgetId?: string) => void
+      remove: (widgetId?: string) => void
     }
   }
 }
@@ -122,10 +123,14 @@ export default function Contact() {
     return () => {
       cancelled = true
       script.removeEventListener('load', renderTurnstile)
+      // Remove the widget from the DOM on unmount (route change, StrictMode
+      // double-mount, or the post-success state swap). Reset alone leaves the
+      // iframe attached to a container React is about to discard, which
+      // Turnstile reports as "Cannot find Widget cf-chl-widget-…".
       if (turnstileWidgetIdRef.current && window.turnstile) {
-        window.turnstile.reset(turnstileWidgetIdRef.current)
+        window.turnstile.remove(turnstileWidgetIdRef.current)
+        turnstileWidgetIdRef.current = null
       }
-      turnstileWidgetIdRef.current = null
     }
   }, [status === 'success'])
 

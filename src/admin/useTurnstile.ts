@@ -11,6 +11,7 @@ declare global {
     turnstile?: {
       render: (container: HTMLElement, options: Record<string, unknown>) => string
       reset: (widgetId?: string) => void
+      remove: (widgetId?: string) => void
     }
   }
 }
@@ -55,6 +56,14 @@ export function useTurnstile(action: string) {
     return () => {
       cancelled = true
       script.removeEventListener('load', render)
+      // Remove the rendered widget from the DOM. Without this, React
+      // StrictMode's mount→unmount→mount cycle (and any route transition)
+      // leaves an orphaned iframe behind and Turnstile logs
+      // "Cannot find Widget cf-chl-widget-…".
+      if (widgetIdRef.current && window.turnstile) {
+        window.turnstile.remove(widgetIdRef.current)
+        widgetIdRef.current = null
+      }
     }
   }, [action])
 

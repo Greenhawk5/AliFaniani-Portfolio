@@ -26,7 +26,7 @@ export default function Home() {
   useDocumentMeta({
     title: 'Ali Faniani — Software Developer',
     description:
-      'Portfolio of Ali Faniani, software developer and computer science graduate focused on Artificial Intelligence, backend development, web applications, and automation.',
+      'Ali Faniani is a software developer building practical software systems across AI, backend engineering, web, and automation with modern technologies.',
   })
 
   return (

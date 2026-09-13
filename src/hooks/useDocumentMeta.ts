@@ -96,7 +96,7 @@ export function useDocumentMeta({
       setMeta('name', 'robots', 'noindex, follow')
       setCanonical(null)
     } else {
-      document.head.querySelector('meta[name="robots"]')?.remove()
+      setMeta('name', 'robots', 'index, follow')
       setCanonical(canonical)
     }
   }, [title, description, path, pathname, image, noindex])

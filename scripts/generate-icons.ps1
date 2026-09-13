@@ -1,8 +1,19 @@
-# Generates PNG icons for Apple touch + web manifest, matching the favicon.svg
-# design (dark rounded square, green AF monogram, green border).
+# DEPRECATED — DO NOT RUN.
 #
-# Usage: powershell -ExecutionPolicy Bypass -File scripts/generate-icons.ps1
-# Output: public/apple-touch-icon.png (180), public/icon-192.png, public/icon-512.png
+# This script regenerates the OLD placeholder icons (green "AF" monogram on a
+# dark rounded square). The site's canonical icons are now hand-designed
+# assets committed directly to public/:
+#   public/apple-touch-icon.png (180x180)
+#   public/icon-192.png         (192x192)
+#   public/icon-512.png         (512x512)
+# which match the geometric logo embedded in public/favicon.svg and rendered
+# by src/components/ui/BrandLogo.tsx. Running this script would overwrite the
+# approved assets with the outdated design. Kept only for history.
+
+if ($true) {
+  Write-Error "generate-icons.ps1 is superseded by the hand-designed assets in public/ — refusing to overwrite them. See the header of this script."
+  exit 1
+}
 
 Add-Type -AssemblyName System.Drawing
 

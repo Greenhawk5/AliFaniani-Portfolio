@@ -106,6 +106,21 @@ function LoginForm({ onSuccess }: { onSuccess: () => void }) {
         </Link>
       </div>
       <form onSubmit={submit} className="relative w-full max-w-sm rounded-2xl border border-edge bg-panel/60 p-7">
+        {/* Hidden username field: password-only login, but browsers/password
+            managers expect a username sibling for `autocomplete="current-password"`
+            to resolve (console: "Password forms should have (optionally hidden)
+            username fields"). Never rendered or submitted — the login API is
+            single-owner password auth and takes no username. */}
+        <input
+          type="text"
+          name="username"
+          autoComplete="username"
+          defaultValue="admin"
+          hidden
+          readOnly
+          tabIndex={-1}
+          aria-hidden="true"
+        />
         <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-accent">Restricted</p>
         <h1 className="mt-2 text-lg font-semibold text-frost">Admin sign-in</h1>
 
