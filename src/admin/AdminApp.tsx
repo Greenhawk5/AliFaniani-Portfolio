@@ -18,6 +18,7 @@ import { Spinner } from '@/components/ui/Spinner'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { SiteVersion } from './SiteVersion'
+import { MatrixDepthBackground } from './MatrixDepthBackground'
 
 type Phase = 'checking' | 'login' | 'ready'
 
@@ -93,15 +94,18 @@ function LoginForm({ onSuccess }: { onSuccess: () => void }) {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center bg-void px-5">
-      <Link
-        to="/"
-        className="mb-4 inline-flex items-center gap-1.5 self-start rounded-lg px-2 py-1 text-xs text-mist transition-colors hover:text-frost"
-      >
-        <ChevronLeftIcon className="h-3.5 w-3.5" aria-hidden />
-        Back to site
-      </Link>
-      <form onSubmit={submit} className="w-full max-w-sm rounded-2xl border border-edge bg-panel/60 p-7">
+    <div className="admin-login relative flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-void px-5">
+      <MatrixDepthBackground />
+      <div className="relative mb-6 w-full max-w-sm">
+        <Link
+          to="/"
+          className="group inline-flex items-center gap-1.5 rounded-full border border-edge bg-panel/60 py-1.5 pr-3.5 pl-2.5 text-xs text-mist transition-colors hover:border-edge-2 hover:text-frost"
+        >
+          <ChevronLeftIcon className="h-3.5 w-3.5 transition-transform duration-200 group-hover:-translate-x-0.5" aria-hidden />
+          Back to site
+        </Link>
+      </div>
+      <form onSubmit={submit} className="relative w-full max-w-sm rounded-2xl border border-edge bg-panel/60 p-7">
         <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-accent">Restricted</p>
         <h1 className="mt-2 text-lg font-semibold text-frost">Admin sign-in</h1>
 

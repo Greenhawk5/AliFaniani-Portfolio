@@ -127,6 +127,12 @@ body {
   }
 }
 
+/* Admin login keeps the widget centered at every width; the >=768px
+   flex-start above is for the contact form. */
+.admin-login .turnstile-container {
+  justify-content: center;
+}
+
 .card-hover {
   transition:
     transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),

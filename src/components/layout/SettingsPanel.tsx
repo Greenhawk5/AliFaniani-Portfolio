@@ -5,7 +5,7 @@ import { useTimeStore } from '@/stores/timeStore'
 import { useUiStore } from '@/stores/uiStore'
 import { useClockText } from '@/hooks/useClockText'
 import { Link } from 'react-router-dom'
-import { ShieldIcon } from '@/components/ui/icons'
+import { ShieldIcon, ResetIcon } from '@/components/ui/icons'
 import { cn } from '@/lib/cn'
 import { CloseIcon, ClockIcon } from '@/components/ui/icons'
 
@@ -218,6 +218,13 @@ export function SettingsPanel() {
             </div>
 
             <footer className="space-y-2 border-t border-edge px-5 py-4">
+              <button
+                onClick={reset}
+                className="flex w-full items-center justify-center gap-2 rounded-lg border border-edge py-2 text-xs text-mist transition-colors hover:border-edge-2 hover:text-frost cursor-pointer"
+              >
+                <ResetIcon className="h-3.5 w-3.5" aria-hidden />
+                Reset to defaults
+              </button>
               <Link
                 to="/admin"
                 className="flex w-full items-center justify-center gap-2 rounded-lg border border-edge py-2 text-xs text-mist transition-colors hover:border-edge-2 hover:text-frost cursor-pointer focus-visible:text-frost"
@@ -225,12 +232,6 @@ export function SettingsPanel() {
                 <ShieldIcon className="h-3.5 w-3.5" aria-hidden />
                 Admin Console
               </Link>
-              <button
-                onClick={reset}
-                className="w-full rounded-lg border border-edge py-2 text-xs text-mist transition-colors hover:border-edge-2 hover:text-frost cursor-pointer"
-              >
-                Reset to defaults
-              </button>
             </footer>
           </motion.aside>
         </>

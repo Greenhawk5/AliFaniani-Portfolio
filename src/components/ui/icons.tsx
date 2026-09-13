@@ -153,6 +153,24 @@ export function ShieldIcon({ className }: IconProps) {
   )
 }
 
+export function ResetIcon({ className }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M3 12a9 9 0 1 0 2.6-6.4" />
+      <path d="M3 4v5h5" />
+    </svg>
+  )
+}
+
 export function ExternalLinkIcon({ className }: IconProps) {
   return (
     <svg
