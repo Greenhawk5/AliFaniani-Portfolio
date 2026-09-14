@@ -14,6 +14,7 @@ export type AuthEvent =
   | 'session_rejected'
   | 'content_created'
   | 'content_updated'
+  | 'content_draft_discarded'
   | 'content_archived'
   | 'content_deleted'
   | 'content_error'
@@ -27,16 +28,32 @@ export type AuthEvent =
 export async function logAuthEvent(
   db: D1Database,
   event: AuthEvent,
-  meta: { ip: string; ok: boolean; note?: string }
+  meta: { ip: string; ok: boolean; note?: string; country?: string | null }
 ): Promise<void> {
   try {
     await db
-      .prepare(`INSERT INTO auth_log (ts, ip, ok, note) VALUES (?, ?, ?, ?)`)
-      .bind(new Date().toISOString(), meta.ip, meta.ok ? 1 : 0, noteFor(event, meta.note))
+      .prepare(`INSERT INTO auth_log (ts, ip, country, ok, note) VALUES (?, ?, ?, ?, ?)`)
+      .bind(
+        new Date().toISOString(),
+        meta.ip,
+        meta.country ?? null,
+        meta.ok ? 1 : 0,
+        noteFor(event, meta.note)
+      )
       .run()
   } catch {
     // best-effort
   }
+}
+
+/** Authoritative request geo from the Cloudflare edge (CF-IPCountry header).
+ * Uppercase 2-letter code, or null when absent/untrusted — the frontend
+ * must never guess a country from an IP. */
+export function requestCountry(request: Request): string | null {
+  const raw = request.headers.get('CF-IPCountry')
+  if (!raw) return null
+  const code = raw.trim().toUpperCase()
+  return /^[A-Z]{2}$/.test(code) ? code : null
 }
 
 function noteFor(event: AuthEvent, extra?: string): string {

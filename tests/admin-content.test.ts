@@ -25,6 +25,7 @@ import {
   onRequestPost as archiveHandler,
   onRequestDelete as deleteHandler,
 } from '../functions/api/admin/content/[kind]/[key]'
+import { onRequestPost as postItemHandler } from '../functions/api/admin/content/[kind]/[key]'
 import { onRequestGet as sessionHandler } from '../functions/api/admin/session'
 import { sha256Hex } from '../functions/lib/crypto'
 import { resetBurstLimiterForTests } from '../functions/lib/rate-limit'
@@ -292,6 +293,138 @@ describe('PUT /api/admin/content/:kind/:key (draft-overlay semantics)', () => {
     const list = await listHandler(makeContext(getRequest('/api/admin/content', cookies), env))
     const items = ((await list.json()) as { items: { key: string; state: string }[] }).items
     expect(items.find((i) => i.key === 'ghost')?.state).toBe('draft')
+  })
+
+  it('handles percent-encoded keys (spaces, hyphens, underscores)', async () => {
+    const { cookies, csrf } = await loginContext()
+    // Seed a link whose key contains a space, exactly like "Hugging Face".
+    db.tables.content ??= []
+    db.tables.content.push({
+      id: 'link:Hugging Face',
+      kind: 'link',
+      key: 'Hugging Face',
+      data: JSON.stringify({ label: 'Hugging Face', href: 'https://huggingface.co/x' }),
+      sort_order: 3,
+      state: 'published',
+      version: 1,
+      created_at: '2026-01-01T00:00:00.000Z',
+      updated_at: '2026-01-01T00:00:00.000Z',
+      published_at: '2026-01-01T00:00:00.000Z',
+      draft_data: null,
+      draft_updated_at: null,
+      draft_sort_order: null,
+    })
+    const post = (body: string) =>
+      postItemHandler(
+        makeContext(
+          // miniflare passes the RAW encoded segment; production decodes it.
+          // Both shapes must resolve to the same row.
+          { request: new Request('https://x/api/admin/content/link/Hugging%20Face', { method: 'POST', headers: { 'Content-Type': 'application/json', Cookie: cookies, 'X-CSRF-Token': csrf }, body }), env, params: { kind: 'link', key: 'Hugging%20Face' } },
+          env
+        )
+      )
+    // Archive path with an encoded key must find the row (no 404).
+    const archived = await post('')
+    expect(archived.status).toBe(200)
+    // Restore to published for the discard assertion below.
+    db.tables.content![0].state = 'published'
+    // Encoded discard path resolves the same row.
+    const discarded = await post(JSON.stringify({ action: 'discard' }))
+    expect(discarded.status).toBe(200)
+  })
+
+  it('archive POST with a non-empty unrecognized body is rejected (no accidental archive)', async () => {
+    const { cookies, csrf } = await seedPublishedProject()
+    const response = await postItemHandler(
+      makeContext(
+        { request: new Request('https://x/api/admin/content/project/live-proj', { method: 'POST', headers: { 'Content-Type': 'application/json', Cookie: cookies, 'X-CSRF-Token': csrf }, body: JSON.stringify({ action: 'nuke' }) }), env, params: { kind: 'project', key: 'live-proj' } },
+        env
+      )
+    )
+    expect(response.status).toBe(400)
+    expect(db.tables.content![0].state).toBe('published')
+  })
+})
+
+describe('POST /api/admin/content/:kind/:key discard (draft overlay removal)', () => {
+  async function seedPublishedWithOverlay() {
+    db.tables.content ??= []
+    db.tables.content.push({
+      id: 'project:live-proj',
+      kind: 'project',
+      key: 'live-proj',
+      data: JSON.stringify({ ...PROJECT, slug: 'live-proj' }),
+      sort_order: 30,
+      state: 'published',
+      version: 1,
+      created_at: '2026-01-01T00:00:00.000Z',
+      updated_at: '2026-01-01T00:00:00.000Z',
+      published_at: '2026-01-01T00:00:00.000Z',
+      draft_data: JSON.stringify({ ...PROJECT, slug: 'live-proj', title: 'Unpublished edit' }),
+      draft_updated_at: '2026-02-01T00:00:00.000Z',
+      draft_sort_order: 30,
+    })
+    return await loginContext()
+  }
+
+  function discardRequest(cookies: string, csrf: string, key = 'live-proj') {
+    return makeContext(
+      { request: new Request(`https://x/api/admin/content/project/${key}`, { method: 'POST', headers: { 'Content-Type': 'application/json', Cookie: cookies, 'X-CSRF-Token': csrf }, body: JSON.stringify({ action: 'discard' }) }), env, params: { kind: 'project', key } },
+      env
+    )
+  }
+
+  it('discard clears the overlay; live data identical and untouched', async () => {
+    const { cookies, csrf } = await seedPublishedWithOverlay()
+    const before = JSON.parse(db.tables.content![0].data as string)
+    const response = await postItemHandler(discardRequest(cookies, csrf))
+    expect(response.status).toBe(200)
+    const body = (await response.json()) as { content: { hasDraft: boolean } }
+    expect(body.content.hasDraft).toBe(false)
+    const row = db.tables.content![0]
+    expect(row.draft_data).toBeNull()
+    expect(JSON.parse(row.data as string)).toEqual(before) // live untouched
+    // Audit trail records the discard.
+    expect(db.tables.auth_log!.some((r) => String(r.note).startsWith('content_draft_discarded'))).toBe(true)
+  })
+
+  it('discard on a draft-only row is a safe no-op', async () => {
+    const { cookies, csrf } = await loginContext()
+    db.tables.content ??= []
+    db.tables.content.push({
+      id: 'project:draft-only',
+      kind: 'project',
+      key: 'draft-only',
+      data: JSON.stringify({ ...PROJECT, slug: 'draft-only' }),
+      sort_order: 31,
+      state: 'draft',
+      version: 1,
+      created_at: '2026-01-01T00:00:00.000Z',
+      updated_at: '2026-01-01T00:00:00.000Z',
+      published_at: null,
+      draft_data: null,
+      draft_updated_at: null,
+      draft_sort_order: null,
+    })
+    const response = await postItemHandler(discardRequest(cookies, csrf, 'draft-only'))
+    expect(response.status).toBe(200)
+    expect(db.tables.content!.find((r) => r.key === 'draft-only')).toBeTruthy()
+  })
+
+  it('discard on a missing record → 404', async () => {
+    const { cookies, csrf } = await loginContext()
+    const response = await postItemHandler(discardRequest(cookies, csrf, 'ghost'))
+    expect(response.status).toBe(404)
+  })
+
+  it('discard requires auth + CSRF like every mutation', async () => {
+    const noAuth = await postItemHandler(
+      makeContext(
+        { request: new Request('https://x/api/admin/content/project/live-proj', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'discard' }) }), env, params: { kind: 'project', key: 'live-proj' } },
+        env
+      )
+    )
+    expect(noAuth.status).toBe(401)
   })
 })
 

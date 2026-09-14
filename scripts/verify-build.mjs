@@ -68,6 +68,11 @@ const forbidden = [
   { needle: 'GITHUB_SYNC_TOKEN', label: 'GITHUB_SYNC_TOKEN secret name' },
   { needle: 'api.cloudflare.com/client/v4', label: 'Cloudflare API endpoint (server-only)' },
   { needle: 'af_admin', label: 'admin session cookie marker' },
+  // Local-QA only: the dev Turnstile fallback must never reach a production
+  // bundle. VITE_ADMIN_TURNSTILE_DEV_TEST is never set in the Cloudflare
+  // Pages environment, so the branch constant-folds away in prod builds.
+  { needle: 'dev-local-turnstile-pass', label: 'dev Turnstile QA marker' },
+  { needle: 'VITE_ADMIN_TURNSTILE_DEV_TEST', label: 'dev Turnstile QA flag name' },
 ]
 // Zod runtime markers (distinctive strings from the zod bundle)
 const zodMarkers = ['ZodError', 'invalid_type', 'ZodFirstPartyTypeKind', 'get error message']

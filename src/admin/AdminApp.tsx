@@ -1,11 +1,12 @@
 /**
- * /admin application root (Phase 3 foundation).
+ * /admin application root — the Portfolio Control Center.
  *
  * Isolation: this module tree is only reachable through the lazy /admin
  * route — public chunks never include it (verified by scripts/verify-build).
  *
- * Phase 3 scope: session gate + password/Turnstile login + logout. CMS CRUD
- * surfaces arrive in Phase 4; the placeholder panel only proves auth state.
+ * The session gate, password/Turnstile login, and logout flow are preserved
+ * exactly (Phase 3 security behavior). The authenticated surface is now the
+ * full Control Center: hash-routed views over the shared AdminDataProvider.
  */
 
 import { useCallback, useEffect, useState } from 'react'
@@ -13,18 +14,24 @@ import { fetchSessionState, login, logout, type SessionState } from './authApi'
 import { useTurnstile } from './useTurnstile'
 import { Link } from 'react-router-dom'
 import { ChevronLeftIcon } from '@/components/ui/icons'
-import { CmsView } from './CmsView'
 import { Spinner } from '@/components/ui/Spinner'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { SiteVersion } from './SiteVersion'
 import { MatrixDepthBackground } from './MatrixDepthBackground'
+import { AdminDataProvider } from './AdminDataProvider'
+import { AdminShell } from './AdminShell'
+import { AdminRouterView } from './AdminRouterView'
+import { ToastHost } from './ui/primitives'
+import { useAdminRoute } from './routes'
 
 type Phase = 'checking' | 'login' | 'ready'
 
 export default function AdminApp() {
   const [phase, setPhase] = useState<Phase>('checking')
   const [session, setSession] = useState<SessionState | null>(null)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const route = useAdminRoute()
 
   const checkSession = useCallback(async () => {
     const state = await fetchSessionState()
@@ -40,6 +47,12 @@ export default function AdminApp() {
     void checkSession()
   }, [checkSession])
 
+  const handleLogout = useCallback(async () => {
+    await logout()
+    setSession(null)
+    setPhase('login')
+  }, [])
+
   if (phase === 'checking') {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-void">
@@ -53,21 +66,19 @@ export default function AdminApp() {
   }
 
   return (
-    <div className="min-h-dvh bg-void px-5 py-8 text-frost">
-      <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
-        <header className="flex items-center justify-between border-b border-edge pb-5">
-          <div>
-            <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-accent">Admin</p>
-            <h1 className="mt-1 text-xl font-semibold">Content console</h1>
-          </div>
-          <Button variant="outline" size="sm" onClick={() => void logout().then(() => void checkSession())}>
-            Log out
-          </Button>
-        </header>
-        <CmsView />
-        <SiteVersion />
-      </div>
-    </div>
+    <AdminDataProvider onAuthLost={() => void checkSession()}>
+      <AdminShell
+        view={route.view}
+        onNavigate={(view) => route.navigate(view)}
+        onLogout={() => void handleLogout()}
+        sessionExpiresAt={session.expiresAt}
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+      >
+        <AdminRouterView view={route.view} param={route.param} navigate={route.navigate} />
+      </AdminShell>
+      <ToastHost />
+    </AdminDataProvider>
   )
 }
 
@@ -75,7 +86,7 @@ function LoginForm({ onSuccess }: { onSuccess: () => void }) {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
-  const { containerRef, token, reset } = useTurnstile('admin-login')
+  const { containerRef, token, reset, approveDevTest, showDevFallback, widgetConfigured } = useTurnstile('admin-login')
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -121,8 +132,15 @@ function LoginForm({ onSuccess }: { onSuccess: () => void }) {
           tabIndex={-1}
           aria-hidden="true"
         />
-        <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-accent">Restricted</p>
-        <h1 className="mt-2 text-lg font-semibold text-frost">Admin sign-in</h1>
+        <div className="flex items-center gap-3">
+          <span className="h-9 w-9 shrink-0">
+            <img src="/favicon.svg" alt="" draggable={false} className="h-full w-full object-contain" />
+          </span>
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-accent">Restricted</p>
+            <h1 className="mt-0.5 text-lg font-semibold text-frost">Admin sign-in</h1>
+          </div>
+        </div>
 
         <div className="mt-6 space-y-4">
           <Input
@@ -134,6 +152,22 @@ function LoginForm({ onSuccess }: { onSuccess: () => void }) {
             required
           />
           <div ref={containerRef} className="turnstile-container" />
+          {showDevFallback && (
+            <div className="space-y-1.5 rounded-lg border border-amber/40 bg-amber/8 px-3 py-2.5">
+              <p className="text-xs leading-relaxed text-amber">
+                {widgetConfigured
+                  ? 'Turnstile widget is not responding (local browser).'
+                  : 'This local build has no Turnstile site key.'}{' '}
+                Local QA build — simulate a passed challenge. The login API still verifies the token
+                server-side.
+              </p>
+              {approveDevTest && (
+                <Button type="button" variant="outline" size="sm" onClick={approveDevTest}>
+                  Simulate passed Turnstile (local QA)
+                </Button>
+              )}
+            </div>
+          )}
           {error && <p className="text-sm text-danger">{error}</p>}
           <Button type="submit" size="md" className="w-full justify-center" disabled={!token || !password || submitting}>
             {submitting ? <Spinner className="h-4 w-4" /> : 'Sign in'}

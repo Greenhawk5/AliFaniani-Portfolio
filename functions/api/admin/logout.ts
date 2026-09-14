@@ -9,17 +9,18 @@ import type { AdminEnv } from '../../lib/auth-env'
 import { jsonResponse, unauthorizedResponse, clientIp } from '../../lib/http'
 import { requireMutationAuth } from '../../lib/session-auth'
 import { deleteSessionByToken, clearSessionCookie, clearCsrfCookie } from '../../lib/sessions'
-import { logAuthEvent } from '../../lib/auth-log'
+import { logAuthEvent, requestCountry } from '../../lib/auth-log'
 
 type Env = AdminEnv
 
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   const ip = clientIp(request)
+  const country = requestCountry(request)
   const context = await requireMutationAuth(request, env.DB)
   if (!context) return unauthorizedResponse()
 
   await deleteSessionByToken(env.DB, context.sessionToken)
-  await logAuthEvent(env.DB, 'logout', { ip, ok: true })
+  await logAuthEvent(env.DB, 'logout', { ip, country, ok: true })
 
   const response = jsonResponse({ ok: true })
   response.headers.append('Set-Cookie', clearSessionCookie)

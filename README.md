@@ -95,7 +95,9 @@ This repository contains my personal developer portfolio — a production-focuse
 
 ## ✦ CMS (v2.0.0)
 
-A private, single-owner CMS is built into the site at `/admin`. It is deliberately unlisted: the only intentional entry point is a subtle key icon inside the site's Settings panel, plus the direct URL. It does not appear in navigation, the footer, the sitemap, robots.txt or any public metadata, and it is served with `X-Robots-Tag: noindex` and `Cache-Control: no-store`.
+A private, single-owner CMS — the Portfolio Control Center — is built into the site at `/admin`. It is deliberately unlisted: the only intentional entry point is a subtle key icon inside the site's Settings panel, plus the direct URL. It does not appear in navigation, the footer, the sitemap, robots.txt or any public metadata, and it is served with `X-Robots-Tag: noindex` and `Cache-Control: no-store`.
+
+The console is hash-routed (`#/overview`, `#/projects`, `#/profile`, `#/links`, `#/media`, `#/publishing`, `#/seo`, `#/activity`, `#/integrations`, `#/settings`) over a shared data provider that loads content, deploy state and the activity audit log in parallel. Overview surfaces content counts, unpublished-change attention items and deploy status from live state; Publishing offers a draft queue with per-record discard and honest `pending_sync` reporting; SEO Center checks the real `/robots.txt`, `/sitemap.xml` and `/_content_meta.json` artifacts; Activity renders the audit log with masked IPs and edge-country attribution. Unconfigured integrations render "Not connected" — the console never invents connectivity or analytics.
 
 ### Content model
 
@@ -123,7 +125,7 @@ Edit in /admin → validated draft in D1
 
 The public site is **fully static** — it never queries D1 at runtime. Deployments are asynchronous: the CMS reports a queued deployment honestly and never claims the site has updated until a build has actually completed. A failed build leaves the previous deployment live.
 
-### Repository snapshot synchronization (v2.0.1)
+### Repository snapshot synchronization
 
 The repository mirrors the published D1 state in two generated files — `src/data/generated/content.json` and `public/sitemap.xml`. After a successful publish, the endpoint dispatches a `repository_dispatch` event (secret: `GITHUB_SYNC_TOKEN`, a fine-grained personal access token limited to this repository with Contents: Read/Write). A GitHub Actions workflow then re-exports Production D1 with the same strict exporter the production build uses, regenerates both files, commits them only when they differ, and — only after the snapshot state is on main — triggers the Cloudflare Pages Deploy Hook (secret: `CLOUDFLARE_DEPLOY_HOOK_URL`). Publish itself never calls the deploy hook, so a Pages build can never start from a stale generated snapshot:
 

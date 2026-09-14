@@ -14,7 +14,7 @@ import type { AdminEnv } from '../../lib/auth-env'
 import { jsonResponse, unauthorizedResponse, badRequestResponse, clientIp } from '../../lib/http'
 import { requireSession, requireMutationAuth } from '../../lib/session-auth'
 import { listContent, upsertContent, ValidationError, ConflictError } from '../../lib/content-store'
-import { logAuthEvent } from '../../lib/auth-log'
+import { logAuthEvent, requestCountry } from '../../lib/auth-log'
 
 type Env = AdminEnv
 
@@ -52,6 +52,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   const context = await requireMutationAuth(request, env.DB)
   if (!context) return unauthorizedResponse()
   const ip = clientIp(request)
+  const country = requestCountry(request)
 
   let body: unknown
   try {
@@ -75,7 +76,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
       state: 'draft',
       sortOrder: parsed.data.sortOrder,
     })
-    await logAuthEvent(env.DB, 'content_created', { ip, ok: true, note: `${record.kind}:${record.key}` })
+    await logAuthEvent(env.DB, 'content_created', { ip, country, ok: true, note: `${record.kind}:${record.key}` })
     return jsonResponse({ content: { kind: record.kind, key: record.key, state: record.state } }, 201)
   } catch (error) {
     if (error instanceof ValidationError) {

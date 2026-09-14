@@ -2,7 +2,7 @@
  * CMS-side deployment state — deliberately minimal.
  *
  * Cloudflare Pages deployment state is external; the only fully reliable
- * states the CMS can know are its own. Since v2.0.1's orchestration fix,
+ * states the CMS can know are its own. Since the v2.0.0 orchestration fix,
  * the deploy hook is triggered BY the GitHub snapshot-sync workflow (after
  * the generated snapshot is committed to main), not by publish directly:
  *

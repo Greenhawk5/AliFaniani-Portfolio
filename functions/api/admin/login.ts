@@ -23,7 +23,7 @@ import { verifyTurnstileToken } from '../../lib/turnstile'
 import { timingSafeEqual } from '../../lib/crypto'
 import { createSession, sessionCookie, csrfCookie, purgeExpiredSessions } from '../../lib/sessions'
 import { isBurstLimited, burstRetryAfterSeconds, checkKvLockout, recordKvLoginFailure } from '../../lib/rate-limit'
-import { logAuthEvent } from '../../lib/auth-log'
+import { logAuthEvent, requestCountry } from '../../lib/auth-log'
 
 const loginSchema = z.object({
   password: z.string().min(1).max(256),
@@ -34,6 +34,7 @@ type Env = AdminEnv
 
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   const ip = clientIp(request)
+  const country = requestCountry(request)
   const ua = request.headers.get('User-Agent')?.slice(0, 200) ?? null
 
   // 1 — body shape (generic rejection; malformed bodies are logged)
@@ -41,19 +42,19 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   try {
     body = await request.json()
   } catch {
-    await logAuthEvent(env.DB, 'login_malformed', { ip, ok: false, note: 'invalid JSON' })
+    await logAuthEvent(env.DB, 'login_malformed', { ip, country, ok: false, note: 'invalid JSON' })
     return badRequestResponse('Invalid request body.')
   }
   const parsed = loginSchema.safeParse(body)
   if (!parsed.success) {
-    await logAuthEvent(env.DB, 'login_malformed', { ip, ok: false, note: 'schema mismatch' })
+    await logAuthEvent(env.DB, 'login_malformed', { ip, country, ok: false, note: 'schema mismatch' })
     return badRequestResponse('Invalid request body.')
   }
   const { password, turnstileToken } = parsed.data
 
   // 2 — Layer A burst cap
   if (isBurstLimited(ip)) {
-    await logAuthEvent(env.DB, 'login_rate_limited', { ip, ok: false, note: 'burst' })
+    await logAuthEvent(env.DB, 'login_rate_limited', { ip, country, ok: false, note: 'burst' })
     return rateLimitedResponse(burstRetryAfterSeconds())
   }
 
@@ -61,19 +62,19 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   // 3 — Layer B lockout (fail-open read)
   const lockedFor = await checkKvLockout(env.RATE_LIMIT, ip)
   if (lockedFor > 0) {
-    await logAuthEvent(env.DB, 'login_rate_limited', { ip, ok: false, note: 'kv lockout' })
+    await logAuthEvent(env.DB, 'login_rate_limited', { ip, country, ok: false, note: 'kv lockout' })
     return rateLimitedResponse(lockedFor)
   }
 
   // 4 — Turnstile: always required, fail closed
   if (!env.TURNSTILE_SECRET) {
     // Misconfiguration is never distinguishable from a wrong password.
-    await logAuthEvent(env.DB, 'login_turnstile_failed', { ip, ok: false, note: 'secret missing' })
+    await logAuthEvent(env.DB, 'login_turnstile_failed', { ip, country, ok: false, note: 'secret missing' })
     return unauthorizedResponse()
   }
   const turnstileOk = await verifyTurnstileToken(turnstileToken, env.TURNSTILE_SECRET, ip, 'admin-login')
   if (!turnstileOk) {
-    await logAuthEvent(env.DB, 'login_turnstile_failed', { ip, ok: false })
+    await logAuthEvent(env.DB, 'login_turnstile_failed', { ip, country, ok: false })
     return unauthorizedResponse()
   }
 
@@ -86,14 +87,14 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   if (!passwordOk) {
     // 6 — only Turnstile-passed failures count toward the KV lockout
     await recordKvLoginFailure(env.RATE_LIMIT, ip)
-    await logAuthEvent(env.DB, 'login_password_failed', { ip, ok: false })
+    await logAuthEvent(env.DB, 'login_password_failed', { ip, country, ok: false })
     return unauthorizedResponse()
   }
 
   // 7 — success: session + cookies + opportunistic cleanup
   const session = await createSession(env.DB, { ip, ua })
   await purgeExpiredSessions(env.DB)
-  await logAuthEvent(env.DB, 'login_success', { ip, ok: true })
+  await logAuthEvent(env.DB, 'login_success', { ip, country, ok: true })
 
   const response = jsonResponse(
     { ok: true, csrfToken: session.csrfToken, expiresAt: session.expiresAt },

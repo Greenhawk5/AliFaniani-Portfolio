@@ -1,5 +1,5 @@
 /**
- * GitHub repository synchronization dispatch (v2.0.1).
+ * GitHub repository synchronization dispatch (v2.0.0).
  *
  * After a successful publish + deploy-hook trigger, the publish endpoint
  * dispatches a `repository_dispatch` event so a GitHub Actions workflow can

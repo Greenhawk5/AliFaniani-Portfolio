@@ -5,41 +5,78 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.0.1] — 2026-09-12
+## [2.0.0] — 2026-09-14
 
-Maintenance release: automatic repository synchronization of generated CMS
-snapshot files after a publish.
+Stable release: the private D1-backed CMS and the Portfolio Control Center
+admin console, with atomic publishing, deterministic generated artifacts,
+and the ordered snapshot-sync deployment chain.
 
-### Added
+### Control Center
 
-- **GitHub snapshot sync** — after a successful publish, the endpoint
-  dispatches a `repository_dispatch` event (`GITHUB_SYNC_TOKEN` secret,
-  failure reported honestly and non-fatal). A dedicated GitHub Actions
-  workflow re-exports the published Production D1 snapshot in strict mode,
-  regenerates `src/data/generated/content.json` and `public/sitemap.xml`,
-  and commits them only when they actually differ. Triggered solely by
-  dispatch (never on push) — no GitHub ↔ Cloudflare build loop is possible.
-  Sync commits carry `[CI Skip]` so Cloudflare Pages skips rebuilding them;
-  regular commits deploy normally and carry the sync implementation with
-  them. Synchronization is secondary to production: failures never block a
-  publish or affect the live site, and the workflow can be re-run manually.
-- **Ordered deployment** — the Cloudflare Deploy Hook is triggered by the
-  snapshot-sync workflow (secret `CLOUDFLARE_DEPLOY_HOOK_URL`) only AFTER
-  the regenerated snapshot is on main — never by publish directly. A Pages
-  build can therefore never start from a stale generated snapshot. Publish
-  reports `pending_sync` (D1 published, sync dispatched) honestly; if the
-  sync dispatch fails, deployment can be retried by re-running the
-  workflow.
-- **Deterministic generators** — the snapshot `exportedAt` derives from the
-  exported rows (`MAX(updated_at)`) and the sitemap `lastmod` from the
-  snapshot, so re-exporting unchanged D1 state is byte-identical and the
-  sync creates no empty commits.
+- **Portfolio Control Center** — hash-routed admin console (`#/overview`,
+  `#/projects`, `#/profile`, `#/links`, `#/media`, `#/publishing`, `#/seo`,
+  `#/activity`, `#/integrations`, `#/settings`) over a shared data provider
+  (content + deploy state + activity loaded in parallel, session loss returns
+  to login). Grouped sidebar with collapsible rail and mobile drawer.
+- **Overview dashboard** — content counts, unpublished-change attention items,
+  deploy status line, recent activity and a 14-day event pulse, all derived
+  from live D1/KV/audit-log state. No fabricated analytics.
+- **Content management** — project/profile/link editors with draft overlays,
+  optimistic concurrency, archive/delete confirmations, and a discard path
+  that returns records to their last published state without touching live
+  content. Percent-encoded keys (e.g. "Hugging Face") resolve correctly.
+- **Publishing view** — draft queue with per-record discard, publish
+  confirmation, honest `pending_sync` deployment reporting with deploy-state
+  polling, and plain-English recovery pointers.
+- **SEO Center** — deterministic checks against the real `/robots.txt`,
+  `/sitemap.xml` (lastmod vs content freshness) and `/_content_meta.json`
+  artifacts; no invented scores.
+- **Activity audit log** — paginated, filterable timeline over the `auth_log`
+  table with masked IPs by default, explicit per-session full-IP reveal, and
+  authoritative edge country (`CF-IPCountry`, `NULL` for older rows).
+- **Integrations** — observed-truth service statuses; unconfigured services
+  render "Not connected" instead of invented connectivity.
+- **Media library** — browsable view of the build-generated media manifest
+  (read-only; new assets arrive via the git → build pipeline).
+
+### Pipeline & reliability
+
+- **Ordered deployment** — publish promotes D1, then dispatches a
+  `repository_dispatch` event (`GITHUB_SYNC_TOKEN`); the snapshot-sync
+  workflow re-exports Production D1 in strict mode, regenerates
+  `src/data/generated/content.json` and `public/sitemap.xml` only when they
+  differ, commits with `[CI Skip]`, and only then triggers the Cloudflare
+  Deploy Hook. Publish itself never calls the deploy hook, so a Pages build
+  can never start from a stale snapshot. Failures are reported honestly and
+  never block a publish or affect the live site.
+- **Deterministic generators** — snapshot `exportedAt` derives from row
+  timestamps and sitemap `lastmod` from the snapshot, so unchanged D1 state
+  reproduces byte-identical files and the sync creates no empty commits.
+- **MorseMate restoration** — the E2E reset path seeds from the committed
+  snapshot via the canonical migrate script (the frozen `seeds/*.sql` export
+  predates MorseMate and must never be used as a reset source).
+- **Hugging Face routing fix** — admin API decodes percent-encoded route
+  params once, guarded, so link keys containing spaces resolve in every
+  Pages runtime.
+
+### Security
+
+- Login audit events carry the authoritative edge country code.
+- Dev-only Turnstile fallback marker is asserted absent from production
+  bundles by `verify-build`.
 
 ### Changed
 
-- Version is now sourced from `package.json` (2.0.1) at build time.
+- Version is sourced from `package.json` (2.0.0) at build time.
 
-## [2.0.0] — Unreleased
+## [2.0.0-beta] — 2026-09-12 (superseded)
+
+Development milestone on the road to 2.0.0: automatic repository
+synchronization of generated CMS snapshot files after a publish, and
+ordered deployment via the snapshot-sync workflow. Folded into the 2.0.0
+stable release above; retained here as history.
+
+## [2.0.0-draft] — Unreleased during development
 
 Major architecture upgrade: a private, D1-backed CMS with secure
 single-owner authentication and publish-triggered production rebuilds.
@@ -126,19 +163,6 @@ build-time content snapshot — no SSR, no runtime D1 reads, no R2.
 - Content writes are Zod-validated; only published content can reach the
   public snapshot; published records cannot be hard-deleted (archive
   first).
-
-## [1.0.2] — 2026-09-07
-
-### Changed
-
-- Updated the favicon and improved search-result branding.
-
-## [1.0.1] — 2026-08-30
-
-### Changed
-
-- Refined portfolio branding and logo alignment; regenerated OG image
-  and favicon assets; updated the social link board.
 
 ## [1.0.2] — 2026-09-07
 

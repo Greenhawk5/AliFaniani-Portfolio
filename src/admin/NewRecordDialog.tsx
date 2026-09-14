@@ -1,13 +1,14 @@
 /**
- * New-record dialog (Phase 6A): creates a draft project/link with sensible
- * starter payloads (profile sections are a fixed set — not creatable).
- * Server-side Zod validation remains authoritative; failures render inline.
+ * New-record dialog (v2): creates a draft project/link with sensible starter
+ * payloads (profile sections are a fixed set — not creatable). Server-side
+ * Zod validation remains authoritative; failures render inline.
  */
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { createContent, type ContentKind } from './contentApi'
-import { Field, inputClasses, Notice } from './Field'
+import { Field, inputClasses } from './Field'
+import { AdminModal } from './ui/primitives'
 
 // A new project must satisfy the FULL canonical projectSchema even as a
 // draft (server validation is schema-complete by design). Fields the owner
@@ -32,8 +33,16 @@ const STARTER_PROJECT = {
 
 const STARTER_LINK = { label: '', href: '' }
 
-export function NewRecordDialog({ onCreated, onClose }: { onCreated: (kind: ContentKind, key: string) => void; onClose: () => void }) {
-  const [kind, setKind] = useState<ContentKind>('project')
+export function NewRecordDialog({
+  initialKind = 'project',
+  onCreated,
+  onClose,
+}: {
+  initialKind?: ContentKind
+  onCreated: (kind: ContentKind, key: string) => void
+  onClose: () => void
+}) {
+  const [kind, setKind] = useState<ContentKind>(initialKind)
   const [key, setKey] = useState('')
   const [title, setTitle] = useState('')
   const [repository, setRepository] = useState('')
@@ -60,77 +69,82 @@ export function NewRecordDialog({ onCreated, onClose }: { onCreated: (kind: Cont
   }
 
   return (
-    <div className="space-y-4 rounded-2xl border border-edge bg-panel/60 p-5">
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-frost">New content</h3>
-        <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close dialog">
-          ×
-        </Button>
-      </div>
-
-      <div className="flex gap-2" role="radiogroup" aria-label="Content type">
-        {(['project', 'link'] as ContentKind[]).map((option) => (
-          <Button
-            key={option}
-            type="button"
-            size="sm"
-            variant={kind === option ? 'primary' : 'outline'}
-            role="radio"
-            aria-checked={kind === option}
-            onClick={() => setKind(option)}
-          >
-            {option}
-          </Button>
-        ))}
-        <span className="self-center text-xs text-mist/60">profile sections are a fixed set — edit them from the list</span>
-      </div>
-
-      {error && <Notice kind="error">{error}</Notice>}
-      {issues.length > 0 && (
-        <ul className="space-y-1 rounded-lg border border-danger/30 bg-danger/5 px-3 py-2 text-xs text-danger">
-          {issues.map((issue, index) => (
-            <li key={index}>
-              <span className="font-mono">{issue.path || '(root)'}</span>: {issue.message}
-            </li>
+    <AdminModal open onClose={onClose} title="New content">
+      <div className="space-y-4">
+        <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Content type">
+          {(['project', 'link'] as ContentKind[]).map((option) => (
+            <Button
+              key={option}
+              type="button"
+              size="sm"
+              variant={kind === option ? 'primary' : 'outline'}
+              role="radio"
+              aria-checked={kind === option}
+              onClick={() => setKind(option)}
+            >
+              {option}
+            </Button>
           ))}
-        </ul>
-      )}
+          <span className="self-center text-xs text-mist/60">profile sections are a fixed set</span>
+        </div>
 
-      {kind === 'project' ? (
-        <div className="space-y-3">
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="Slug" hint="e.g. my-new-app">
-              <input value={key} onChange={(e) => setKey(e.target.value)} className={`${inputClasses} font-mono text-xs`} spellCheck={false} />
+        {error && (
+          <p role="alert" className="rounded-lg border border-danger/40 bg-danger/8 px-3 py-2 text-sm text-danger">
+            {error}
+          </p>
+        )}
+        {issues.length > 0 && (
+          <ul className="space-y-1 rounded-lg border border-danger/30 bg-danger/6 px-3 py-2 text-xs text-danger">
+            {issues.map((issue, index) => (
+              <li key={index}>
+                <span className="font-mono">{issue.path || '(root)'}</span>: {issue.message}
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {kind === 'project' ? (
+          <div className="space-y-3">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Field label="Slug" hint="e.g. my-new-app">
+                <input value={key} onChange={(e) => setKey(e.target.value)} className={`${inputClasses} font-mono text-xs`} spellCheck={false} />
+              </Field>
+              <Field label="Title">
+                <input value={title} onChange={(e) => setTitle(e.target.value)} className={inputClasses} />
+              </Field>
+            </div>
+            <Field label="Repository URL" hint="required — must be a valid URL">
+              <input value={repository} onChange={(e) => setRepository(e.target.value)} className={inputClasses} placeholder="https://github.com/…" />
             </Field>
-            <Field label="Title">
-              <input value={title} onChange={(e) => setTitle(e.target.value)} className={inputClasses} />
+            <p className="text-xs text-mist/70">
+              Placeholder values are filled in for the remaining fields — complete them in the editor after
+              creation.
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Field label="Label" hint="e.g. Mastodon">
+              <input value={key} onChange={(e) => setKey(e.target.value)} className={inputClasses} />
+            </Field>
+            <Field label="URL" hint="https://… or mailto:">
+              <input value={href} onChange={(e) => setHref(e.target.value)} className={inputClasses} />
             </Field>
           </div>
-          <Field label="Repository URL" hint="required — must be a valid URL">
-            <input value={repository} onChange={(e) => setRepository(e.target.value)} className={inputClasses} placeholder="https://github.com/…" />
-          </Field>
-          <p className="text-xs text-mist/70">
-            Placeholder values are filled in for the remaining fields — complete them in the editor after
-            creation.
-          </p>
-        </div>
-      ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="Label" hint="e.g. Mastodon">
-            <input value={key} onChange={(e) => setKey(e.target.value)} className={inputClasses} />
-          </Field>
-          <Field label="URL" hint="https://… or mailto:">
-            <input value={href} onChange={(e) => setHref(e.target.value)} className={inputClasses} />
-          </Field>
-        </div>
-      )}
+        )}
 
-      <p className="text-xs text-mist/70">
-        Created as a <strong>draft</strong> — invisible to the public site until you publish.
-      </p>
-      <Button size="sm" onClick={() => void submit()} disabled={busy || !key || (kind === 'link' ? !href : !title || !repository)}>
-        {busy ? 'Creating…' : 'Create draft'}
-      </Button>
-    </div>
+        <p className="text-xs text-mist/70">
+          Created as a <strong className="text-amber">draft</strong> — invisible to the public site until you
+          publish.
+        </p>
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" size="sm" onClick={onClose} disabled={busy}>
+            Cancel
+          </Button>
+          <Button size="sm" onClick={() => void submit()} disabled={busy || !key || (kind === 'link' ? !href : !title || !repository)}>
+            {busy ? 'Creating…' : 'Create draft'}
+          </Button>
+        </div>
+      </div>
+    </AdminModal>
   )
 }

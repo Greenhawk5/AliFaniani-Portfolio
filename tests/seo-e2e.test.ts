@@ -16,13 +16,24 @@
 
 import { beforeAll, afterAll, describe, expect, it } from 'vitest'
 import { execSync, spawn } from 'node:child_process'
-import { readFileSync, existsSync, rmSync, writeFileSync, mkdirSync, readdirSync } from 'node:fs'
+import { readFileSync, rmSync, writeFileSync, mkdirSync } from 'node:fs'
 import { resolve } from 'node:path'
 
 const root = process.cwd()
 const BASE = 'http://127.0.0.1:8791'
 const TEST_PORT = 8791
 const SNAPSHOT = resolve(root, 'src/data/generated/content.json')
+
+/**
+ * The canonical committed snapshot, captured ONCE at module load — before
+ * any E2E mutation. fullBuild() regenerates this same file from local D1, so
+ * a reset that reads the file AFTER an archive step would restore the
+ * mutated state (the archived project would vanish for good). Capturing at
+ * import time guarantees the pristine copy: vitest loads this module before
+ * any hook or test body runs, and the committed file is the intended
+ * baseline the suite starts from.
+ */
+const canonicalSnapshot = readFileSync(SNAPSHOT, 'utf8')
 
 let serverProcess: ReturnType<typeof spawn> | null = null
 
@@ -108,10 +119,7 @@ function d1Rows(): TestRecord[] {
   )
   const marker = out.indexOf('"results"')
   if (marker === -1) throw new Error('no results in wrangler output: ' + out.slice(0, 300))
-  // find the enclosing JSON array of statement results
-  const arrayStart = out.lastIndexOf('[', marker)
-  // parse from the outermost bracket before "results"
-  let depth = 0
+  // find the enclosing JSON array of statement results (outermost '[' before "results")
   let start = -1
   for (let i = marker; i >= 0; i--) {
     if (out[i] === '[') {
@@ -119,8 +127,6 @@ function d1Rows(): TestRecord[] {
       break
     }
   }
-  void arrayStart
-  void depth
   // walk forward to the matching close bracket
   let end = -1
   let d = 0
@@ -138,20 +144,67 @@ function d1Rows(): TestRecord[] {
   return (Array.isArray(parsed) ? parsed[0].results : parsed.results) as TestRecord[]
 }
 
-/** Restores the local D1 content table to the canonical 16-row seed
- * (seeds/seed_content_*.sql — the original production seed). Using the seed
- * rather than the current snapshot keeps the reset independent of whatever
- * the E2E tests did to D1/snapshot state. */
+/** Restores the local D1 content table from the canonical migrate script,
+ * which seeds from the CURRENT committed snapshot (4 projects incl.
+ * morsemate, 8 profile sections, 5 links). The old seeds/*.sql files are a
+ * frozen 16-row export predating morsemate — resetting from them silently
+ * deletes real projects (this wiped morsemate from local D1 twice), so they
+ * must never be used as a reset source. Re-running the migrate script is
+ * idempotent (INSERT OR REPLACE) and preserves morsemate + sort order. */
 function resetLocalD1() {
-  const seed = readdirSync(resolve(root, 'seeds')).find((f) => f.startsWith('seed_content_'))
-  if (!seed) throw new Error('no seed file found in seeds/')
-  mkdirSync(resolve(root, '.wrangler'), { recursive: true })
-  const file = resolve(root, '.wrangler', 'e2e-reset.sql')
-  writeFileSync(file, 'DELETE FROM content;\n' + readFileSync(resolve(root, 'seeds', seed), 'utf8'))
-  run(`npx wrangler d1 execute ali-faniani-portfolio-db --local --file "${file}"`)
-  rmSync(file)
+  // Restore the pristine file FIRST: migrate seeds D1 from the snapshot file,
+  // so if an earlier build left it describing mutated D1 state (a project
+  // archived mid-test), seeding from it would propagate the mutation.
+  writeFileSync(SNAPSHOT, canonicalSnapshot)
+  run('node scripts/migrate-content-to-d1.mjs')
   // Regenerate the snapshot from the restored D1 so file and DB agree.
   run('node scripts/export-d1-snapshot.mjs --local')
+}
+
+/** Removes ONLY this suite's own audit rows (e2e-novel-project triplet +
+ * adjacent publish/sync/deploy pairs), so repeated E2E runs don't grow the
+ * working audit log by ~170 synthetic rows each time. Matches the same
+ * classifier the admin cleanup used: e2e/TestLink content notes, plus
+ * publish/sync/deploy rows within 2 minutes of one. Never touches logins,
+ * real content edits, restores, discards, or human-paced events. */
+function pruneE2eAuditRows() {
+  const out = execSync(
+    'npx wrangler d1 execute ali-faniani-portfolio-db --local --json --command "SELECT rowid, ts, note FROM auth_log ORDER BY ts"',
+    { cwd: root, stdio: 'pipe', shell: process.platform === 'win32', encoding: 'utf8' }
+  )
+  const marker = out.indexOf('"results"')
+  if (marker === -1) return
+  const parsed = JSON.parse(out.slice(out.lastIndexOf('[', marker), out.length))
+  const rows = (Array.isArray(parsed) ? parsed[0].results : parsed.results) as {
+    rowid: number
+    ts: string
+    note: string
+  }[]
+  const del = new Set<number>()
+  for (const r of rows) {
+    if (r.note.includes('e2e-novel-project')) del.add(r.rowid)
+    if (
+      r.note === 'content_created — link:TestLink' ||
+      r.note === 'content_archived — link:TestLink' ||
+      r.note === 'content_deleted — link:TestLink'
+    ) {
+      del.add(r.rowid)
+    }
+  }
+  const delTs = [...del].map((id) => rows.find((r) => r.rowid === id)!.ts)
+  for (const r of rows) {
+    if (del.has(r.rowid)) continue
+    if (!r.note.startsWith('publish_') && !r.note.startsWith('sync_') && !r.note.startsWith('deploy_')) continue
+    const t = new Date(r.ts).getTime()
+    if (delTs.some((s) => Math.abs(new Date(s).getTime() - t) < 120000)) del.add(r.rowid)
+  }
+  if (del.size === 0) return
+  const file = resolve(root, '.wrangler', 'e2e-audit-prune.sql')
+  mkdirSync(resolve(root, '.wrangler'), { recursive: true })
+  writeFileSync(file, `DELETE FROM auth_log WHERE rowid IN (${[...del].join(',')});`)
+  run(`npx wrangler d1 execute ali-faniani-portfolio-db --local --file "${file}"`)
+  rmSync(file)
+  console.log(`pruned ${del.size} e2e-generated audit rows (logins/real edits preserved)`)
 }
 
 async function login(): Promise<string> {
@@ -245,132 +298,167 @@ beforeAll(async () => {
 
 afterAll(() => {
   stopServer()
-  // leave local D1 in the committed-snapshot state for other suites
+  // leave local D1 in the committed-snapshot state for other suites, minus
+  // this suite's own synthetic audit rows (see pruneE2eAuditRows).
+  // Generous hook budget: teardown runs a server kill + port sweep, two
+  // child-process reseeds/exports, and an audit prune — each can take tens
+  // of seconds on Windows, far beyond vitest's 10s hook default.
   try { resetLocalD1() } catch { /* best effort */ }
-})
+  try { pruneE2eAuditRows() } catch { /* best effort */ }
+}, 180_000)
 
 describe('Phase 6B — critical E2E lifecycle', () => {
   it('draft edit → old content public → publish → new content public → archive → 404', async () => {
     // 0. deterministic start: reseed from the canonical seed + fresh build
     resetLocalD1()
-    console.log('DEBUG rows after reset:', d1Rows().filter(r => r.kind === 'project').map(r => r.key + ':' + r.state).join(', '))
     await fullBuild()
-    console.log('DEBUG snapshot after build:', JSON.parse(readFileSync(SNAPSHOT, 'utf8')).projects.map(p => p.slug).join(', '))
     const baselineSnapshot = JSON.parse(readFileSync(SNAPSHOT, 'utf8'))
     expect(baselineSnapshot.projects.map((p: { slug: string }) => p.slug).sort()).toEqual(
       expect.arrayContaining(['greenhawk-ai', 'hawkbucks', 'hawkbucks-bot'])
     )
     const originalTitle = baselineSnapshot.projects.find((p: { slug: string }) => p.slug === 'greenhawk-ai').title
 
-    // 1+2. modify the published project as a draft
-    const cookies = await login()
-    const draftPayload = {
-      ...baselineSnapshot.projects.find((p: { slug: string }) => p.slug === 'greenhawk-ai'),
-      title: 'E2E Edited Title',
-      subtitle: 'E2E draft subtitle',
+    // The archive phase (steps 11–16) intentionally mutates greenhawk-ai in
+    // local D1. Whatever happens below — pass or fail — restore the
+    // canonical published state so later tests (and local dev) see the
+    // expected 4-project set. resetLocalD1 is idempotent and also rewrites
+    // the snapshot file, so the on-disk artifact agrees with D1 again.
+    try {
+      // 1+2. modify the published project as a draft
+      const cookies = await login()
+      const draftPayload = {
+        ...baselineSnapshot.projects.find((p: { slug: string }) => p.slug === 'greenhawk-ai'),
+        title: 'E2E Edited Title',
+        subtitle: 'E2E draft subtitle',
+      }
+      const put = await putDraft(cookies, 'project', 'greenhawk-ai', draftPayload)
+      expect(put.status).toBe(200)
+
+      // 3+4+5. rebuild → OLD content still public, draft absent
+      await fullBuild()
+      const prePublic = JSON.parse(readFileSync(SNAPSHOT, 'utf8'))
+      const preProject = prePublic.projects.find((p: { slug: string }) => p.slug === 'greenhawk-ai')
+      expect(preProject.title).toBe(originalTitle) // old content still public
+      const preShell = await get('/projects/greenhawk-ai')
+      expect(preShell.status).toBe(200)
+      expect(preShell.body).not.toContain('E2E Edited Title') // draft absent from route HTML
+      const preSitemap = (await get('/sitemap.xml')).body
+      expect(preSitemap).toContain('/projects/greenhawk-ai')
+      const preMeta = JSON.parse((await get('/_content_meta.json')).body)
+      expect(preMeta.projectSlugs).toContain('greenhawk-ai')
+
+      // 6+7+8. publish → rebuild → NEW content public
+      const publishRes = await publish(cookies)
+      expect(publishRes.status).toBe(200)
+      const publishBody = (await publishRes.json()) as { ok: boolean; published: { projects: number } }
+      expect(publishBody.ok).toBe(true)
+      expect(publishBody.published.projects).toBe(1)
+      await fullBuild()
+      const postPublic = JSON.parse(readFileSync(SNAPSHOT, 'utf8'))
+      const postProject = postPublic.projects.find((p: { slug: string }) => p.slug === 'greenhawk-ai')
+      expect(postProject.title).toBe('E2E Edited Title')
+
+      // 9+10. sitemap + route HTML contain the project with NEW metadata
+      const postSitemap = (await get('/sitemap.xml')).body
+      expect(postSitemap).toContain('/projects/greenhawk-ai')
+      const shell = await get('/projects/greenhawk-ai')
+      expect(shell.status).toBe(200)
+      expect(shell.body).toContain('E2E Edited Title')
+      expect(shell.body).toContain('<link rel="canonical" href="https://alifaniani.ir/projects/greenhawk-ai"')
+      expect(shell.body).toContain('og:title')
+      expect(shell.body).toContain('application/ld+json')
+
+      // 11+12+13. archive → publish → rebuild → absent
+      const archived = await archive(cookies, 'project', 'greenhawk-ai')
+      expect(archived.status).toBe(200)
+      const publish2 = await publish(cookies)
+      expect(publish2.status).toBe(200)
+      await fullBuild()
+      const finalSnapshot = JSON.parse(readFileSync(SNAPSHOT, 'utf8'))
+      expect(finalSnapshot.projects.find((p: { slug: string }) => p.slug === 'greenhawk-ai')).toBeUndefined()
+
+      // 14+15. sitemap + content-meta no longer contain it
+      const finalSitemap = (await get('/sitemap.xml')).body
+      expect(finalSitemap).not.toContain('/projects/greenhawk-ai')
+      const finalMeta = JSON.parse((await get('/_content_meta.json')).body)
+      expect(finalMeta.projectSlugs).not.toContain('greenhawk-ai')
+
+      // 16. request → expected 404 behavior (real 404 + noindex)
+      const gone = await get('/projects/greenhawk-ai')
+      expect(gone.status).toBe(404)
+      expect(gone.headers.get('x-robots-tag')).toBe('noindex')
+    } finally {
+      // Reset touches the D1 file directly — restart the dev server
+      // afterwards so no request ever races a live connection (fullBuild
+      // normally does both; here the snapshot file is already canonical).
+      resetLocalD1()
+      await startServer()
+      await waitForServer()
     }
-    const put = await putDraft(cookies, 'project', 'greenhawk-ai', draftPayload)
-    expect(put.status).toBe(200)
-
-    // 3+4+5. rebuild → OLD content still public, draft absent
-    await fullBuild()
-    const prePublic = JSON.parse(readFileSync(SNAPSHOT, 'utf8'))
-    const preProject = prePublic.projects.find((p: { slug: string }) => p.slug === 'greenhawk-ai')
-    expect(preProject.title).toBe(originalTitle) // old content still public
-    const preShell = await get('/projects/greenhawk-ai')
-    expect(preShell.status).toBe(200)
-    expect(preShell.body).not.toContain('E2E Edited Title') // draft absent from route HTML
-    const preSitemap = (await get('/sitemap.xml')).body
-    expect(preSitemap).toContain('/projects/greenhawk-ai')
-    const preMeta = JSON.parse((await get('/_content_meta.json')).body)
-    expect(preMeta.projectSlugs).toContain('greenhawk-ai')
-
-    // 6+7+8. publish → rebuild → NEW content public
-    const publishRes = await publish(cookies)
-    expect(publishRes.status).toBe(200)
-    const publishBody = (await publishRes.json()) as { ok: boolean; published: { projects: number } }
-    expect(publishBody.ok).toBe(true)
-    expect(publishBody.published.projects).toBe(1)
-    await fullBuild()
-    const postPublic = JSON.parse(readFileSync(SNAPSHOT, 'utf8'))
-    const postProject = postPublic.projects.find((p: { slug: string }) => p.slug === 'greenhawk-ai')
-    expect(postProject.title).toBe('E2E Edited Title')
-
-    // 9+10. sitemap + route HTML contain the project with NEW metadata
-    const postSitemap = (await get('/sitemap.xml')).body
-    expect(postSitemap).toContain('/projects/greenhawk-ai')
-    const shell = await get('/projects/greenhawk-ai')
-    expect(shell.status).toBe(200)
-    expect(shell.body).toContain('E2E Edited Title')
-    expect(shell.body).toContain('<link rel="canonical" href="https://alifaniani.ir/projects/greenhawk-ai"')
-    expect(shell.body).toContain('og:title')
-    expect(shell.body).toContain('application/ld+json')
-
-    // 11+12+13. archive → publish → rebuild → absent
-    const archived = await archive(cookies, 'project', 'greenhawk-ai')
-    expect(archived.status).toBe(200)
-    const publish2 = await publish(cookies)
-    expect(publish2.status).toBe(200)
-    await fullBuild()
-    const finalSnapshot = JSON.parse(readFileSync(SNAPSHOT, 'utf8'))
-    expect(finalSnapshot.projects.find((p: { slug: string }) => p.slug === 'greenhawk-ai')).toBeUndefined()
-
-    // 14+15. sitemap + content-meta no longer contain it
-    const finalSitemap = (await get('/sitemap.xml')).body
-    expect(finalSitemap).not.toContain('/projects/greenhawk-ai')
-    const finalMeta = JSON.parse((await get('/_content_meta.json')).body)
-    expect(finalMeta.projectSlugs).not.toContain('greenhawk-ai')
-
-    // 16. request → expected 404 behavior (real 404 + noindex)
-    const gone = await get('/projects/greenhawk-ai')
-    expect(gone.status).toBe(404)
-    expect(gone.headers.get('x-robots-tag')).toBe('noindex')
   }, 600_000)
 
   it('TASK 3: new project — absent as draft, present after publish (route/meta/JSON-LD)', async () => {
     const cookies = await login()
 
-    // create as draft
-    const created = await createDraft(cookies, 'project', NEW_PROJECT.slug, NEW_PROJECT)
-    expect(created.status).toBe(201)
+    // This test creates a synthetic project row in local D1. The archive +
+    // publish tail cleanup cannot remove the row itself (archived rows
+    // persist by design), and resetLocalD1's INSERT OR REPLACE cannot delete
+    // extras — so remove the row explicitly in a finally, whatever happens.
+    try {
+      // create as draft
+      const created = await createDraft(cookies, 'project', NEW_PROJECT.slug, NEW_PROJECT)
+      expect(created.status).toBe(201)
 
-    // build → absent everywhere
-    await fullBuild()
-    const preSnapshot = JSON.parse(readFileSync(SNAPSHOT, 'utf8'))
-    expect(preSnapshot.projects.find((p: { slug: string }) => p.slug === NEW_PROJECT.slug)).toBeUndefined()
-    const preSitemap = (await get('/sitemap.xml')).body
-    expect(preSitemap).not.toContain(NEW_PROJECT.slug)
-    const preRoute = await get(`/projects/${NEW_PROJECT.slug}`)
-    expect(preRoute.status).toBe(404)
+      // build → absent everywhere
+      await fullBuild()
+      const preSnapshot = JSON.parse(readFileSync(SNAPSHOT, 'utf8'))
+      expect(preSnapshot.projects.find((p: { slug: string }) => p.slug === NEW_PROJECT.slug)).toBeUndefined()
+      const preSitemap = (await get('/sitemap.xml')).body
+      expect(preSitemap).not.toContain(NEW_PROJECT.slug)
+      const preRoute = await get(`/projects/${NEW_PROJECT.slug}`)
+      expect(preRoute.status).toBe(404)
 
-    // publish → rebuild → present with full SEO treatment
-    const publishRes = await publish(cookies)
-    expect(publishRes.status).toBe(200)
-    await fullBuild()
-    const postSnapshot = JSON.parse(readFileSync(SNAPSHOT, 'utf8'))
-    const project = postSnapshot.projects.find((p: { slug: string }) => p.slug === NEW_PROJECT.slug)
-    expect(project.title).toBe(NEW_PROJECT.title)
+      // publish → rebuild → present with full SEO treatment
+      const publishRes = await publish(cookies)
+      expect(publishRes.status).toBe(200)
+      await fullBuild()
+      const postSnapshot = JSON.parse(readFileSync(SNAPSHOT, 'utf8'))
+      const project = postSnapshot.projects.find((p: { slug: string }) => p.slug === NEW_PROJECT.slug)
+      expect(project.title).toBe(NEW_PROJECT.title)
 
-    const sitemap = (await get('/sitemap.xml')).body
-    expect(sitemap).toContain(`<loc>https://alifaniani.ir/projects/${NEW_PROJECT.slug}</loc>`)
+      const sitemap = (await get('/sitemap.xml')).body
+      expect(sitemap).toContain(`<loc>https://alifaniani.ir/projects/${NEW_PROJECT.slug}</loc>`)
 
-    const shell = await get(`/projects/${NEW_PROJECT.slug}`)
-    expect(shell.status).toBe(200)
-    expect(shell.body).toContain(`<title>${NEW_PROJECT.title}`)
-    expect(shell.body).toContain(NEW_PROJECT.shortDescription)
-    expect(shell.body).toContain(`<link rel="canonical" href="https://alifaniani.ir/projects/${NEW_PROJECT.slug}"`)
-    expect(shell.body).toContain(`property="og:title"`)
-    expect(shell.body).toContain(`property="og:description"`)
-    expect(shell.body).toContain(`name="twitter:card"`)
-    // JSON-LD: static shells carry the Person+WebSite bootstrap graph; the
-    // per-project CreativeWork graph is injected at runtime by useJsonLd
-    // (existing SEO architecture — Layer C), so it is not in the static shell.
-    expect(shell.body).toContain('application/ld+json')
+      const shell = await get(`/projects/${NEW_PROJECT.slug}`)
+      expect(shell.status).toBe(200)
+      expect(shell.body).toContain(`<title>${NEW_PROJECT.title}`)
+      expect(shell.body).toContain(NEW_PROJECT.shortDescription)
+      expect(shell.body).toContain(`<link rel="canonical" href="https://alifaniani.ir/projects/${NEW_PROJECT.slug}"`)
+      expect(shell.body).toContain(`property="og:title"`)
+      expect(shell.body).toContain(`property="og:description"`)
+      expect(shell.body).toContain(`name="twitter:card"`)
+      // JSON-LD: static shells carry the Person+WebSite bootstrap graph; the
+      // per-project CreativeWork graph is injected at runtime by useJsonLd
+      // (existing SEO architecture — Layer C), so it is not in the static shell.
+      expect(shell.body).toContain('application/ld+json')
 
-    // cleanup: archive + publish so later assertions see the standard set
-    await archive(cookies, 'project', NEW_PROJECT.slug)
-    await publish(cookies)
-    await fullBuild()
+      // cleanup: archive + publish so later assertions see the standard set
+      await archive(cookies, 'project', NEW_PROJECT.slug)
+      await publish(cookies)
+      await fullBuild()
+    } finally {
+      // Hard-remove the synthetic row: archiving alone leaves it in D1 (and
+      // resetLocalD1 cannot delete extras), so later suites would inherit it.
+      // Same server-holds-D1 rule as above — restart after touching the file.
+      try {
+        run(
+          `npx wrangler d1 execute ali-faniani-portfolio-db --local --command "DELETE FROM content WHERE kind = 'project' AND key = '${NEW_PROJECT.slug}'"`
+        )
+      } catch { /* afterAll reset covers stragglers */ }
+      resetLocalD1()
+      await startServer()
+      await waitForServer()
+    }
   }, 600_000)
 })
 

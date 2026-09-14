@@ -51,17 +51,17 @@ export function RoomOverlay() {
             initial={{ opacity: 0, y: -12 }}
             animate={{ opacity: 1, y: 0, transition: { delay: 1.2, duration: 0.6 } }}
             exit={{ opacity: 0, y: -8 }}
-            className="absolute top-[7.5rem] left-1/2 flex max-w-[92vw] -translate-x-1/2 items-center gap-2.5 rounded-full border border-edge-2 bg-panel/80 py-1.5 pr-2 pl-4 backdrop-blur-md md:hidden"
+            className="absolute top-[7.5rem] left-1/2 flex w-[min(92vw,24rem)] -translate-x-1/2 items-center justify-center gap-2.5 rounded-2xl border border-edge-2 bg-panel/80 px-3 py-2.5 backdrop-blur-md md:hidden"
           >
             <SparkleIcon className="h-3.5 w-3.5 shrink-0 text-accent" />
-            <p className="text-xs whitespace-nowrap text-frost/90">
-              For a better 3D room experience, use a{' '}
-              <span className="text-accent">laptop or PC</span>
+            <p className="min-w-0 flex-1 text-center text-xs leading-relaxed text-frost/90">
+              Rotate your phone or tablet to{' '}
+              <span className="text-accent">landscape mode</span> for a better 3D room experience.
             </p>
             <button
               onClick={() => setDeviceNoteVisible(false)}
               aria-label="Dismiss device note"
-              className="pointer-events-auto relative ml-1 rounded-full p-1 text-mist transition-colors hover:text-frost cursor-pointer before:absolute before:-inset-2.5 before:rounded-full before:content-['']"
+              className="pointer-events-auto relative shrink-0 rounded-full p-1 text-mist transition-colors hover:text-frost cursor-pointer before:absolute before:-inset-2.5 before:rounded-full before:content-['']"
             >
               <CloseIcon className="h-3.5 w-3.5" />
             </button>

@@ -81,6 +81,21 @@ export function archiveContent(kind: ContentKind, key: string): Promise<{ conten
   return request(`/api/admin/content/${kind}/${encodeURIComponent(key)}`, { method: 'POST' })
 }
 
+/**
+ * Discard unpublished changes — clears the draft overlay and returns the
+ * record to its last published state. Live content is untouched by design
+ * (the server never modifies `data` on this path).
+ */
+export function discardDraft(
+  kind: ContentKind,
+  key: string
+): Promise<{ content: { state: ContentState; hasDraft: boolean; version: number; updatedAt: string } }> {
+  return request(`/api/admin/content/${kind}/${encodeURIComponent(key)}`, {
+    method: 'POST',
+    body: JSON.stringify({ action: 'discard' }),
+  })
+}
+
 export function deleteContent(kind: ContentKind, key: string): Promise<{ ok: boolean }> {
   return request(`/api/admin/content/${kind}/${encodeURIComponent(key)}`, { method: 'DELETE' })
 }

@@ -100,6 +100,14 @@ export class FakeD1Database {
     if (sql.includes('FROM content')) {
       return [...(this.tables.content ?? [])]
     }
+    if (sql.includes('FROM auth_log')) {
+      const rows = [...(this.tables.auth_log ?? [])]
+      // Respect a bound `LIMIT ?` (activity endpoint passes its limit as a param).
+      const limitMatch = /LIMIT\s+\?/.exec(sql)
+      const limit = limitMatch ? params[0] : undefined
+      if (typeof limit === 'number') return rows.slice(0, limit)
+      return rows
+    }
     return []
   }
 
@@ -112,7 +120,13 @@ export class FakeD1Database {
       const [token_hash, csrf_hash, created_at, last_used_at, expires_at, ip, ua] = params
       rows.push({ token_hash, csrf_hash, created_at, last_used_at, expires_at, ip, ua })
     } else if (/INSERT INTO auth_log/.test(sql)) {
-      rows.push({ ts: params[0], ip: params[1], ok: params[2], note: params[3] })
+      // 5-column shape post-migration 0003 (ts, ip, country, ok, note);
+      // 4-column shape for legacy inserts.
+      if (/country/.test(sql)) {
+        rows.push({ ts: params[0], ip: params[1], country: params[2], ok: params[3], note: params[4] })
+      } else {
+        rows.push({ ts: params[0], ip: params[1], country: null, ok: params[2], note: params[3] })
+      }
     } else if (/DELETE FROM sessions WHERE token_hash/.test(sql)) {
       const remaining = rows.filter((r) => r.token_hash !== params[0])
       this.tables.sessions = remaining
@@ -125,12 +139,24 @@ export class FakeD1Database {
       rows.length = 0
       rows.push(...remaining)
     } else if (/UPDATE content\s+SET draft_data/.test(sql)) {
-      const row = rows.find((r) => r.kind === params[3] && r.key === params[4])
-      if (row) {
-        row.draft_data = params[0]
-        row.draft_updated_at = params[1]
-        row.draft_sort_order = params[2]
-        row.version = Number(row.version ?? 1) + 1
+      if (/draft_data = NULL/.test(sql)) {
+        // discardDraft: params [updated_at, kind, key]
+        const row = rows.find((r) => r.kind === params[1] && r.key === params[2])
+        if (row) {
+          row.draft_data = null
+          row.draft_updated_at = null
+          row.draft_sort_order = null
+          row.updated_at = params[0]
+          row.version = Number(row.version ?? 1) + 1
+        }
+      } else {
+        const row = rows.find((r) => r.kind === params[3] && r.key === params[4])
+        if (row) {
+          row.draft_data = params[0]
+          row.draft_updated_at = params[1]
+          row.draft_sort_order = params[2]
+          row.version = Number(row.version ?? 1) + 1
+        }
       }
     } else if (/UPDATE content\s+SET data/.test(sql)) {
       // Phase 5 publish SQL has published_at (5 preceding params); Phase 4 edit does not.

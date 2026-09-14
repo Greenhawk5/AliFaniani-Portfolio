@@ -30,7 +30,7 @@ import { requireMutationAuth } from '../../lib/session-auth'
 import { preparePublish, ValidationError } from '../../lib/publish'
 import { recordDeployState } from '../../lib/deploy-state'
 import { dispatchSnapshotSync, dispatchSyncReason } from '../../lib/github-sync'
-import { logAuthEvent } from '../../lib/auth-log'
+import { logAuthEvent, requestCountry } from '../../lib/auth-log'
 
 type Env = AdminEnv & { GITHUB_SYNC_TOKEN?: string }
 
@@ -42,6 +42,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   const context = await requireMutationAuth(request, env.DB)
   if (!context) return unauthorizedResponse()
   const ip = clientIp(request)
+  const country = requestCountry(request)
 
   // 2 — media manifest from the deployed assets (generated at build time)
   let mediaManifest: Record<string, unknown>
@@ -56,6 +57,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   } catch (error) {
     await logAuthEvent(env.DB, 'publish_failed', {
       ip,
+      country,
       ok: false,
       note: `media manifest unavailable (${(error as Error).message.slice(0, 80)})`,
     })
@@ -71,10 +73,10 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     statements = prepared.statements as { sql: string; params: unknown[] }[]
   } catch (error) {
     if (error instanceof ValidationError) {
-      await logAuthEvent(env.DB, 'publish_failed', { ip, ok: false, note: 'validation' })
+      await logAuthEvent(env.DB, 'publish_failed', { ip, country, ok: false, note: 'validation' })
       return jsonResponse({ ok: false, error: error.message, issues: error.issues }, 400)
     }
-    await logAuthEvent(env.DB, 'publish_failed', { ip, ok: false, note: 'prepare' })
+    await logAuthEvent(env.DB, 'publish_failed', { ip, country, ok: false, note: 'prepare' })
     return jsonResponse({ ok: false, error: 'Could not prepare publish.' }, 500)
   }
 
@@ -100,6 +102,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   } catch (error) {
     await logAuthEvent(env.DB, 'publish_failed', {
       ip,
+      country,
       ok: false,
       note: `batch: ${(error as Error).message.slice(0, 80)}`,
     })
@@ -108,6 +111,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 
   await logAuthEvent(env.DB, 'publish_succeeded', {
     ip,
+    country,
     ok: true,
     note: `${counts.projects}p/${counts.profileSections}s/${counts.links}l`,
   })
@@ -125,6 +129,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   })
   await logAuthEvent(env.DB, sync.ok ? 'sync_dispatched' : 'sync_dispatch_failed', {
     ip,
+    country,
     ok: sync.ok,
     note: syncReason,
   })

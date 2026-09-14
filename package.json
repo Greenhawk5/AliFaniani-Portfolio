@@ -1,7 +1,7 @@
 {
   "name": "ali-faniani-portfolio",
   "private": true,
-  "version": "2.0.1",
+  "version": "2.0.0",
   "type": "module",
   "description": "Portfolio of Ali Faniani — software developer focused on AI, backend, web, and automation. Includes an interactive 3D developer room at /room.",
   "scripts": {

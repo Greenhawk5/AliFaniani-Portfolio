@@ -364,7 +364,7 @@ describe('POST /api/admin/publish', () => {
 
 /* ------------------------- GitHub snapshot sync dispatch ------------------- */
 
-describe('GitHub snapshot sync dispatch (v2.0.1 diagnostics)', () => {
+describe('GitHub snapshot sync dispatch (diagnostics)', () => {
   /** Seeds one draft, logs in, publishes; the interceptor controls every
    * fetch (deploy hook + GitHub dispatch + Turnstile). A default sync token
    * is injected unless the test overrides it explicitly. */

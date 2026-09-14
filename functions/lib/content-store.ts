@@ -235,6 +235,29 @@ export async function upsertContent(db: D1Database, input: UpsertInput): Promise
   return (await getContent(db, kind, key))!
 }
 
+/**
+ * Discard unpublished changes — the inverse of the draft-overlay write path.
+ * Clears draft_data/draft_updated_at/draft_sort_order so the record returns
+ * to exactly its last published state. `data` is never read and never
+ * written here: live content cannot change through this path by
+ * construction. Draft-only rows (state 'draft') have no published baseline,
+ * so discarding is a no-op that returns the record unchanged. Version is
+ * bumped so optimistic-concurrency clients invalidate their stale reads.
+ */
+export async function discardDraft(db: D1Database, kind: ContentKind, key: string): Promise<ContentRecord> {
+  const existing = await getContent(db, kind, key)
+  if (!existing) throw new NotFoundError(`No ${kind} '${key}'.`)
+  if (existing.state === 'draft') return existing
+  await db
+    .prepare(
+      `UPDATE content SET draft_data = NULL, draft_updated_at = NULL, draft_sort_order = NULL,
+       version = version + 1, updated_at = ? WHERE kind = ? AND key = ?`
+    )
+    .bind(new Date().toISOString(), kind, key)
+    .run()
+  return (await getContent(db, kind, key))!
+}
+
 /** Archive (soft delete) — preferred over hard delete per the content model. */
 export async function archiveContent(db: D1Database, kind: ContentKind, key: string): Promise<ContentRecord> {
   const existing = await getContent(db, kind, key)
