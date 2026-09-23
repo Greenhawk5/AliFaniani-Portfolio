@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "exportedAt": "2026-09-12T23:25:20.027Z",
+  "exportedAt": "2026-09-23T12:59:38.074Z",
   "projects": [
     {
       "slug": "greenhawk-ai",
@@ -234,7 +234,7 @@
         "The React frontend reads normalized mission and history data through the Worker API"
       ],
       "repository": "https://github.com/Greenhawk5/HawkBucks-Web",
-      "demo": "https://hawkbucks.pages.dev"
+      "demo": "https://hawkbucks.com"
     },
     {
       "slug": "hawkbucks-bot",
