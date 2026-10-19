@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "exportedAt": "2026-09-23T12:59:38.074Z",
+  "exportedAt": "2026-10-19T16:18:08.616Z",
   "projects": [
     {
       "slug": "greenhawk-ai",
@@ -90,6 +90,125 @@
       "repository": "https://github.com/Greenhawk5/GreenHawk-AI",
       "demo": "https://greenhawkai.ir",
       "demoStatus": "Currently unavailable"
+    },
+    {
+      "slug": "hawklyx",
+      "title": "HAWKLYX — Brent Oil Monitor",
+      "subtitle": "A smarter way to monitor Brent crude oil markets",
+      "shortDescription": "A premium Android application for monitoring Brent crude oil prices, featuring interactive historical charts, two dedicated home-screen widgets, and a Cloudflare-powered backend for coordinated market data collection.",
+      "overview": "HAWKLYX is an Android application designed to make Brent crude oil price monitoring accessible, intuitive, and reliable. Built with Kotlin and Jetpack Compose, it combines a refined dark interface with interactive historical price charts and two Android home-screen widgets for at-a-glance market insights. Its Cloudflare Workers backend coordinates upstream data requests, persists historical observations, manages refresh quotas, and helps preserve the latest valid price when the upstream provider is temporarily unavailable. The project brings together native Android development, serverless backend engineering, scheduled data collection, persistent coordination, and automated testing in a single end-to-end application.",
+      "category": "Android Application",
+      "year": 2026,
+      "banner": "/media/project/hawklyx/banner.png",
+      "screenshots": [
+        {
+          "src": "/media/project/hawklyx/screenshots/home1.jpg",
+          "caption": "Live Spot & Edge Cadence"
+        },
+        {
+          "src": "/media/project/hawklyx/screenshots/home2.jpg",
+          "caption": "Interactive History & Specifications"
+        },
+        {
+          "src": "/media/project/hawklyx/screenshots/about1.jpg",
+          "caption": "Brand Identity & Philosophy"
+        },
+        {
+          "src": "/media/project/hawklyx/screenshots/about2.jpg",
+          "caption": "Refresh Policies & Specifications"
+        },
+        {
+          "src": "/media/project/hawklyx/screenshots/about3.jpg",
+          "caption": "Developer Links & System Specs"
+        },
+        {
+          "src": "/media/project/hawklyx/screenshots/widget1.png",
+          "caption": "Market Snapshot Widget (3×2)"
+        },
+        {
+          "src": "/media/project/hawklyx/screenshots/widget2.png",
+          "caption": "Market Intelligence Widget (4×3)"
+        }
+      ],
+      "technologies": [
+        "Kotlin",
+        "Jetpack Compose",
+        "Android SDK",
+        "Gradle",
+        "Kotlin Coroutines",
+        "WorkManager",
+        "Cloudflare Workers",
+        "Cloudflare Durable Objects",
+        "SQLite",
+        "TypeScript",
+        "Node.js",
+        "Vitest",
+        "Wrangler",
+        "GitHub Actions",
+        "OilPriceAPI"
+      ],
+      "techGroups": [
+        {
+          "label": "Android Development",
+          "items": [
+            "Kotlin",
+            "Jetpack Compose",
+            "Android SDK",
+            "Gradle",
+            "Kotlin Coroutines",
+            "WorkManager",
+            "RemoteViews",
+            "Android App Widgets"
+          ]
+        },
+        {
+          "label": "Backend & Data",
+          "items": [
+            "Cloudflare Workers",
+            "Cloudflare Durable Objects",
+            "SQLite",
+            "TypeScript",
+            "OilPriceAPI",
+            "REST API"
+          ]
+        },
+        {
+          "label": "Testing & DevOps",
+          "items": [
+            "JUnit",
+            "Vitest",
+            "Gradle",
+            "Wrangler",
+            "GitHub Actions",
+            "npm"
+          ]
+        }
+      ],
+      "features": [
+        "Two dedicated Android home-screen widgets: a compact Market Snapshot widget and a larger Market Intelligence widget.",
+        "Interactive historical Brent crude oil price charts with multiple time ranges, including 1 day, 1 week, 1 month, 6 months, and 1 year.",
+        "Market price overview with price-change information, timestamps, data freshness indicators, and market-session context.",
+        "Refresh and synchronization status indicators for loading, stale data, offline conditions, and temporary service limitations.",
+        "Cloudflare-powered backend for coordinating upstream market data requests and serving historical observations.",
+        "Persistent historical price storage to support charting without requiring a new upstream request for every chart query.",
+        "Scheduled market data collection with configurable upstream request quotas and reserved capacity.",
+        "Request coalescing and cooldown mechanisms to reduce duplicate upstream calls.",
+        "Last-known-good price preservation during upstream provider failures and market closures.",
+        "Server-side isolation of upstream API credentials rather than embedding provider secrets in the Android application.",
+        "Automated Android and backend tests, static analysis, dependency auditing, and CI validation."
+      ],
+      "architecture": [
+        "Android presentation layer: Kotlin and Jetpack Compose provide the main application interface, market overview, and interactive chart experience.",
+        "Widget layer: Android App Widgets and RemoteViews provide compact and expanded home-screen market summaries.",
+        "Client data layer: A shared repository and networking components coordinate price retrieval, local data handling, refresh behavior, and presentation state.",
+        "Background execution: WorkManager supports scheduled background synchronization according to the application's configured refresh policies.",
+        "Backend API: Cloudflare Workers expose the HTTP API consumed by the Android application.",
+        "Coordination and persistence: Cloudflare Durable Objects with SQLite coordinate shared backend state, request handling, quotas, and stored observations.",
+        "Upstream provider integration: OilPriceAPI supplies market price data through the server-side backend, keeping provider credentials out of the Android client.",
+        "Historical data flow: Stored observations are retrieved through the history API and used to render charts across supported time ranges.",
+        "Quality assurance: GitHub Actions validates the Android application and Cloudflare Worker through automated tests, linting, type checking, dependency auditing, and build verification."
+      ],
+      "repository": "https://github.com/Greenhawk5/HAWKLYX"
     },
     {
       "slug": "morsemate",
