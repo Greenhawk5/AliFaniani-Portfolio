@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-12T15:53:04.869Z",
+  "generatedAt": "2026-10-19T16:06:12.569Z",
   "media": {
     "/media/project/greenhawk-ai/banner-1280.webp": {
       "source": "docs:project/GreenHawk AI/banner-1280.webp",
@@ -102,6 +102,54 @@
       "bytes": 53482,
       "width": 1080,
       "height": 884
+    },
+    "/media/project/hawklyx/banner.png": {
+      "source": "docs:project/Hawklyx/banner.png",
+      "bytes": 1771399,
+      "width": 1942,
+      "height": 809
+    },
+    "/media/project/hawklyx/screenshots/about1.jpg": {
+      "source": "docs:project/Hawklyx/screenshots/about1.jpg",
+      "bytes": 239062,
+      "width": null,
+      "height": null
+    },
+    "/media/project/hawklyx/screenshots/about2.jpg": {
+      "source": "docs:project/Hawklyx/screenshots/about2.jpg",
+      "bytes": 222147,
+      "width": null,
+      "height": null
+    },
+    "/media/project/hawklyx/screenshots/about3.jpg": {
+      "source": "docs:project/Hawklyx/screenshots/about3.jpg",
+      "bytes": 204561,
+      "width": null,
+      "height": null
+    },
+    "/media/project/hawklyx/screenshots/home1.jpg": {
+      "source": "docs:project/Hawklyx/screenshots/home1.jpg",
+      "bytes": 235164,
+      "width": null,
+      "height": null
+    },
+    "/media/project/hawklyx/screenshots/home2.jpg": {
+      "source": "docs:project/Hawklyx/screenshots/home2.jpg",
+      "bytes": 238569,
+      "width": null,
+      "height": null
+    },
+    "/media/project/hawklyx/screenshots/widget1.png": {
+      "source": "docs:project/Hawklyx/screenshots/widget1.png",
+      "bytes": 130154,
+      "width": 822,
+      "height": 631
+    },
+    "/media/project/hawklyx/screenshots/widget2.png": {
+      "source": "docs:project/Hawklyx/screenshots/widget2.png",
+      "bytes": 147735,
+      "width": 965,
+      "height": 835
     },
     "/media/project/morsemate/banner.webp": {
       "source": "docs:project/MorseMate/banner.webp",
