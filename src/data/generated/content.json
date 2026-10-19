@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "exportedAt": "2026-10-19T16:18:08.616Z",
+  "exportedAt": "2026-10-19T16:25:06.099Z",
   "projects": [
     {
       "slug": "greenhawk-ai",
@@ -133,18 +133,10 @@
       "technologies": [
         "Kotlin",
         "Jetpack Compose",
-        "Android SDK",
-        "Gradle",
-        "Kotlin Coroutines",
-        "WorkManager",
         "Cloudflare Workers",
         "Cloudflare Durable Objects",
         "SQLite",
         "TypeScript",
-        "Node.js",
-        "Vitest",
-        "Wrangler",
-        "GitHub Actions",
         "OilPriceAPI"
       ],
       "techGroups": [
