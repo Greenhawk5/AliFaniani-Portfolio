@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "exportedAt": "2026-10-19T16:25:06.099Z",
+  "exportedAt": "2026-11-12T10:35:38.888Z",
   "projects": [
     {
       "slug": "greenhawk-ai",
@@ -200,7 +200,8 @@
         "Historical data flow: Stored observations are retrieved through the history API and used to render charts across supported time ranges.",
         "Quality assurance: GitHub Actions validates the Android application and Cloudflare Worker through automated tests, linting, type checking, dependency auditing, and build verification."
       ],
-      "repository": "https://github.com/Greenhawk5/HAWKLYX"
+      "repository": "https://github.com/Greenhawk5/HAWKLYX",
+      "demo": "https://cafebazaar.ir/app/ir.alifaniani.hawklyx"
     },
     {
       "slug": "morsemate",
