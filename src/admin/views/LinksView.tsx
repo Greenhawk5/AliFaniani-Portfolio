@@ -17,7 +17,7 @@ export function LinksView({
   param: string | null
   navigate: (view: 'links', param?: string) => void
 }) {
-  const { items, refreshContent } = useAdminData()
+  const { items, refreshContent, refreshActivity } = useAdminData()
   const creating = param === 'new'
 
   const accessors = useMemo<ListAccessors>(
@@ -40,7 +40,16 @@ export function LinksView({
   }, [param, creating, items])
 
   if (selected) {
-    return <ContentEditor item={selected} onSaved={() => void refreshContent()} onClose={() => navigate('links')} />
+    return (
+      <ContentEditor
+        item={selected}
+        onSaved={() => {
+          void refreshContent()
+          void refreshActivity()
+        }}
+        onClose={() => navigate('links')}
+      />
+    )
   }
 
   return (
@@ -53,7 +62,19 @@ export function LinksView({
       <ContentListView
         kind="link"
         accessors={accessors}
-        creating={creating ? <NewRecordDialog initialKind="link" onClose={() => navigate('links')} onCreated={() => navigate('links')} /> : undefined}
+        creating={
+          creating ? (
+            <NewRecordDialog
+              initialKind="link"
+              onClose={() => navigate('links')}
+              onCreated={() => {
+                void refreshContent()
+                void refreshActivity()
+                navigate('links')
+              }}
+            />
+          ) : undefined
+        }
         onOpenNew={() => navigate('links', 'new')}
         onOpen={(item) => navigate('links', item.key)}
       />

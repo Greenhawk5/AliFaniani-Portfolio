@@ -1,7 +1,8 @@
 /**
- * Security audit trail → D1 auth_log (ts, ip, ok, note).
+ * Security audit trail → D1 auth_log (ts, ip, country, ok, note).
  * Never logs credentials, tokens, or secrets — only event type + metadata.
- * Best-effort: a logging failure must never break authentication.
+ * Resilient: includes self-healing fallback to 4-column schema if migration
+ * 0003 (country column) has not yet been applied in the target environment.
  */
 
 export type AuthEvent =
@@ -12,6 +13,7 @@ export type AuthEvent =
   | 'login_malformed'
   | 'logout'
   | 'session_rejected'
+  | 'session_expired'
   | 'content_created'
   | 'content_updated'
   | 'content_draft_discarded'
@@ -24,25 +26,37 @@ export type AuthEvent =
   | 'deploy_trigger_failed'
   | 'sync_dispatched'
   | 'sync_dispatch_failed'
+  | 'media_uploaded'
+  | 'media_upload_failed'
+  | 'media_deleted'
+  | 'media_delete_rejected'
 
 export async function logAuthEvent(
   db: D1Database,
   event: AuthEvent,
   meta: { ip: string; ok: boolean; note?: string; country?: string | null }
 ): Promise<void> {
+  const ts = new Date().toISOString()
+  const okVal = meta.ok ? 1 : 0
+  const note = noteFor(event, meta.note)
+
   try {
+    // 1. Primary path: 5-column schema (post-migration 0003)
     await db
       .prepare(`INSERT INTO auth_log (ts, ip, country, ok, note) VALUES (?, ?, ?, ?, ?)`)
-      .bind(
-        new Date().toISOString(),
-        meta.ip,
-        meta.country ?? null,
-        meta.ok ? 1 : 0,
-        noteFor(event, meta.note)
-      )
+      .bind(ts, meta.ip, meta.country ?? null, okVal, note)
       .run()
-  } catch {
-    // best-effort
+  } catch (primaryError) {
+    // 2. Self-healing fallback: 4-column schema if 'country' column is missing in older/remote DBs
+    try {
+      await db
+        .prepare(`INSERT INTO auth_log (ts, ip, ok, note) VALUES (?, ?, ?, ?)`)
+        .bind(ts, meta.ip, okVal, note)
+        .run()
+    } catch (fallbackError) {
+      // Diagnostic visibility in Workers/Pages edge logs without breaking client request
+      console.error(`[auth-log] Failed to write audit event '${event}':`, fallbackError)
+    }
   }
 }
 

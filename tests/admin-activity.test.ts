@@ -90,12 +90,45 @@ describe('GET /api/admin/activity', () => {
     db.tables.auth_log = [
       { ts: new Date().toISOString(), ip: '198.51.100.9', ok: 0, note: 'login_password_failed' },
       { ts: new Date().toISOString(), ip: '198.51.100.9', ok: 0, note: 'login_rate_limited — kv lockout' },
+      { ts: new Date().toISOString(), ip: '198.51.100.9', ok: 0, note: 'session_expired — idle timeout' },
+      { ts: new Date().toISOString(), ip: '198.51.100.9', ok: 0, note: 'session_rejected — invalid' },
     ]
     const { cookies } = await loginContext()
     const response = await activityHandler(makeContext(getRequest('/api/admin/activity', cookies), env))
     const body = (await response.json()) as { summary: { failedAccess: number; contentEvents: number } }
-    expect(body.summary.failedAccess).toBe(2)
+    expect(body.summary.failedAccess).toBe(4)
     expect(body.summary.contentEvents).toBe(0)
+  })
+
+  it('self-heals via fallback if country column insert fails', async () => {
+    const { logAuthEvent } = await import('../functions/lib/auth-log')
+    // Configure fake db to fail on 5-column country query but succeed on 4-column query
+    const origPrepare = db.prepare.bind(db)
+    db.prepare = (sql: string) => {
+      if (sql.includes('INSERT INTO auth_log') && sql.includes('country')) {
+        return {
+          bind: () => ({
+            run: async () => {
+              throw new Error('no such column: country')
+            },
+            first: async () => null,
+            all: async () => ({ results: [] }),
+          }),
+        } as unknown as ReturnType<typeof origPrepare>
+      }
+      return origPrepare(sql)
+    }
+
+    await logAuthEvent(db as unknown as D1Database, 'login_success', {
+      ip: '127.0.0.1',
+      country: 'US',
+      ok: true,
+      note: 'fallback test',
+    })
+
+    const logged = db.authRows().find((r) => String(r.note).includes('fallback test'))
+    expect(logged).toBeDefined()
+    expect(logged?.ok).toBe(1)
   })
 
   it('rejects an out-of-range limit with 400', async () => {

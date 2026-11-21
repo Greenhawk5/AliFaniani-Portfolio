@@ -26,8 +26,10 @@ import {
 } from './ui/icons'
 import { GearIcon } from '@/components/ui/icons'
 import { NAV_GROUPS, type AdminView } from './routes'
-import { StatusDot } from './ui/primitives'
+import { StatusDot, AdminModal } from './ui/primitives'
 import { SiteVersion } from './SiteVersion'
+import { useSessionTimeout } from './useSessionTimeout'
+import type { SessionState } from './authApi'
 
 const VIEW_ICONS: Record<AdminView, (props: { className?: string }) => ReactNode> = {
   overview: LayoutIcon,
@@ -46,7 +48,9 @@ export function AdminShell({
   view,
   onNavigate,
   onLogout,
+  session,
   sessionExpiresAt,
+  onSessionRefreshed,
   sidebarOpen,
   setSidebarOpen,
   children,
@@ -54,7 +58,9 @@ export function AdminShell({
   view: AdminView
   onNavigate: (view: AdminView) => void
   onLogout: () => void
+  session?: SessionState | null
   sessionExpiresAt?: string
+  onSessionRefreshed?: (session: SessionState) => void
   sidebarOpen: boolean
   setSidebarOpen: (open: boolean) => void
   children: ReactNode
@@ -65,6 +71,13 @@ export function AdminShell({
     } catch {
       return false
     }
+  })
+
+  const currentSession = session ?? (sessionExpiresAt ? { authenticated: true, expiresAt: sessionExpiresAt } : null)
+  const { showWarning, secondsRemaining, keepAlive } = useSessionTimeout({
+    session: currentSession,
+    onLogout,
+    onSessionRefreshed,
   })
 
   // Close the mobile drawer whenever the route changes.
@@ -82,7 +95,8 @@ export function AdminShell({
     return () => window.removeEventListener('keydown', onKey)
   }, [sidebarOpen, setSidebarOpen])
 
-  const expiryLabel = formatExpiry(sessionExpiresAt)
+  const effectiveExpiresAt = session?.expiresAt ?? sessionExpiresAt
+  const expiryLabel = formatExpiry(effectiveExpiresAt)
 
   const nav = (
     <nav aria-label="Admin sections" className="flex-1 space-y-5 overflow-y-auto px-3 py-4">
@@ -170,7 +184,9 @@ export function AdminShell({
 
       <div className={cn('space-y-1.5 border-t border-edge px-3 py-3', collapsed && 'px-2')}>
         {!collapsed && expiryLabel && (
-          <p className="px-1 text-[10px] leading-relaxed text-mist/60">Session valid until {expiryLabel}</p>
+          <p className="px-1 text-[10px] leading-relaxed text-mist/60">
+            Session until {expiryLabel} <span className="text-mist/40">(15m idle)</span>
+          </p>
         )}
         {!collapsed && (
           <p className="px-1 pt-0.5">
@@ -242,6 +258,27 @@ export function AdminShell({
           <CloseIcon className="h-4 w-4" />
         </button>
       )}
+      {/* Inactivity timeout warning modal */}
+      <AdminModal
+        open={showWarning}
+        onClose={() => void keepAlive()}
+        title="Session Inactivity Warning"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-mist leading-relaxed">
+            You have been inactive for over 13 minutes. To protect your portfolio, your session will automatically
+            expire in <strong className="font-mono text-amber">{secondsRemaining}s</strong>.
+          </p>
+          <div className="flex justify-end gap-2.5 pt-2">
+            <Button variant="ghost" size="sm" onClick={onLogout}>
+              Sign out now
+            </Button>
+            <Button size="sm" onClick={() => void keepAlive()}>
+              Stay signed in
+            </Button>
+          </div>
+        </div>
+      </AdminModal>
     </div>
   )
 }

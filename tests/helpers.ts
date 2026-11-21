@@ -133,8 +133,9 @@ export class FakeD1Database {
       rows.length = 0
       rows.push(...remaining)
     } else if (/DELETE FROM sessions WHERE expires_at/.test(sql)) {
-      const nowIso = String(params[0])
-      const remaining = rows.filter((r) => String(r.expires_at) > nowIso)
+      const absCutoff = String(params[0])
+      const idleCutoff = params[1] ? String(params[1]) : absCutoff
+      const remaining = rows.filter((r) => String(r.expires_at) > absCutoff && String(r.last_used_at) > idleCutoff)
       this.tables.sessions = remaining
       rows.length = 0
       rows.push(...remaining)
@@ -191,10 +192,13 @@ export class FakeD1Database {
         row.version = Number(row.version ?? 1) + 1
       }
     } else if (/UPDATE sessions/.test(sql)) {
-      const row = rows.find((r) => r.token_hash === params[2])
+      const tokenHash = params.length === 2 ? params[1] : params[2]
+      const row = rows.find((r) => r.token_hash === tokenHash)
       if (row) {
         row.last_used_at = params[0]
-        row.expires_at = params[1]
+        if (params.length > 2) {
+          row.expires_at = params[1]
+        }
       }
     }
     return { success: true, meta: { changes: 1 } }

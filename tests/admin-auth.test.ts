@@ -268,7 +268,85 @@ describe('session endpoints', () => {
     await sessionHandler(makeContext(getRequest('/api/admin/session', `${session}; ${csrf}`), env))
     await sessionHandler(makeContext(getRequest('/api/admin/session', `${session}; ${csrf}`), env))
     const updatesAfter = db.statements.filter((s) => s.sql.startsWith('UPDATE sessions')).length
-    expect(updatesAfter).toBe(updatesBefore) // hourly bound not reached
+    expect(updatesAfter).toBe(updatesBefore) // probe does not write
+  })
+
+  it('enforces strict 15-minute idle timeout on inactive sessions', async () => {
+    const { session, csrf } = await loginToGetCookies()
+    const raw = session.split('=')[1]
+    const hash = await sha256Hex(raw)
+    const row = db.sessionRows().find((r) => r.token_hash === hash)!
+    const nowMs = Date.now()
+
+    // 14 minutes of inactivity: still valid
+    row.last_used_at = new Date(nowMs - 14 * 60 * 1000).toISOString()
+    const probe1 = await sessionHandler(makeContext(getRequest('/api/admin/session', `${session}; ${csrf}`), env))
+    const body1 = (await probe1.json()) as { authenticated: boolean }
+    expect(body1.authenticated).toBe(true)
+    expect(db.sessionRows().some((r) => r.token_hash === hash)).toBe(true)
+
+    // 15 minutes + 1 second of inactivity: expired
+    row.last_used_at = new Date(nowMs - (15 * 60 + 1) * 1000).toISOString()
+    const probe2 = await sessionHandler(makeContext(getRequest('/api/admin/session', `${session}; ${csrf}`), env))
+    const body2 = (await probe2.json()) as { authenticated: boolean }
+    expect(body2.authenticated).toBe(false)
+    // Row immediately purged
+    expect(db.sessionRows().some((r) => r.token_hash === hash)).toBe(false)
+    // Logged to audit
+    const expiredLog = db.authRows().find((r) => String(r.note).includes('session_expired'))
+    expect(expiredLog).toBeDefined()
+    expect(String(expiredLog?.note)).toContain('idle timeout')
+  })
+
+  it('enforces strict 12-hour absolute expiration even if recently active', async () => {
+    const { session, csrf } = await loginToGetCookies()
+    const raw = session.split('=')[1]
+    const hash = await sha256Hex(raw)
+    const row = db.sessionRows().find((r) => r.token_hash === hash)!
+    const nowMs = Date.now()
+
+    // Created 12h + 5s ago, but used 1 minute ago
+    row.created_at = new Date(nowMs - (12 * 60 * 60 + 5) * 1000).toISOString()
+    row.last_used_at = new Date(nowMs - 60 * 1000).toISOString()
+
+    const probe = await sessionHandler(makeContext(getRequest('/api/admin/session', `${session}; ${csrf}`), env))
+    const body = (await probe.json()) as { authenticated: boolean }
+    expect(body.authenticated).toBe(false)
+    expect(db.sessionRows().some((r) => r.token_hash === hash)).toBe(false)
+    const expiredLog = db.authRows().find((r) => String(r.note).includes('absolute timeout'))
+    expect(expiredLog).toBeDefined()
+  })
+
+  it('POST /api/admin/session: explicit keepalive refreshes last_used_at', async () => {
+    const { session, csrf } = await loginToGetCookies()
+    const raw = session.split('=')[1]
+    const hash = await sha256Hex(raw)
+    const row = db.sessionRows().find((r) => r.token_hash === hash)!
+    const initialUsedAt = new Date(Date.now() - 5 * 60 * 1000).toISOString()
+    row.last_used_at = initialUsedAt
+    const csrfToken = csrf.split('=')[1]
+
+    const { onRequestPost: refreshHandler } = await import('../functions/api/admin/session')
+    const response = await refreshHandler(
+      makeContext(
+        postJson('/api/admin/session', {}, { Cookie: `${session}; ${csrf}`, 'X-CSRF-Token': csrfToken }),
+        env
+      )
+    )
+    expect(response.status).toBe(200)
+    const body = (await response.json()) as { ok: boolean; lastUsedAt: string }
+    expect(body.ok).toBe(true)
+    expect(body.lastUsedAt).not.toBe(initialUsedAt)
+  })
+
+  it('unrecognized session cookie logs session_rejected', async () => {
+    const response = await sessionHandler(
+      makeContext(getRequest('/api/admin/session', 'admin_session=unknown-bogus-token'), env)
+    )
+    const body = (await response.json()) as { authenticated: boolean }
+    expect(body.authenticated).toBe(false)
+    const rejectedLog = db.authRows().find((r) => String(r.note).includes('session_rejected'))
+    expect(rejectedLog).toBeDefined()
   })
 })
 

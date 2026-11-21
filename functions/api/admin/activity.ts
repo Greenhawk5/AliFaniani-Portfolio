@@ -27,9 +27,10 @@ const FAILED_ACCESS_EVENTS = new Set([
   'login_rate_limited',
   'login_malformed',
   'session_rejected',
+  'session_expired',
 ])
 
-/** Events that represent content/publish operations (vs auth events). */
+/** Events that represent content/publish/media operations (vs auth events). */
 const CONTENT_EVENTS = new Set([
   'content_created',
   'content_updated',
@@ -41,6 +42,10 @@ const CONTENT_EVENTS = new Set([
   'publish_failed',
   'sync_dispatched',
   'sync_dispatch_failed',
+  'media_uploaded',
+  'media_upload_failed',
+  'media_deleted',
+  'media_delete_rejected',
 ])
 
 interface ActivityRow {

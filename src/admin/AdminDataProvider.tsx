@@ -25,6 +25,7 @@ import {
 } from './contentApi'
 import { fetchDeployState, type DeployStateInfo } from './publishApi'
 import { fetchActivity, type ActivityEvent, type ActivitySummary } from './activityApi'
+import type { SessionState } from './authApi'
 
 export interface AdminData {
   items: ContentListItem[] | null
@@ -32,6 +33,7 @@ export interface AdminData {
   deploy: DeployStateInfo | null
   activity: { events: ActivityEvent[]; summary: ActivitySummary } | null
   activityError: string
+  session: SessionState | null
   refreshContent: () => Promise<void>
   refreshDeploy: () => Promise<void>
   refreshActivity: () => Promise<void>
@@ -71,9 +73,11 @@ export function useContentCounts() {
 
 export function AdminDataProvider({
   children,
+  session = null,
   onAuthLost,
 }: {
   children: ReactNode
+  session?: SessionState | null
   onAuthLost: () => void
 }) {
   const [items, setItems] = useState<ContentListItem[] | null>(null)
@@ -155,12 +159,13 @@ export function AdminDataProvider({
       deploy,
       activity,
       activityError,
+      session,
       refreshContent,
       refreshDeploy,
       refreshActivity,
       refreshAll,
     }),
-    [items, itemsError, deploy, activity, activityError, refreshContent, refreshDeploy, refreshActivity, refreshAll]
+    [items, itemsError, deploy, activity, activityError, session, refreshContent, refreshDeploy, refreshActivity, refreshAll]
   )
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>

@@ -66,12 +66,13 @@ export default function AdminApp() {
   }
 
   return (
-    <AdminDataProvider onAuthLost={() => void checkSession()}>
+    <AdminDataProvider session={session} onAuthLost={() => void checkSession()}>
       <AdminShell
         view={route.view}
         onNavigate={(view) => route.navigate(view)}
         onLogout={() => void handleLogout()}
-        sessionExpiresAt={session.expiresAt}
+        session={session}
+        onSessionRefreshed={setSession}
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
       >

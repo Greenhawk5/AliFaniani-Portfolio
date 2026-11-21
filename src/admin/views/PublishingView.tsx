@@ -56,6 +56,7 @@ export function PublishingView() {
     setResult(publishResult)
     void data.refreshDeploy()
     void data.refreshContent()
+    void data.refreshActivity()
     const total =
       (publishResult.published?.projects ?? 0) +
       (publishResult.published?.profileSections ?? 0) +

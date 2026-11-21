@@ -16,10 +16,25 @@ export interface SessionState {
   authenticated: boolean
   csrfToken?: string
   expiresAt?: string
+  idleExpiresAt?: string
+  absoluteExpiresAt?: string
+  lastUsedAt?: string
+  createdAt?: string
 }
 
 export async function fetchSessionState(): Promise<SessionState> {
   const response = await fetch('/api/admin/session', { credentials: 'same-origin' })
+  if (!response.ok) return { authenticated: false }
+  return (await response.json()) as SessionState
+}
+
+export async function refreshSession(): Promise<SessionState> {
+  const csrfToken = readCsrfToken()
+  const response = await fetch('/api/admin/session', {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: { 'X-CSRF-Token': csrfToken },
+  })
   if (!response.ok) return { authenticated: false }
   return (await response.json()) as SessionState
 }

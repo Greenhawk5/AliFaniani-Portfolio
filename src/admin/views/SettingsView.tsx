@@ -72,8 +72,10 @@ export function SettingsView() {
 
 function SessionCard() {
   const data = useAdminData()
-  // expiresAt comes from the session probe on the shell; relative freshness is derived.
-  const expiresAt = data.deploy?.requestedAt ?? null
+  const session = data.session
+  const lastActive = session?.lastUsedAt ?? null
+  const expiresAt = session?.expiresAt ?? null
+
   return (
     <AdminCard>
       <CardHeader title="Sign-in session" />
@@ -83,17 +85,18 @@ function SessionCard() {
           <p className="mt-0.5 text-frost">Single-owner password + Turnstile</p>
         </div>
         <div>
-          <p className="text-xs text-mist/70">Session cookie</p>
-          <p className="mt-0.5 text-frost">HttpOnly · Secure · SameSite=Strict</p>
+          <p className="text-xs text-mist/70">Policy</p>
+          <p className="mt-0.5 text-frost">15m idle / 12h absolute limit</p>
         </div>
         <div>
-          <p className="text-xs text-mist/70">CSRF</p>
-          <p className="mt-0.5 text-frost">Required on all mutations (X-CSRF-Token)</p>
+          <p className="text-xs text-mist/70">CSRF & Transport</p>
+          <p className="mt-0.5 text-frost">X-CSRF-Token · HttpOnly / Strict</p>
         </div>
       </div>
       <p className="px-4 pb-3.5 text-xs text-mist/70">
-        Sessions expire after 7 days of inactivity (hard cap 30 days). Expires-at is held in memory by the
-        shell — last activity recorded {expiresAt ? formatRelative(expiresAt) : '—'}.
+        Strict server-side enforcement: sessions expire after 15 minutes of inactivity or 12 hours from creation.
+        Last activity recorded {lastActive ? formatRelative(lastActive) : 'just now'}.
+        {expiresAt ? ` Session valid until ${new Date(expiresAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.` : ''}
       </p>
     </AdminCard>
   )

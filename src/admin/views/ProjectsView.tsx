@@ -20,7 +20,7 @@ export function ProjectsView({
   param: string | null
   navigate: (view: 'projects', param?: string) => void
 }) {
-  const { items, refreshContent } = useAdminData()
+  const { items, refreshContent, refreshActivity } = useAdminData()
   const creating = param === 'new'
 
   // Titles need the record payload, which the list API does not carry — the
@@ -48,7 +48,10 @@ export function ProjectsView({
     return (
       <ContentEditor
         item={selected}
-        onSaved={() => void refreshContent()}
+        onSaved={() => {
+          void refreshContent()
+          void refreshActivity()
+        }}
         onClose={() => navigate('projects')}
       />
     )
@@ -68,7 +71,18 @@ export function ProjectsView({
       <ContentListView
         kind="project"
         accessors={accessors}
-        creating={creating ? <NewRecordDialogWrapper onDone={() => navigate('projects')} onCancel={() => navigate('projects')} /> : undefined}
+        creating={
+          creating ? (
+            <NewRecordDialogWrapper
+              onDone={(kind, key) => {
+                void refreshContent()
+                void refreshActivity()
+                navigate('projects', key)
+              }}
+              onCancel={() => navigate('projects')}
+            />
+          ) : undefined
+        }
         onOpenNew={() => navigate('projects', 'new')}
         onOpen={(item) => navigate('projects', item.key)}
       />

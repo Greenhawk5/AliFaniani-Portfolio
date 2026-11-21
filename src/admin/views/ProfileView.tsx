@@ -29,7 +29,7 @@ export function ProfileView({
   param: string | null
   navigate: (view: 'profile', param?: string) => void
 }) {
-  const { items, refreshContent } = useAdminData()
+  const { items, refreshContent, refreshActivity } = useAdminData()
 
   const accessors = useMemo<ListAccessors>(
     () => ({
@@ -48,7 +48,14 @@ export function ProfileView({
 
   if (selected) {
     return (
-      <ContentEditor item={selected} onSaved={() => void refreshContent()} onClose={() => navigate('profile')} />
+      <ContentEditor
+        item={selected}
+        onSaved={() => {
+          void refreshContent()
+          void refreshActivity()
+        }}
+        onClose={() => navigate('profile')}
+      />
     )
   }
 
