@@ -93,6 +93,8 @@ export const projectSchema = z.object({
   demo: z.string().url().optional(),
   demoStatus: z.string().optional(),
   documentation: z.string().url().optional(),
+  featured: z.boolean().optional(),
+  featuredOrder: z.number().int().min(1).max(5).optional(),
 })
 
 /* ------------------------------ profile sections --------------------------- */
