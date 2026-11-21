@@ -23,6 +23,20 @@ export interface AdminNotification {
   expiresAt?: string | null
 }
 
+interface NotificationRow {
+  id: string
+  type: NotificationType
+  severity: NotificationSeverity
+  title: string
+  message: string
+  metadata?: string | null
+  state: NotificationState
+  created_at: string
+  acknowledged_at?: string | null
+  resolved_at?: string | null
+  expires_at?: string | null
+}
+
 export async function listNotifications(
   db: D1Database,
   filterState?: NotificationState
@@ -40,9 +54,9 @@ export async function listNotifications(
     }
 
     const stmt = db.prepare(query)
-    const res = params.length > 0 ? await stmt.bind(...params).all() : await stmt.all()
+    const res = params.length > 0 ? await stmt.bind(...params).all<NotificationRow>() : await stmt.all<NotificationRow>()
 
-    return (res.results || []).map((r: any) => ({
+    return (res.results || []).map((r) => ({
       id: r.id,
       type: r.type,
       severity: r.severity,
@@ -89,20 +103,22 @@ export async function createNotification(
     const item = await db
       .prepare(`SELECT * FROM admin_notifications WHERE id = ?`)
       .bind(existing.id)
-      .first<any>()
+      .first<NotificationRow>()
 
-    return {
-      id: item.id,
-      type: item.type,
-      severity: item.severity,
-      title: item.title,
-      message: item.message,
-      metadata: item.metadata ? JSON.parse(item.metadata) : null,
-      state: item.state,
-      createdAt: item.created_at,
-      acknowledgedAt: item.acknowledged_at,
-      resolvedAt: item.resolved_at,
-      expiresAt: item.expires_at,
+    if (item) {
+      return {
+        id: item.id,
+        type: item.type,
+        severity: item.severity,
+        title: item.title,
+        message: item.message,
+        metadata: item.metadata ? JSON.parse(item.metadata) : null,
+        state: item.state,
+        createdAt: item.created_at,
+        acknowledgedAt: item.acknowledged_at,
+        resolvedAt: item.resolved_at,
+        expiresAt: item.expires_at,
+      }
     }
   }
 

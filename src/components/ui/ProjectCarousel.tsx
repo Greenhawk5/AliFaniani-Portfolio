@@ -23,11 +23,13 @@ export function ProjectCarousel({
   const containerRef = useRef<HTMLDivElement>(null)
 
   // Reduced motion preference detection
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(() => {
+    if (typeof window === 'undefined') return false
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  })
   useEffect(() => {
     if (typeof window === 'undefined') return
     const media = window.matchMedia('(prefers-reduced-motion: reduce)')
-    setPrefersReducedMotion(media.matches)
     const listener = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches)
     media.addEventListener('change', listener)
     return () => media.removeEventListener('change', listener)

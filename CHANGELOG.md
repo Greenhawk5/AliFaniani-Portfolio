@@ -5,6 +5,53 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.0] — 2026-11-21
+
+Major upgrade delivering intelligent homepage selected work rotation, first-party privacy-preserving analytics, 3D developer-room performance optimization, responsive projects grid refinement, actionable admin notifications, and EvilCharts visual design system.
+
+### 3D Room & Performance Architecture
+
+- **Project Board Lag Elimination** — Diagnosed and resolved critical clock domain mismatch in `src/three/screens/boardScreen.ts` and `src/components/three/ProjectBoard.tsx` where mixing `env.time` with `performance.now() / 1000` caused permanent transition lockouts and continuous 60/120 Hz texture uploads.
+- **Dirty-Flag Rendering & Pre-rendered Buffers** — Pre-rendered the 52 background grid lines and gradient canvases offscreen; canvas re-draws and GPU texture uploads (`texture.needsUpdate = true`) now occur strictly during active slide transitions (0% GPU texture overhead during idle states).
+- **Instant Slide Navigation** — Optimized slide transition to a crisp 350ms duration with zero dropped clicks, allowing responsive next/prev navigation without lockout delays.
+- **Real Visitor Counter Sign in 3D Room** — Upgraded the branded board beneath the digital clock in `src/components/three/ShelfDecor.tsx` to display real verified visitor counts fetched from `/api/analytics/stats`, rendered once onto canvas without continuous per-frame re-allocations.
+
+### Homepage Experience & Selected Work Carousel
+
+- **Intelligent Selected Work Carousel** — Replaced static badge pills in `src/pages/Home.tsx` with `src/components/ui/ProjectCarousel.tsx`, featuring 5-second auto-rotation, manual next/prev arrows, clickable slide progress dots, and keyboard navigation.
+- **Popularity & CMS Priority Ranking** — Implemented `computeFeaturedProjects` in `src/stores/projectStore.ts` combining manual CMS `featured: true` overrides (ordered by `featuredOrder`) with 30-day analytics popularity ranking, capped at exactly 5 projects.
+- **Accessibility & Motion Preferences** — Added full ARIA carousel semantics (`aria-roledescription="carousel"`, `aria-live="polite"`), auto-pause on hover/focus, and native support for `prefers-reduced-motion`.
+- **Refined 3D Room CTA** — Redesigned the 3D developer room launch card on the Homepage with a restrained cyber border, live indicator pill, smooth hover lighting, and directional arrow micro-animations without gaudy button styling.
+- **Homepage Visitor Badge** — Displayed verified visitor analytics chip in header and footer.
+
+### Hybrid Website Analytics & D1 Schema
+
+- **Database Migration 0006** — Added `migrations/0006_analytics_and_notifications.sql` introducing `page_view_events`, `analytics_daily`, `project_analytics_daily`, and `admin_notifications` tables with covering indexes.
+- **Privacy-Preserving Tracking Endpoint** — Implemented `functions/api/analytics/track.ts` using daily rotating salted SHA-256 session hashes (`sha256Hex(ip::ua::date::salt)`). Raw IP addresses are never persisted.
+- **Automated Bot & Crawler Filtering** — Comprehensive User-Agent regex checks filter out Googlebot, Bingbot, Lighthouse, crawlers, and headless browsers from public metrics.
+- **Rate-Limiting & Write Mitigation** — In-memory deduplication cache prevents rapid page refresh spam from burdening D1 writes.
+- **Public Cacheable Stats API** — Implemented `GET /api/analytics/stats` with `Cache-Control: public, max-age=60, s-maxage=300`.
+- **Authenticated Admin Analytics API** — Implemented `GET /api/admin/analytics` returning daily traffic trends, top pages, device distributions, and 30-day project rankings.
+- **Client Page Tracker Hook** — Built `src/hooks/useAnalyticsTracker.ts` using non-blocking `navigator.sendBeacon` for zero-overhead background analytics delivery.
+
+### Responsive Projects Page Refinement
+
+- **Adaptive Viewport Layout** — Refined `src/pages/Projects.tsx` grid from 320px mobile through 1920px ultrawide viewports (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`).
+- **Normalized Action Alignment** — Structured project cards with `flex flex-col h-full` and `mt-auto` action bars to ensure uniform button alignment regardless of title length or tag wrapping.
+- **Anti-Clipping Typography** — Prevented title and description clipping with responsive font sizes and line-clamp safety boundaries.
+
+### Actionable Admin Notifications & EvilCharts Design System
+
+- **D1 Notifications Lifecycle** — Implemented `functions/api/admin/notifications.ts` and `src/admin/notificationsApi.ts` managing real alerts across `active`, `acknowledged`, `resolved`, and `expired` states.
+- **One-Click Alert Management** — Added direct "Acknowledge" and "Resolve" actions in `src/admin/views/OverviewView.tsx` with live synchronization to D1.
+- **Admin Navigation Badges** — Integrated live notification counter pill into the `AdminShell` topbar and sidebar navigation rail.
+- **EvilCharts Integration** — Built lightweight, dark-cyberpunk SVG charts in `src/admin/ui/EvilCharts.tsx`:
+  - `DonutDistributionChart`: Interactive SVG donut with center percentage readout and hover slice inspection.
+  - `AreaTrendChart`: Smooth Bézier curves with interactive hover crosshairs, floating tooltips, and data-truthful auto-scaling.
+- **Visual Activity Analytics** — Embedded category donut distribution and 14-day activity pulse into `src/admin/views/ActivityView.tsx` and `src/admin/views/OverviewView.tsx`.
+- **Unified Form Controls** — Created accessible cyberpunk controls in `src/admin/ui/form-controls.tsx` (`AdminSelect`, `AdminInput`, `AdminSwitch`), replacing all native `<select>` elements in `ActivityView` and `MediaView`.
+- **CMS Featured Project Controls** — Added Homepage Featured switch and priority order inputs to `src/admin/ProjectForm.tsx`.
+
 ## [2.2.0] — 2026-11-21
 
 Production-quality CMS upgrade featuring Cloudflare R2 media storage, professional Admin Media Library, server-authoritative 15-minute session security, decoupled SEO-preserving publishing, and self-healing audit history.

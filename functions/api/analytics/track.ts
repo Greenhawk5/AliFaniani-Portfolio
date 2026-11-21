@@ -5,7 +5,7 @@
  * Strips sensitive query params, filters bot traffic, and rotates session hashes daily.
  */
 
-import { jsonResponse, badRequestResponse, clientIp } from '../../lib/http'
+import { jsonResponse, clientIp } from '../../lib/http'
 import { trackPageView, type TrackEventInput } from '../../lib/analytics'
 import type { PagesEnv } from '../../lib/auth-env'
 
@@ -22,12 +22,12 @@ export async function onRequestPost({
     return jsonResponse({ ok: false, error: 'Database unavailable' }, 503)
   }
 
-  let body: Record<string, unknown> = {}
   const contentType = request.headers.get('content-type') || ''
+  let body: Record<string, unknown>
 
   try {
     if (contentType.includes('application/json')) {
-      body = await request.json()
+      body = (await request.json()) as Record<string, unknown>
     } else if (contentType.includes('text/plain')) {
       // Beacon payloads often send JSON as text/plain
       const text = await request.text()

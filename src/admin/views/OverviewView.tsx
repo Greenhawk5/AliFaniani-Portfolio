@@ -20,7 +20,6 @@ import {
   relativeTime,
   absoluteTime,
 } from '../ui/primitives'
-import { MiniBars } from '../ui/MiniBars'
 import { AreaTrendChart } from '../ui/EvilCharts'
 import { FolderIcon, UserIcon, LinkIcon, RocketIcon, SearchIcon } from '../ui/icons'
 import { CheckIcon } from '@/components/ui/icons'

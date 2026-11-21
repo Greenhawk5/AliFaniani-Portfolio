@@ -1,4 +1,4 @@
-import { useState, useId } from 'react'
+import { useState, useId, useMemo } from 'react'
 import { cn } from '@/lib/cn'
 
 export interface DonutSlice {
@@ -36,20 +36,31 @@ export function DonutDistributionChart({
   const strokeWidth = 14
   const circumference = 2 * Math.PI * radius
 
-  let currentOffset = 0
-  const slices = data.map((d) => {
-    const fraction = total > 0 ? d.value / total : 0
-    const strokeDasharray = `${fraction * circumference} ${circumference}`
-    const strokeDashoffset = -currentOffset
-    currentOffset += fraction * circumference
-    return {
-      ...d,
-      fraction,
-      percentage: Math.round(fraction * 100),
-      strokeDasharray,
-      strokeDashoffset,
+  const slices = useMemo(() => {
+    const list: Array<
+      DonutSlice & {
+        fraction: number
+        percentage: number
+        strokeDasharray: string
+        strokeDashoffset: number
+      }
+    > = []
+    let offset = 0
+    for (const d of data) {
+      const fraction = total > 0 ? d.value / total : 0
+      const strokeDasharray = `${fraction * circumference} ${circumference}`
+      const strokeDashoffset = -offset
+      offset += fraction * circumference
+      list.push({
+        ...d,
+        fraction,
+        percentage: Math.round(fraction * 100),
+        strokeDasharray,
+        strokeDashoffset,
+      })
     }
-  })
+    return list
+  }, [data, total, circumference])
 
   const activeSlice = hoveredId
     ? slices.find((s) => s.id === hoveredId)

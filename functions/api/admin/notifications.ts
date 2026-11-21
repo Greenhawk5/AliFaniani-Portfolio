@@ -13,6 +13,8 @@ import {
   acknowledgeNotification,
   resolveNotification,
   type NotificationState,
+  type NotificationType,
+  type NotificationSeverity,
 } from '../../lib/notifications'
 import type { AdminEnv } from '../../lib/auth-env'
 
@@ -58,9 +60,9 @@ export async function onRequestPost({
     return unauthorizedResponse()
   }
 
-  let body: Record<string, any>
+  let body: Record<string, unknown>
   try {
-    body = await request.json()
+    body = (await request.json()) as Record<string, unknown>
   } catch {
     return badRequestResponse('Malformed JSON body')
   }
@@ -88,12 +90,12 @@ export async function onRequestPost({
       return badRequestResponse('Missing required notification fields')
     }
     const notification = await createNotification(env.DB, {
-      type: body.type,
-      severity: body.severity,
-      title: body.title,
-      message: body.message,
-      metadata: body.metadata,
-      expiresAt: body.expiresAt,
+      type: body.type as NotificationType,
+      severity: body.severity as NotificationSeverity,
+      title: String(body.title),
+      message: String(body.message),
+      metadata: body.metadata as Record<string, unknown> | undefined,
+      expiresAt: typeof body.expiresAt === 'string' ? body.expiresAt : undefined,
     })
     return jsonResponse({ ok: true, notification }, 201)
   }

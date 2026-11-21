@@ -32,18 +32,13 @@ export function AdminSelect<T extends string | number = string>({
   disabled = false,
 }: AdminSelectProps<T>) {
   const [isOpen, setIsOpen] = useState(false)
-  const [focusedIndex, setFocusedIndex] = useState(() =>
-    options.findIndex((o) => o.value === value)
-  )
+  const [navIndex, setNavIndex] = useState<number | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const listboxId = useId()
 
+  const selectedIndex = options.findIndex((o) => o.value === value)
+  const focusedIndex = navIndex !== null ? navIndex : selectedIndex >= 0 ? selectedIndex : 0
   const selectedOption = options.find((o) => o.value === value) ?? options[0]
-
-  useEffect(() => {
-    const idx = options.findIndex((o) => o.value === value)
-    if (idx >= 0) setFocusedIndex(idx)
-  }, [value, options])
 
   // Close on outside click
   useEffect(() => {
@@ -51,6 +46,7 @@ export function AdminSelect<T extends string | number = string>({
     const handleClickOutside = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setIsOpen(false)
+        setNavIndex(null)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
@@ -63,6 +59,7 @@ export function AdminSelect<T extends string | number = string>({
     if (!isOpen) {
       if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === ' ') {
         e.preventDefault()
+        setNavIndex(selectedIndex >= 0 ? selectedIndex : 0)
         setIsOpen(true)
       }
       return
@@ -72,14 +69,15 @@ export function AdminSelect<T extends string | number = string>({
       case 'Escape':
         e.preventDefault()
         setIsOpen(false)
+        setNavIndex(null)
         break
       case 'ArrowDown':
         e.preventDefault()
-        setFocusedIndex((prev) => (prev + 1) % options.length)
+        setNavIndex((prev) => ((prev !== null ? prev : selectedIndex) + 1) % options.length)
         break
       case 'ArrowUp':
         e.preventDefault()
-        setFocusedIndex((prev) => (prev - 1 + options.length) % options.length)
+        setNavIndex((prev) => ((prev !== null ? prev : selectedIndex) - 1 + options.length) % options.length)
         break
       case 'Enter':
       case ' ':
@@ -87,6 +85,7 @@ export function AdminSelect<T extends string | number = string>({
         if (focusedIndex >= 0 && focusedIndex < options.length) {
           onChange(options[focusedIndex].value)
           setIsOpen(false)
+          setNavIndex(null)
         }
         break
     }
