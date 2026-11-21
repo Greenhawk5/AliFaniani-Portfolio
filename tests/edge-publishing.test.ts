@@ -2,6 +2,8 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { FakeD1Database, FakeKV, makeEnv, makeContext } from './helpers'
 import { onRequest as middlewareHandler } from '../functions/_middleware'
 import { onRequestGet as sitemapHandler } from '../functions/sitemap.xml'
+import { onRequestGet as projectsApiHandler } from '../functions/api/projects/index'
+import { onRequestGet as projectDetailApiHandler } from '../functions/api/projects/[slug]'
 
 describe('Decoupled Edge Publishing & SEO (v2.2.0 Phase 4)', () => {
   let db: FakeD1Database
@@ -127,6 +129,8 @@ describe('Decoupled Edge Publishing & SEO (v2.2.0 Phase 4)', () => {
     expect(html).toContain('content="Advanced edge intelligence and automated workflows."')
     expect(html).toContain('href="https://alifaniani.ir/projects/hawklyx"')
     expect(html).toContain('content="https://media.alifaniani.ir/media/project/banner.webp"')
+    expect(html).toContain('<script id="__DYNAMIC_PROJECT__" type="application/json">')
+    expect(html).toContain('"slug":"hawklyx"')
   })
 
   it('returns 404 with X-Robots-Tag: noindex for draft-only projects', async () => {
@@ -219,6 +223,85 @@ describe('Decoupled Edge Publishing & SEO (v2.2.0 Phase 4)', () => {
     expect(xml).toContain('<loc>https://alifaniani.ir/projects/greenhawk-ai</loc>')
     expect(xml).toContain('<loc>https://alifaniani.ir/projects/hawklyx</loc>')
     expect(xml).toContain('<lastmod>2026-11-21</lastmod>')
+  })
+
+  it('GET /api/projects returns all published projects from D1', async () => {
+    db.tables.content = [
+      {
+        id: 'project:p1',
+        kind: 'project',
+        key: 'p1',
+        data: JSON.stringify({ slug: 'p1', title: 'Project 1' }),
+        sort_order: 1,
+        state: 'published',
+      },
+      {
+        id: 'project:p2',
+        kind: 'project',
+        key: 'p2',
+        data: JSON.stringify({ slug: 'p2', title: 'Project 2' }),
+        sort_order: 2,
+        state: 'published',
+      },
+      {
+        id: 'project:draft1',
+        kind: 'project',
+        key: 'draft1',
+        data: JSON.stringify({ slug: 'draft1', title: 'Draft Project' }),
+        sort_order: 3,
+        state: 'draft',
+      },
+    ]
+
+    const req = new Request('https://alifaniani.ir/api/projects')
+    const res = await (projectsApiHandler as any)(makeContext(req, env))
+    expect(res.status).toBe(200)
+    const list = await res.json()
+    expect(Array.isArray(list)).toBe(true)
+    expect(list.length).toBe(2)
+    expect(list.map((p: any) => p.slug)).toEqual(['p1', 'p2'])
+  })
+
+  it('GET /api/projects/:slug returns published project and rejects unpublished', async () => {
+    db.tables.content = [
+      {
+        id: 'project:published-app',
+        kind: 'project',
+        key: 'published-app',
+        data: JSON.stringify({ slug: 'published-app', title: 'Published App' }),
+        sort_order: 1,
+        state: 'published',
+      },
+      {
+        id: 'project:draft-app',
+        kind: 'project',
+        key: 'draft-app',
+        data: JSON.stringify({ slug: 'draft-app', title: 'Draft App' }),
+        sort_order: 2,
+        state: 'draft',
+      },
+    ]
+
+    // 1. Published project returns 200
+    const req1 = new Request('https://alifaniani.ir/api/projects/published-app')
+    const ctx1 = { ...makeContext(req1, env), params: { slug: 'published-app' } }
+    const res1 = await (projectDetailApiHandler as any)(ctx1)
+    expect(res1.status).toBe(200)
+    const data1 = await res1.json()
+    expect(data1.slug).toBe('published-app')
+
+    // 2. Draft project returns 404
+    const req2 = new Request('https://alifaniani.ir/api/projects/draft-app')
+    const ctx2 = { ...makeContext(req2, env), params: { slug: 'draft-app' } }
+    const res2 = await (projectDetailApiHandler as any)(ctx2)
+    expect(res2.status).toBe(404)
+    expect(res2.headers.get('X-Robots-Tag')).toBe('noindex')
+
+    // 3. Nonexistent project returns 404
+    const req3 = new Request('https://alifaniani.ir/api/projects/nonexistent')
+    const ctx3 = { ...makeContext(req3, env), params: { slug: 'nonexistent' } }
+    const res3 = await (projectDetailApiHandler as any)(ctx3)
+    expect(res3.status).toBe(404)
   })
 })
 

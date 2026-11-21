@@ -117,7 +117,14 @@ export class FakeD1Database {
   private selectMany(sql: string, params: unknown[]): Row[] {
     void params
     if (sql.includes('FROM content')) {
-      return [...(this.tables.content ?? [])]
+      let rows = [...(this.tables.content ?? [])]
+      if (sql.includes("state = 'published'")) {
+        rows = rows.filter((r) => r.state === 'published')
+      }
+      if (sql.includes("kind = 'project'")) {
+        rows = rows.filter((r) => r.kind === 'project')
+      }
+      return rows
     }
     if (sql.includes('FROM auth_log')) {
       const rows = [...(this.tables.auth_log ?? [])]

@@ -1,7 +1,94 @@
 {
   "schemaVersion": 1,
-  "exportedAt": "2026-11-12T10:35:38.888Z",
+  "exportedAt": "2026-11-21T14:36:43.004Z",
   "projects": [
+    {
+      "slug": "buckshot-tracker",
+      "title": "Buckshot Tracker",
+      "subtitle": "Buckshot Roulette tactical ammunition tracker for Telegram",
+      "shortDescription": "A Telegram Mini App for tracking Buckshot Roulette ammunition, calculating shell probabilities, and managing tactical game sessions using React, TypeScript, and serverless technologies.",
+      "overview": "Buckshot Tracker is a tactical companion for Buckshot Roulette, built as a Telegram Mini App. It provides real-time ammunition tracking, probability calculations, chamber position intelligence, and session history. The platform also includes a dedicated administrative dashboard for analytics, user management, system monitoring, and player feedback, powered by a serverless backend and persistent SQLite storage.",
+      "category": "Web · Telegram",
+      "year": 2026,
+      "banner": "https://media.alifaniani.ir/media/project/mwqhym52-2900666a-bot-banner-l.png",
+      "screenshots": [
+        {
+          "src": "https://media.alifaniani.ir/media/project/mwqhwg4y-b9e3b21e-03-owner-overview.png",
+          "caption": "Owner Command Center & Analytics Dashboard"
+        },
+        {
+          "src": "https://media.alifaniani.ir/media/project/mwqhwgd2-ad1c96fc-5-completed-state.png",
+          "caption": "Completed Session & Ammunition Summary"
+        },
+        {
+          "src": "https://media.alifaniani.ir/media/project/mwqhwgkk-1729a04a-01-tracker-main.png",
+          "caption": "Shotgun Load Configuration"
+        },
+        {
+          "src": "https://media.alifaniani.ir/media/project/mwqhwgsj-c76db7e7-02-about-page.png",
+          "caption": "Project Overview & Core Capabilities"
+        },
+        {
+          "src": "https://media.alifaniani.ir/media/project/mwqhwh0w-fe803d78-2-active-tracker.png",
+          "caption": "Live Ammunition Tracking & Probability Analysis"
+        }
+      ],
+      "technologies": [
+        "React",
+        "TypeScript",
+        "Vite",
+        "Telegram Mini Apps",
+        "Telegram Serverless",
+        "SQLite",
+        "Vitest"
+      ],
+      "techGroups": [
+        {
+          "label": "Frontend",
+          "items": [
+            "React",
+            "TypeScript",
+            "Vite",
+            "Telegram Mini Apps API"
+          ]
+        },
+        {
+          "label": "Backend",
+          "items": [
+            "Telegram Serverless",
+            "V8 Isolates"
+          ]
+        },
+        {
+          "label": "Data & Testing",
+          "items": [
+            "SQLite WAL",
+            "Vitest",
+            "Puppeteer"
+          ]
+        }
+      ],
+      "features": [
+        "Real-time tracking of live and blank ammunition with dynamic probability calculations",
+        "Burner Phone chamber position tracking and tactical intelligence",
+        "Beer Can shell ejection simulation and ammunition management",
+        "Reversible shot history with complete state restoration",
+        "Offline session persistence with automatic synchronization",
+        "Administrative dashboard with analytics, user management, and system monitoring",
+        "Multimedia broadcast campaigns and player feedback management",
+        "Security audit logs and CSV/JSON data exports"
+      ],
+      "architecture": [
+        "A React and TypeScript frontend runs as a Telegram Mini App",
+        "Vite builds optimized static assets for application delivery",
+        "Telegram Serverless executes backend endpoints in isolated V8 environments",
+        "SQLite with WAL mode provides persistent application storage",
+        "Telegram authentication and server-side authorization secure player and administrative operations",
+        "Local persistence and queued mutations support offline usage and automatic synchronization"
+      ],
+      "repository": "https://github.com/Greenhawk5/Buckshot-Tracker",
+      "demo": "https://t.me/BuckshotTrackerBot/tracker"
+    },
     {
       "slug": "greenhawk-ai",
       "title": "GreenHawk AI",

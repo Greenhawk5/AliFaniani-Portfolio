@@ -108,6 +108,15 @@ async function renderProjectEdgeShell(env, url, slug, project) {
     html = setAttr(html, /(<meta[^>]*name="twitter:image"[^>]*content=")[^"]*(")/, ogImage)
 
     const headers = new Headers(baseRes.headers)
+    headers.delete('content-length')
+    headers.delete('content-encoding')
+    headers.delete('etag')
+
+    // Inject dynamic project data script tag so React client hydrates immediately
+    const safeJson = JSON.stringify(project).replaceAll('<', '\\u003c')
+    const injection = `<script id="__DYNAMIC_PROJECT__" type="application/json">${safeJson}</script>\n</head>`
+    html = html.replace('</head>', injection)
+
     headers.set('Content-Type', 'text/html; charset=utf-8')
     headers.set('Cache-Control', 'public, max-age=60, s-maxage=300')
     headers.set('X-Content-Source', 'd1-edge-shell')
@@ -210,13 +219,18 @@ export async function onRequest(context) {
   }
 
   if (await isValidRoute(pathname, env, url)) {
-    // 1. Serve pre-rendered static shell if present
-    const shell = await env.ASSETS.fetch(new URL(pathname + '.html', url.origin).toString())
-    if (shell.status === 200) return shell
+    const isProjectRoute = pathname.startsWith('/projects/')
+    const slug = isProjectRoute ? (pathname.split('/')[2] ?? '') : ''
+    const meta = await loadContentMeta(env, url)
+
+    // 1. If it's a static route OR a build-time pre-rendered project, serve the static shell
+    if (!isProjectRoute || (meta && meta.projectSlugs.includes(slug))) {
+      const shell = await env.ASSETS.fetch(new URL(pathname + '.html', url.origin).toString())
+      if (shell.status === 200) return shell
+    }
 
     // 2. If project route without pre-rendered shell, dynamically generate edge shell from D1
-    if (pathname.startsWith('/projects/') && env.DB) {
-      const slug = pathname.split('/')[2] ?? ''
+    if (isProjectRoute && env.DB) {
       try {
         const row = await env.DB
           .prepare("SELECT data FROM content WHERE kind = 'project' AND key = ? AND state = 'published'")

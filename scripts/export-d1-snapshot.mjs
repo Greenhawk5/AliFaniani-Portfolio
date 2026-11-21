@@ -185,7 +185,7 @@ function validateSnapshot(snapshot, manifest, { contentSnapshotSchema }) {
     // board renders title/subtitle — both required by the schema already.
     const media = [project.banner, ...project.screenshots.map((s) => s.src)]
     for (const ref of media) {
-      if (!ref.startsWith('/assets/') && !manifest.media[ref]) {
+      if (!ref.startsWith('/assets/') && !ref.startsWith('https://media.alifaniani.ir/') && !manifest.media[ref]) {
         errors.push(`${project.slug}: media reference not in manifest: ${ref}`)
       }
     }
@@ -199,10 +199,10 @@ function validateSnapshot(snapshot, manifest, { contentSnapshotSchema }) {
   }
 
   for (const [ref, entry] of Object.entries(parsed.profile.hero.avatarSrc ? { [parsed.profile.hero.avatarSrc]: 1 } : {})) {
-    if (!ref.startsWith('/assets/') && !manifest.media[ref]) errors.push(`hero avatar not in manifest: ${ref}`)
+    if (!ref.startsWith('/assets/') && !ref.startsWith('https://media.alifaniani.ir/') && !manifest.media[ref]) errors.push(`hero avatar not in manifest: ${ref}`)
   }
   for (const cert of parsed.profile.certificates?.items ?? []) {
-    if (!cert.image.startsWith('/assets/') && !manifest.media[cert.image]) {
+    if (!cert.image.startsWith('/assets/') && !cert.image.startsWith('https://media.alifaniani.ir/') && !manifest.media[cert.image]) {
       errors.push(`certificate image not in manifest: ${cert.image}`)
     }
   }

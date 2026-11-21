@@ -14,10 +14,26 @@ import {
   ExternalLinkIcon,
   GitHubIcon,
 } from '@/components/ui/icons'
-import { getAdjacentProjects, getProjectBySlug, type BannerConfig } from '@/data/projects'
+import { getAdjacentProjects, getProjectBySlug, type BannerConfig, type Project } from '@/data/projects'
 import { SITE } from '@/app/config'
 import { ROUTE_META, PROJECT_NOT_FOUND_META } from '@/data/route-meta'
 import { useJsonLd } from '@/hooks/useJsonLd'
+
+function getInitialDynamicProject(targetSlug: string): Project | undefined {
+  if (typeof document === 'undefined') return undefined
+  const el = document.getElementById('__DYNAMIC_PROJECT__')
+  if (el && el.textContent) {
+    try {
+      const parsed = JSON.parse(el.textContent) as Project
+      if (parsed && parsed.slug === targetSlug) {
+        return parsed
+      }
+    } catch {
+      // ignore JSON parse error
+    }
+  }
+  return undefined
+}
 
 /**
  * Full-bleed banner presentation using controlled cropping (object-cover).
@@ -56,12 +72,43 @@ function ProjectBanner({ banner, bannerConfig }: { banner: string; bannerConfig?
 
 export default function ProjectDetail() {
   const { slug } = useParams<{ slug: string }>()
-  const project = getProjectBySlug(slug ?? '')
+  const staticProject = getProjectBySlug(slug ?? '')
+  const [dynamicProject, setDynamicProject] = useState<Project | undefined>(() =>
+    staticProject ? undefined : getInitialDynamicProject(slug ?? '')
+  )
+  const [loading, setLoading] = useState<boolean>(() => !staticProject && !dynamicProject)
+
+  useEffect(() => {
+    if (staticProject || dynamicProject || !slug) return
+    let cancelled = false
+    fetch(`/api/projects/${encodeURIComponent(slug)}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: Project | null) => {
+        if (!cancelled && data && data.slug === slug) {
+          setDynamicProject(data)
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [slug, staticProject, dynamicProject])
+
+  const project = staticProject ?? dynamicProject
   const { prev, next } = getAdjacentProjects(slug ?? '')
 
-  useDocumentMeta(
-    project ? ROUTE_META[`/projects/${project.slug}`] : { ...PROJECT_NOT_FOUND_META, noindex: true }
-  )
+  const meta = project
+    ? (ROUTE_META[`/projects/${project.slug}`] ?? {
+        title: `${project.title} | Ali Faniani`,
+        description: project.shortDescription || project.subtitle || project.overview,
+        canonical: `https://alifaniani.ir/projects/${project.slug}`,
+      })
+    : { ...PROJECT_NOT_FOUND_META, noindex: true }
+
+  useDocumentMeta(meta)
 
   useJsonLd(
     'project-detail',
@@ -81,6 +128,18 @@ export default function ProjectDetail() {
         }
       : null
   )
+
+  if (loading) {
+    return (
+      <PageTransition>
+        <PageContainer className="pt-32 pb-20">
+          <div className="flex justify-center items-center py-20">
+            <span className="font-mono text-xs text-mist animate-pulse">Loading project details…</span>
+          </div>
+        </PageContainer>
+      </PageTransition>
+    )
+  }
 
   if (!project) {
     return (

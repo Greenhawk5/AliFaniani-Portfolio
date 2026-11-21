@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useDocumentMeta } from '@/hooks/useDocumentMeta'
 import { PageTransition } from '@/components/ui/PageTransition'
@@ -6,12 +7,29 @@ import { Card } from '@/components/ui/Card'
 import { Badge, TechTag } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { ArrowRightIcon, ExternalLinkIcon } from '@/components/ui/icons'
-import { projects } from '@/data/projects'
+import { projects as staticProjects, type Project } from '@/data/projects'
 import { SITE } from '@/app/config'
 import { ROUTE_META } from '@/data/route-meta'
 import { useJsonLd } from '@/hooks/useJsonLd'
 
 export default function Projects() {
+  const [projectList, setProjectList] = useState<Project[]>(staticProjects)
+
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/projects')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: Project[] | null) => {
+        if (!cancelled && Array.isArray(data) && data.length > 0) {
+          setProjectList(data)
+        }
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   useDocumentMeta(ROUTE_META['/projects'])
 
   useJsonLd('projects-index', {
@@ -20,7 +38,7 @@ export default function Projects() {
     '@id': `${SITE.url}/projects#projects`,
     url: `${SITE.url}/projects`,
     name: 'Projects by Ali Faniani',
-    itemListElement: projects.map((project, index) => ({
+    itemListElement: projectList.map((project, index) => ({
       '@type': 'ListItem',
       position: index + 1,
       url: `${SITE.url}/projects/${project.slug}`,
@@ -43,7 +61,7 @@ export default function Projects() {
         </header>
 
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {projects.map((project) => (
+          {projectList.map((project) => (
             <Card
               key={project.slug}
               hover
