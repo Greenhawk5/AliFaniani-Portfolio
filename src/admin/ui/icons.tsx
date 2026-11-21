@@ -167,3 +167,39 @@ export function PanelLeftIcon({ className }: IconProps) {
     </svg>
   )
 }
+
+export function UploadCloudIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" />
+      <path d="M12 12v9" />
+      <path d="m16 16-4-4-4 4" />
+    </svg>
+  )
+}
+
+export function CopyIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+    </svg>
+  )
+}
+
+export function CheckIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  )
+}
+
+export function XIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  )
+}
