@@ -46,7 +46,7 @@ export function OverviewView({ onNavigate: navigate }: { onNavigate: (view: Admi
     // 1. First priority: Real actionable notifications from D1 admin_notifications table
     if (data.notifications) {
       for (const n of data.notifications) {
-        if (n.state === 'resolved' || n.state === 'expired') continue
+        if (n.state === 'resolved' || n.state === 'expired' || n.state === 'dismissed') continue
         const tone: 'danger' | 'warning' | 'info' =
           n.severity === 'critical' ? 'danger' : n.severity === 'warning' ? 'warning' : 'info'
         issues.push({
@@ -182,6 +182,17 @@ export function OverviewView({ onNavigate: navigate }: { onNavigate: (view: Admi
                       onClick={() => void data.resolveNotification(issue.notifId!)}
                     >
                       Resolve
+                    </Button>
+                  )}
+                  {issue.notifId && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-mist hover:text-danger hover:border-danger/30"
+                      onClick={() => void data.dismissNotification(issue.notifId!)}
+                      title="Dismiss notification"
+                    >
+                      Dismiss
                     </Button>
                   )}
                   {issue.action && (

@@ -7,7 +7,7 @@
 
 export type NotificationType = 'deploy' | 'sync' | 'security' | 'content' | 'system'
 export type NotificationSeverity = 'info' | 'warning' | 'critical'
-export type NotificationState = 'active' | 'acknowledged' | 'resolved' | 'expired'
+export type NotificationState = 'active' | 'acknowledged' | 'dismissed' | 'resolved' | 'expired'
 
 export interface AdminNotification {
   id: string
@@ -195,4 +195,32 @@ export async function resolveNotification(db: D1Database, id: string): Promise<b
     .run()
 
   return (res.meta?.changes ?? 0) > 0
+}
+
+export async function dismissNotification(db: D1Database, id: string): Promise<boolean> {
+  const now = new Date().toISOString()
+  try {
+    const res = await db
+      .prepare(
+        `UPDATE admin_notifications
+         SET state = 'dismissed', resolved_at = ?
+         WHERE id = ? AND state IN ('active', 'acknowledged')`
+      )
+      .bind(now, id)
+      .run()
+
+    if ((res.meta?.changes ?? 0) > 0) return true
+  } catch {
+    // If table CHECK constraint does not yet allow 'dismissed', fall back to 'resolved'
+    const res = await db
+      .prepare(
+        `UPDATE admin_notifications
+         SET state = 'resolved', resolved_at = ?
+         WHERE id = ? AND state IN ('active', 'acknowledged')`
+      )
+      .bind(now, id)
+      .run()
+    return (res.meta?.changes ?? 0) > 0
+  }
+  return false
 }

@@ -20,15 +20,18 @@ export function ProjectBoard() {
     const slides: BoardSlide[] = featuredProjects().map((p) => ({
       title: p.title,
       tagline: p.subtitle,
-      tags: p.technologies.slice(0, 5),
+      tags: p.technologies,
       accent: '#39ff8b',
       accent2: '#37d5ff',
-      initial: p.title
-        .split(' ')
-        .map((w) => w[0])
-        .join('')
-        .slice(0, 3)
-        .toUpperCase(),
+      shortName: p.shortName,
+      initial:
+        p.shortName?.trim() ||
+        p.title
+          .split(' ')
+          .map((w) => w[0])
+          .join('')
+          .slice(0, 3)
+          .toUpperCase(),
     }))
     return createBoardRenderer(slides)
   }, [])

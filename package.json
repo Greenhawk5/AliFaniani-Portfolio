@@ -1,7 +1,7 @@
 {
   "name": "ali-faniani-portfolio",
   "private": true,
-  "version": "2.3.0",
+  "version": "2.3.1",
   "type": "module",
   "description": "Portfolio of Ali Faniani — software developer focused on AI, backend, web, and automation. Includes an interactive 3D developer room at /room.",
   "scripts": {
@@ -31,6 +31,7 @@
     "@react-three/drei": "^10.7.8",
     "@react-three/fiber": "^9.7.0",
     "@react-three/postprocessing": "^3.1.0",
+    "echarts": "^6.1.0",
     "framer-motion": "^13.1.1",
     "gsap": "^3.15.0",
     "postprocessing": "^6.39.4",

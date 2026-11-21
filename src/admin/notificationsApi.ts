@@ -7,7 +7,7 @@ export interface AdminNotification {
   title: string
   message: string
   metadata?: Record<string, unknown> | null
-  state: 'active' | 'acknowledged' | 'resolved' | 'expired'
+  state: 'active' | 'acknowledged' | 'dismissed' | 'resolved' | 'expired'
   createdAt: string
   acknowledgedAt?: string | null
   resolvedAt?: string | null
@@ -61,6 +61,26 @@ export async function resolveNotification(id: string): Promise<boolean> {
       'X-CSRF-Token': csrfToken,
     },
     body: JSON.stringify({ action: 'resolve', id }),
+  })
+  if (res.status === 401) {
+    const err = new Error('Unauthorized') as Error & { status: number }
+    err.status = 401
+    throw err
+  }
+  if (!res.ok) return false
+  const data = (await res.json()) as { ok: boolean }
+  return !!data.ok
+}
+
+export async function dismissNotification(id: string): Promise<boolean> {
+  const csrfToken = readCsrfToken()
+  const res = await fetch('/api/admin/notifications', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-Token': csrfToken,
+    },
+    body: JSON.stringify({ action: 'dismiss', id }),
   })
   if (res.status === 401) {
     const err = new Error('Unauthorized') as Error & { status: number }

@@ -12,6 +12,7 @@ import {
   createNotification,
   acknowledgeNotification,
   resolveNotification,
+  dismissNotification,
   type NotificationState,
   type NotificationType,
   type NotificationSeverity,
@@ -82,6 +83,14 @@ export async function onRequestPost({
       return badRequestResponse('Missing notification id')
     }
     const success = await resolveNotification(env.DB, body.id)
+    return jsonResponse({ ok: success })
+  }
+
+  if (action === 'dismiss') {
+    if (!body.id || typeof body.id !== 'string') {
+      return badRequestResponse('Missing notification id')
+    }
+    const success = await dismissNotification(env.DB, body.id)
     return jsonResponse({ ok: success })
   }
 

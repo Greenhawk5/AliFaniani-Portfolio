@@ -39,4 +39,15 @@ export default tseslint.config(
       'react-hooks/purity': 'off',
     },
   },
+  {
+    files: ['src/components/evilcharts/**/*.{ts,tsx}'],
+    rules: {
+      'react-hooks/refs': 'off',
+      'react-hooks/immutability': 'off',
+      'react-hooks/purity': 'off',
+      'react-hooks/set-state-in-effect': 'off',
+      'react-hooks/exhaustive-deps': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
+    },
+  },
 )

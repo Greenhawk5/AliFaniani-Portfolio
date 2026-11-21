@@ -4,6 +4,7 @@ import { Navbar } from './Navbar'
 import { Footer } from './Footer'
 import { BackToTop } from './BackToTop'
 import { SettingsPanel } from './SettingsPanel'
+import { VisitorStatsModal } from '@/components/room/VisitorStatsModal'
 import { useUiStore } from '@/stores/uiStore'
 import { useAnalyticsTracker } from '@/hooks/useAnalyticsTracker'
 
@@ -20,16 +21,19 @@ function EscapeHandler() {
   const setFocus = useUiStore((s) => s.setFocus)
   const settingsOpen = useUiStore((s) => s.settingsOpen)
   const setSettingsOpen = useUiStore((s) => s.setSettingsOpen)
+  const visitorStatsOpen = useUiStore((s) => s.visitorStatsOpen)
+  const setVisitorStatsOpen = useUiStore((s) => s.setVisitorStatsOpen)
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return
-      if (settingsOpen) setSettingsOpen(false)
+      if (visitorStatsOpen) setVisitorStatsOpen(false)
+      else if (settingsOpen) setSettingsOpen(false)
       else if (focus) setFocus(null)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [focus, setFocus, settingsOpen, setSettingsOpen])
+  }, [focus, setFocus, settingsOpen, setSettingsOpen, visitorStatsOpen, setVisitorStatsOpen])
   return null
 }
 
@@ -42,13 +46,14 @@ export function Layout() {
   const isRoom = pathname === '/room'
   const setFocus = useUiStore((s) => s.setFocus)
   const setSettingsOpen = useUiStore((s) => s.setSettingsOpen)
+  const setVisitorStatsOpen = useUiStore((s) => s.setVisitorStatsOpen)
 
   useEffect(() => {
     setFocus(null)
-    // Never carry an open settings dialog across a route change — the
-    // settings trigger only exists on /room.
+    // Never carry an open settings or stats dialog across a route change
     setSettingsOpen(false)
-  }, [pathname, setFocus, setSettingsOpen])
+    setVisitorStatsOpen(false)
+  }, [pathname, setFocus, setSettingsOpen, setVisitorStatsOpen])
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -61,6 +66,7 @@ export function Layout() {
       {!isLanding && !isRoom && <Footer />}
       {!isLanding && !isRoom && <BackToTop />}
       <SettingsPanel />
+      <VisitorStatsModal />
     </div>
   )
 }
