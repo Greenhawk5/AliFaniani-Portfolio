@@ -126,11 +126,19 @@ export class FakeD1Database {
       const count = contentRows.filter((r) => r.kind === 'project' && r.state === 'published').length
       return { count } as Row
     }
-    if (/SELECT id FROM admin_notifications WHERE type = \? AND title = \? AND state IN \('active', 'acknowledged'\)/.test(sql)) {
+    if (/SELECT id FROM admin_notifications WHERE type = \? AND title = \? AND state = 'active'/.test(sql) || /SELECT id FROM admin_notifications WHERE type = \? AND title = \? AND state IN \('active', 'acknowledged'\)/.test(sql)) {
       const notifRows = this.tables.admin_notifications ?? []
       const [type, title] = params
-      const found = notifRows.find((r) => r.type === type && r.title === title && (r.state === 'active' || r.state === 'acknowledged'))
+      const found = notifRows.find((r) => r.type === type && r.title === title && r.state === 'active')
       return found ? ({ id: found.id } as Row) : null
+    }
+    if (/SELECT\s+COUNT\(\*\) as total,.*FROM auth_log/is.test(sql)) {
+      const authRows = this.tables.auth_log ?? []
+      const total = authRows.length
+      const content_count = authRows.filter((r) => String(r.note ?? '').startsWith('content_') || String(r.note ?? '').startsWith('media_')).length
+      const publish_count = authRows.filter((r) => String(r.note ?? '').startsWith('publish_') || String(r.note ?? '').startsWith('sync_') || String(r.note ?? '').startsWith('deploy_')).length
+      const auth_count = authRows.filter((r) => String(r.note ?? '').startsWith('login_') || String(r.note ?? '').startsWith('session_')).length
+      return { total, content_count, publish_count, auth_count } as Row
     }
     if (/SELECT \* FROM admin_notifications WHERE id = \?/.test(sql)) {
       const notifRows = this.tables.admin_notifications ?? []
@@ -229,10 +237,10 @@ export class FakeD1Database {
     if (sql.includes('FROM project_analytics_daily')) {
       const projRows = [...(this.tables.project_analytics_daily ?? [])]
       if (/GROUP BY project_slug/i.test(sql)) {
-        const bySlug: Record<string, { slug: string; views: number; visitors: number }> = {}
+        const bySlug: Record<string, { slug: string; project_slug: string; views: number; visitors: number }> = {}
         for (const r of projRows) {
           const s = String(r.project_slug)
-          bySlug[s] ??= { slug: s, views: 0, visitors: 0 }
+          bySlug[s] ??= { slug: s, project_slug: s, views: 0, visitors: 0 }
           bySlug[s].views += Number(r.views || 0)
           bySlug[s].visitors += Number(r.unique_visitors || 0)
         }
@@ -427,6 +435,17 @@ export class FakeD1Database {
         acknowledged_at: null,
         resolved_at: null,
       })
+    } else if (/UPDATE admin_notifications\s+SET state = 'expired'/.test(sql)) {
+      const [nowIso] = params
+      const targetRows = (this.tables.admin_notifications ??= [])
+      let count = 0
+      for (const row of targetRows) {
+        if ((row.state === 'active' || row.state === 'acknowledged') && row.expires_at && String(row.expires_at) < String(nowIso)) {
+          row.state = 'expired'
+          count++
+        }
+      }
+      return { success: true, meta: { changes: count } }
     } else if (/UPDATE admin_notifications\s+SET state = 'acknowledged'/.test(sql)) {
       const [now, id] = params
       const targetRows = (this.tables.admin_notifications ??= [])

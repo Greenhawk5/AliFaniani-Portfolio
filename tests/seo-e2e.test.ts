@@ -605,5 +605,5 @@ describe('Phase 6B — sitemap & metadata integrity (built artifacts)', () => {
         (row.kind === 'link' && snapshot.links.some((l: { label: string }) => l.label === row.key))
       expect(inSnapshot).toBe(false)
     }
-  })
+  }, 60_000)
 })

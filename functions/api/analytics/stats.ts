@@ -22,6 +22,7 @@ export async function onRequestGet({
         totalViews: 3720,
         activeProjects: 6,
         timestamp: new Date().toISOString(),
+        popularProjects: [],
       },
       200,
       {

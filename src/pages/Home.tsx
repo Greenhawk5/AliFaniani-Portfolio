@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useDocumentMeta } from '@/hooks/useDocumentMeta'
 import { SITE } from '@/app/config'
 import { BrandLogo } from '@/components/ui/BrandLogo'
-import { featuredProjects } from '@/stores/projectStore'
+import { computeFeaturedProjects, useProjectStore } from '@/stores/projectStore'
+import { projects as staticProjects, type Project } from '@/data/projects'
 import { ArrowRightIcon } from '@/components/ui/icons'
 import { GooExperienceIcon } from '@/components/home/GooExperienceIcon'
 import { ProjectCarousel } from '@/components/ui/ProjectCarousel'
@@ -21,6 +22,7 @@ interface PublicStats {
   totalVisitors: number
   totalViews: number
   activeProjects: number
+  popularProjects?: string[]
 }
 
 /**
@@ -32,6 +34,8 @@ interface PublicStats {
  */
 export default function Home() {
   const [stats, setStats] = useState<PublicStats | null>(null)
+  const [projectList, setProjectList] = useState<Project[]>(staticProjects)
+  const popularSlugs = useProjectStore((s) => s.popularSlugs)
 
   useEffect(() => {
     let cancelled = false
@@ -40,9 +44,22 @@ export default function Home() {
       .then((data: PublicStats | null) => {
         if (!cancelled && data && typeof data.totalVisitors === 'number') {
           setStats(data)
+          if (Array.isArray(data.popularProjects) && data.popularProjects.length > 0) {
+            useProjectStore.getState().setPopularSlugs(data.popularProjects)
+          }
         }
       })
       .catch(() => {})
+
+    fetch('/api/projects')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: Project[] | null) => {
+        if (!cancelled && Array.isArray(data) && data.length > 0) {
+          setProjectList(data)
+        }
+      })
+      .catch(() => {})
+
     return () => {
       cancelled = true
     }
@@ -54,7 +71,10 @@ export default function Home() {
       'Ali Faniani is a software developer building practical software systems across AI, backend engineering, web, and automation with modern technologies.',
   })
 
-  const carouselItems = featuredProjects()
+  const carouselItems = useMemo(
+    () => computeFeaturedProjects(projectList, popularSlugs),
+    [projectList, popularSlugs]
+  )
 
   return (
     <div className="relative flex min-h-dvh flex-col overflow-hidden">

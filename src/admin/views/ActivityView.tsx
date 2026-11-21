@@ -96,12 +96,20 @@ export function ActivityView() {
   }
 
   const distributionSlices = useMemo(() => {
+    const allTime = activity?.summary.allTime
+    if (allTime && allTime.total > 0) {
+      return [
+        { id: 'content', label: 'Content', value: allTime.content, color: '#39ff8b' },
+        { id: 'publish', label: 'Publish', value: allTime.publish, color: '#37d5ff' },
+        { id: 'auth', label: 'Sign-in', value: allTime.auth, color: '#f59e0b' },
+      ]
+    }
     return [
       { id: 'content', label: 'Content', value: counts.content, color: '#39ff8b' },
       { id: 'publish', label: 'Publish', value: counts.publish, color: '#37d5ff' },
       { id: 'auth', label: 'Sign-in', value: counts.auth, color: '#f59e0b' },
     ]
-  }, [counts])
+  }, [counts, activity?.summary.allTime])
 
   const activityTrendData = useMemo(() => {
     const days: Array<{ label: string; value: number; fullDate: string }> = []

@@ -123,11 +123,46 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     }
   })
 
+  let allTimeCounts = {
+    total: events.length,
+    content: events.filter((e) => CONTENT_EVENTS.has(e.event)).length,
+    publish: events.filter((e) => e.event.startsWith('publish_') || e.event.startsWith('sync_') || e.event.startsWith('deploy_')).length,
+    auth: events.filter((e) => e.event.startsWith('login_') || e.event.startsWith('session_')).length,
+  }
+
+  try {
+    const aggRow = await env.DB.prepare(
+      `SELECT
+         COUNT(*) as total,
+         SUM(CASE WHEN note LIKE 'content_%' OR note LIKE 'media_%' THEN 1 ELSE 0 END) as content_count,
+         SUM(CASE WHEN note LIKE 'publish_%' OR note LIKE 'sync_%' OR note LIKE 'deploy_%' THEN 1 ELSE 0 END) as publish_count,
+         SUM(CASE WHEN note LIKE 'login_%' OR note LIKE 'session_%' THEN 1 ELSE 0 END) as auth_count
+       FROM auth_log`
+    ).first<{
+      total: number | null
+      content_count: number | null
+      publish_count: number | null
+      auth_count: number | null
+    }>()
+
+    if (aggRow && typeof aggRow.total === 'number') {
+      allTimeCounts = {
+        total: aggRow.total,
+        content: aggRow.content_count ?? 0,
+        publish: aggRow.publish_count ?? 0,
+        auth: aggRow.auth_count ?? 0,
+      }
+    }
+  } catch {
+    // fallback to slice counts
+  }
+
   const summary = {
     total: events.length,
     failedAccess: events.filter((e) => FAILED_ACCESS_EVENTS.has(e.event)).length,
     contentEvents: events.filter((e) => CONTENT_EVENTS.has(e.event)).length,
     lastTs: events[0]?.ts ?? null,
+    allTime: allTimeCounts,
   }
 
   return jsonResponse({ events, summary })

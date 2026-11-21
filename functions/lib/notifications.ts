@@ -42,6 +42,23 @@ export async function listNotifications(
   filterState?: NotificationState
 ): Promise<AdminNotification[]> {
   try {
+    const nowIso = new Date().toISOString()
+    // Auto-expire stale notifications whose expires_at has passed
+    try {
+      await db
+        .prepare(
+          `UPDATE admin_notifications
+           SET state = 'expired'
+           WHERE state IN ('active', 'acknowledged')
+             AND expires_at IS NOT NULL
+             AND expires_at < ?`
+        )
+        .bind(nowIso)
+        .run()
+    } catch {
+      // non-fatal
+    }
+
     let query = `SELECT id, type, severity, title, message, metadata, state, created_at, acknowledged_at, resolved_at, expires_at
                  FROM admin_notifications`
     const params: unknown[] = []
@@ -90,10 +107,10 @@ export async function createNotification(
   const now = new Date().toISOString()
   const metadataJson = data.metadata ? JSON.stringify(data.metadata) : null
 
-  // Check if identical active notification already exists (idempotency)
+  // Check if identical active notification already exists (idempotency while active)
   const existing = await db
     .prepare(
-      `SELECT id FROM admin_notifications WHERE type = ? AND title = ? AND state IN ('active', 'acknowledged')`
+      `SELECT id FROM admin_notifications WHERE type = ? AND title = ? AND state = 'active'`
     )
     .bind(data.type, data.title)
     .first<{ id: string }>()

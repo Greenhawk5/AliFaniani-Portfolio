@@ -166,10 +166,12 @@ export interface PublicStats {
   totalViews: number
   activeProjects: number
   timestamp: string
+  popularProjects: string[]
 }
 
 export async function getPublicAnalyticsStats(db: D1Database): Promise<PublicStats> {
   const baselineOffset = 1240 // Established baseline representation for public display
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 86400 * 1000).toISOString().slice(0, 10)
 
   try {
     const viewsRow = await db
@@ -180,14 +182,28 @@ export async function getPublicAnalyticsStats(db: D1Database): Promise<PublicSta
       .prepare(`SELECT COUNT(*) as count FROM content WHERE kind = 'project' AND state = 'published'`)
       .first<{ count: number | null }>()
 
+    const popularRows = await db
+      .prepare(
+        `SELECT project_slug
+         FROM project_analytics_daily
+         WHERE date >= ?
+         GROUP BY project_slug
+         ORDER BY SUM(views) DESC, SUM(unique_visitors) DESC
+         LIMIT 5`
+      )
+      .bind(thirtyDaysAgo)
+      .all<{ project_slug: string }>()
+
     const recordedVisitors = viewsRow?.total_visitors ?? 0
     const recordedViews = viewsRow?.total_views ?? 0
+    const popularProjects = (popularRows.results ?? []).map((r) => r.project_slug)
 
     return {
       totalVisitors: baselineOffset + recordedVisitors,
       totalViews: baselineOffset * 3 + recordedViews,
       activeProjects: projectsRow?.count ?? 6,
       timestamp: new Date().toISOString(),
+      popularProjects,
     }
   } catch {
     return {
@@ -195,6 +211,7 @@ export async function getPublicAnalyticsStats(db: D1Database): Promise<PublicSta
       totalViews: baselineOffset * 3,
       activeProjects: 6,
       timestamp: new Date().toISOString(),
+      popularProjects: [],
     }
   }
 }

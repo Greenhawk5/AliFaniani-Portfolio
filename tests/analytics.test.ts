@@ -153,10 +153,14 @@ describe('POST /api/analytics/track', () => {
 })
 
 describe('GET /api/analytics/stats', () => {
-  it('returns truthful public stats with cache headers', async () => {
+  it('returns truthful public stats with cache headers and 30-day popular projects', async () => {
     db.tables.analytics_daily = [
       { date: '2026-11-20', path: '/', views: 10, unique_visitors: 8 },
       { date: '2026-11-21', path: '/projects/morsemate', views: 5, unique_visitors: 4 },
+    ]
+    db.tables.project_analytics_daily = [
+      { date: '2026-11-20', project_slug: 'morsemate', views: 15, unique_visitors: 12 },
+      { date: '2026-11-21', project_slug: 'hawklyx', views: 35, unique_visitors: 28 },
     ]
     db.tables.content = [
       { id: 'project:morsemate', kind: 'project', state: 'published' },
@@ -168,10 +172,11 @@ describe('GET /api/analytics/stats', () => {
     expect(res.status).toBe(200)
     expect(res.headers.get('Cache-Control')).toContain('public')
 
-    const stats = await res.json() as any
+    const stats = (await res.json()) as any
     expect(stats.totalVisitors).toBe(1240 + 12)
     expect(stats.totalViews).toBe(1240 * 3 + 15)
     expect(stats.activeProjects).toBe(2)
+    expect(stats.popularProjects).toEqual(['hawklyx', 'morsemate'])
   })
 })
 
@@ -252,5 +257,96 @@ describe('Admin Analytics & Actionable Notifications', () => {
     const resolveRes = await postNotificationsHandler(makeContext(resolveReq, env))
     expect(resolveRes.status).toBe(200)
     expect(db.tables.admin_notifications[0].state).toBe('resolved')
+  })
+
+  it('deduplicates active notifications but detects new occurrences once acknowledged', async () => {
+    const { cookies, csrf } = await loginContext()
+
+    const makeAlert = (title = 'Multiple failed sign-in attempts') =>
+      postJson(
+        '/api/admin/notifications',
+        {
+          action: 'create',
+          type: 'security',
+          severity: 'warning',
+          title,
+          message: 'IP 198.51.100.1 failed password 3 times',
+        },
+        { Cookie: cookies, 'X-CSRF-Token': csrf },
+        '203.0.113.77'
+      )
+
+    // 1. Initial creation
+    const res1 = await postNotificationsHandler(makeContext(makeAlert(), env))
+    expect(res1.status).toBe(201)
+    const id1 = ((await res1.json()) as any).notification.id
+
+    // 2. Duplicate while active -> returns existing, doesn't create new row
+    const res2 = await postNotificationsHandler(makeContext(makeAlert(), env))
+    expect(res2.status).toBe(201)
+    const id2 = ((await res2.json()) as any).notification.id
+    expect(id2).toBe(id1)
+    expect(db.tables.admin_notifications).toHaveLength(1)
+
+    // 3. Admin acknowledges
+    const ackReq = postJson(
+      '/api/admin/notifications',
+      { action: 'acknowledge', id: id1 },
+      { Cookie: cookies, 'X-CSRF-Token': csrf },
+      '203.0.113.77'
+    )
+    await postNotificationsHandler(makeContext(ackReq, env))
+    expect(db.tables.admin_notifications[0].state).toBe('acknowledged')
+
+    // 4. Subsequent failure occurs AFTER acknowledgement -> must create new active notification!
+    const res3 = await postNotificationsHandler(makeContext(makeAlert(), env))
+    expect(res3.status).toBe(201)
+    const id3 = ((await res3.json()) as any).notification.id
+    expect(id3).not.toBe(id1)
+    expect(db.tables.admin_notifications).toHaveLength(2)
+    expect(db.tables.admin_notifications[1].state).toBe('active')
+  })
+
+  it('automatically marks expired notifications on retrieval', async () => {
+    const { cookies } = await loginContext()
+    const pastDate = new Date(Date.now() - 3600 * 1000).toISOString()
+
+    db.tables.admin_notifications = [
+      {
+        id: 'notif_old',
+        type: 'security',
+        severity: 'warning',
+        title: 'Old lockout alert',
+        message: 'Expired alert',
+        metadata: null,
+        state: 'active',
+        created_at: new Date(Date.now() - 7200 * 1000).toISOString(),
+        expires_at: pastDate,
+      },
+    ]
+
+    const listReq = getRequest('/api/admin/notifications', cookies, '203.0.113.77')
+    const listRes = await getNotificationsHandler(makeContext(listReq, env))
+    expect(listRes.status).toBe(200)
+
+    expect(db.tables.admin_notifications[0].state).toBe('expired')
+  })
+
+  it('rejects unauthorized notification modification attempts', async () => {
+    // 1. No cookies
+    const unauthReq = postJson('/api/admin/notifications', { action: 'resolve', id: 'any' })
+    const unauthRes = await postNotificationsHandler(makeContext(unauthReq, env))
+    expect(unauthRes.status).toBe(401)
+
+    // 2. Logged in but missing/invalid CSRF
+    const { cookies } = await loginContext()
+    const badCsrfReq = postJson(
+      '/api/admin/notifications',
+      { action: 'resolve', id: 'any' },
+      { Cookie: cookies, 'X-CSRF-Token': 'invalid-csrf' },
+      '203.0.113.77'
+    )
+    const badCsrfRes = await postNotificationsHandler(makeContext(badCsrfReq, env))
+    expect(badCsrfRes.status).toBe(401)
   })
 })

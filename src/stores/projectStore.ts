@@ -47,8 +47,10 @@ export function computeFeaturedProjects(
   return result.slice(0, 5)
 }
 
-export function featuredProjects(): Project[] {
-  return computeFeaturedProjects(projects)
+export function featuredProjects(
+  popularSlugs: string[] = useProjectStore.getState().popularSlugs
+): Project[] {
+  return computeFeaturedProjects(projects, popularSlugs)
 }
 
 export const useProjectStore = create<ProjectState>((set) => ({

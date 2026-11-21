@@ -31,6 +31,7 @@ import { preparePublish, ValidationError } from '../../lib/publish'
 import { recordDeployState } from '../../lib/deploy-state'
 import { dispatchSnapshotSync, dispatchSyncReason } from '../../lib/github-sync'
 import { logAuthEvent, requestCountry } from '../../lib/auth-log'
+import { createNotification } from '../../lib/notifications'
 
 type Env = AdminEnv & { GITHUB_SYNC_TOKEN?: string }
 
@@ -133,6 +134,17 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     ok: sync.ok,
     note: syncReason,
   })
+
+  if (!sync.ok && syncReason !== 'not_configured') {
+    await createNotification(env.DB, {
+      type: 'sync',
+      severity: 'warning',
+      title: 'Snapshot sync dispatch failed',
+      message: `Content was published to D1, but automatic GitHub repository sync dispatch failed (${syncReason}). Rebuild remains pending.`,
+      metadata: { reason: syncReason },
+      expiresAt: new Date(Date.now() + 48 * 3600 * 1000).toISOString(),
+    }).catch(() => {})
+  }
 
   return jsonResponse({
     ok: true,

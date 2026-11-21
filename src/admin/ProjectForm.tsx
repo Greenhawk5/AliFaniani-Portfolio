@@ -8,6 +8,7 @@
 import { Button } from '@/components/ui/Button'
 import { Field, inputClasses } from './Field'
 import { MediaPicker } from './MediaPicker'
+import { AdminSwitch } from './ui/form-controls'
 
 export interface ProjectDraft {
   slug: string
@@ -91,18 +92,12 @@ export function ProjectForm({ value, onChange }: Props) {
           <textarea value={value.overview} onChange={(e) => set('overview', e.target.value)} rows={4} className={inputClasses} required />
         </Field>
         <div className="grid gap-3 sm:grid-cols-2 pt-3 border-t border-edge/40">
-          <label className="flex cursor-pointer items-center gap-3">
-            <input
-              type="checkbox"
-              checked={!!value.featured}
-              onChange={(e) => set('featured', e.target.checked)}
-              className="h-4 w-4 cursor-pointer rounded accent-[#39ff8b]"
-            />
-            <div>
-              <span className="block text-xs font-semibold text-frost">Featured on Homepage</span>
-              <span className="block text-[11px] text-mist">Pin to Selected Work carousel</span>
-            </div>
-          </label>
+          <AdminSwitch
+            checked={!!value.featured}
+            onChange={(checked) => set('featured', checked)}
+            label="Featured on Homepage"
+            description="Pin to Selected Work carousel"
+          />
           {value.featured && (
             <Field label="Featured priority order" hint="1 (highest) to 5">
               <input

@@ -24,6 +24,7 @@ import { timingSafeEqual } from '../../lib/crypto'
 import { createSession, sessionCookie, csrfCookie, purgeExpiredSessions } from '../../lib/sessions'
 import { isBurstLimited, burstRetryAfterSeconds, checkKvLockout, recordKvLoginFailure } from '../../lib/rate-limit'
 import { logAuthEvent, requestCountry } from '../../lib/auth-log'
+import { createNotification } from '../../lib/notifications'
 
 const loginSchema = z.object({
   password: z.string().min(1).max(256),
@@ -88,6 +89,21 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     // 6 — only Turnstile-passed failures count toward the KV lockout
     await recordKvLoginFailure(env.RATE_LIMIT, ip)
     await logAuthEvent(env.DB, 'login_password_failed', { ip, country, ok: false })
+
+    if (env.DB) {
+      const lockedFor = await checkKvLockout(env.RATE_LIMIT, ip)
+      if (lockedFor > 0) {
+        await createNotification(env.DB, {
+          type: 'security',
+          severity: 'critical',
+          title: 'Admin login lockout activated',
+          message: `IP ${ip} exceeded 5 failed password attempts within 15 minutes and has been locked out.`,
+          metadata: { ip, lockedFor },
+          expiresAt: new Date(Date.now() + 24 * 3600 * 1000).toISOString(),
+        }).catch(() => {})
+      }
+    }
+
     return unauthorizedResponse()
   }
 
