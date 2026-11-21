@@ -8,7 +8,7 @@
 
 import type { PagesEnv } from '../lib/auth-env'
 
-export const onRequestGet: PagesFunction<PagesEnv, 'path'> = async ({ request, env, params }) => {
+export const onRequestGet: PagesFunction<PagesEnv, 'path'> = async ({ env, params }) => {
   if (!env.MEDIA_BUCKET) {
     return new Response('Not Found', { status: 404 })
   }

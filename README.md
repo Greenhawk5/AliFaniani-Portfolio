@@ -1,4 +1,4 @@
-﻿<div align="center">
+<div align="center">
 
 <a href="https://alifaniani.ir">
   <img src="docs/profile/banner.webp" alt="Ali Faniani — Software Developer Portfolio" width="100%" />
@@ -17,13 +17,14 @@
 </p>
 
 <p>
-  <img src="https://img.shields.io/badge/status-v2.0.0-39ff8b?style=for-the-badge&labelColor=05060a" alt="Version 2.0.0" />
+  <img src="https://img.shields.io/badge/status-v2.2.0-39ff8b?style=for-the-badge&labelColor=05060a" alt="Version 2.2.0" />
   <img src="https://img.shields.io/badge/license-proprietary-9CA3AF?style=for-the-badge&labelColor=05060a" alt="Proprietary license" />
   <img src="https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=white" alt="React 19" />
   <img src="https://img.shields.io/badge/TypeScript-strict-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript strict" />
   <img src="https://img.shields.io/badge/Vite-8-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite 8" />
   <img src="https://img.shields.io/badge/Three.js-r185-000000?style=for-the-badge&logo=threedotjs&logoColor=white" alt="Three.js r185" />
   <img src="https://img.shields.io/badge/Cloudflare_Pages-hosted-F38020?style=for-the-badge&logo=cloudflarepages&logoColor=white" alt="Cloudflare Pages" />
+  <img src="https://img.shields.io/badge/Cloudflare_R2-media-F38020?style=for-the-badge&logo=cloudflare&logoColor=white" alt="Cloudflare R2" />
 </p>
 
 <img src="https://badges.pufler.dev/visits/Greenhawk5/AliFaniani-Portfolio" alt="Repository visit counter" />
@@ -48,13 +49,14 @@ This repository contains my personal developer portfolio — a production-focuse
 | | |
 |---|---|
 | ⚡ **Performance-first** | The landing experience does not load Three.js, WebGL or GLB assets. |
-| 🔎 **SEO-first** | Route-specific HTML shells, canonicals, sitemap generation and structured data. |
+| 🔎 **SEO-first** | Route-specific HTML shells, edge fallback rendering, canonicals, sitemap sync and structured data. |
 | 🧊 **Interactive 3D** | A dedicated developer room powered by React Three Fiber and Three.js. |
 | 🧩 **Code splitting** | The heavy 3D experience is isolated from the lightweight landing page. |
-| 🛡️ **Hardened** | Security headers, CSP, session-based admin auth, CSRF, Turnstile and layered rate limiting. |
+| 🛡️ **Hardened** | Security headers, CSP, 15-min idle timeout, 12-hr absolute session ceiling, CSRF, Turnstile and layered rate limiting. |
+| 🖼️ **Cloudflare R2** | Native R2 media storage (ali-faniani-portfolio-media) with magic-byte validation and safe deletion. |
 | ♿ **Accessible** | Semantic structure, keyboard focus states, reduced motion and graceful fallbacks. |
-| ☁️ **Edge deployed** | Cloudflare Pages + Pages Functions + D1 + KV + Wrangler. |
-| 🎨 **Data-driven** | Content lives in D1 (CMS source of truth) and reaches the public site via a validated build-time snapshot. |
+| ☁️ **Edge deployed** | Cloudflare Pages + Pages Functions + D1 + KV + R2 + Wrangler. |
+| 🎨 **Data-driven** | Decoupled CMS publishing: instant edge publishing with D1 fallback + ordered snapshot synchronization. |
 
 ---
 

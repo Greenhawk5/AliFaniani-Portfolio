@@ -52,6 +52,223 @@ const CATEGORIES: { id: string; label: string; value?: MediaCategory }[] = [
   { id: 'misc', label: 'Misc', value: 'misc' },
 ]
 
+function AssetInspector({
+  asset,
+  onClose,
+  onUpdated,
+  onDeleted,
+}: {
+  asset: MediaAsset
+  onClose: () => void
+  onUpdated: (updated: MediaAsset) => void
+  onDeleted: () => void
+}) {
+  const [editName, setEditName] = useState(asset.display_name)
+  const [editCategory, setEditCategory] = useState<MediaCategory>(asset.category)
+  const [isSavingMeta, setIsSavingMeta] = useState(false)
+  const [copiedUrl, setCopiedUrl] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [deleteReferences, setDeleteReferences] = useState<ReferenceMatch[] | null>(null)
+
+  const handleCopyUrl = () => {
+    void navigator.clipboard.writeText(asset.url)
+    setCopiedUrl(true)
+    setTimeout(() => setCopiedUrl(false), 2000)
+  }
+
+  const handleSaveMeta = async () => {
+    try {
+      setIsSavingMeta(true)
+      const res = await updateMediaItem(asset.id, {
+        displayName: editName,
+        category: editCategory,
+      })
+      onUpdated(res.asset)
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to update metadata.')
+    } finally {
+      setIsSavingMeta(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    const confirmed = window.confirm(`Permanently delete "${asset.display_name}" from Cloudflare R2?`)
+    if (!confirmed) return
+
+    try {
+      setIsDeleting(true)
+      setDeleteError(null)
+      setDeleteReferences(null)
+      await deleteMediaItem(asset.id)
+      onDeleted()
+    } catch (err: unknown) {
+      const apiErr = err as Error & { status?: number; referencingRecords?: ReferenceMatch[] }
+      if (apiErr.status === 409 && apiErr.referencingRecords) {
+        setDeleteError(apiErr.message)
+        setDeleteReferences(apiErr.referencingRecords)
+      } else {
+        setDeleteError(apiErr.message || 'Failed to delete asset.')
+      }
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  return (
+    <AdminCard className="sticky top-6 p-4 space-y-4">
+      <div className="flex items-center justify-between border-b border-edge pb-3">
+        <h3 className="text-sm font-semibold text-frost">Asset Inspector</h3>
+        <button
+          onClick={onClose}
+          className="rounded p-1 text-mist hover:text-frost hover:bg-void"
+          aria-label="Close inspector"
+        >
+          <XIcon className="h-4 w-4" />
+        </button>
+      </div>
+
+      {/* Preview image */}
+      <div className="aspect-video w-full overflow-hidden rounded-lg border border-edge bg-void flex items-center justify-center">
+        <img
+          src={asset.url}
+          alt={asset.display_name}
+          className="h-full w-full object-contain"
+          onError={(e) => {
+            const img = e.currentTarget
+            if (!img.src.includes('/media/')) {
+              img.src = `/media/${asset.r2_key.replace(/^media\//, '')}`
+            }
+          }}
+        />
+      </div>
+
+      {/* Public URL Box */}
+      <div>
+        <label className="block text-[11px] font-medium uppercase tracking-wider text-mist mb-1">
+          Public URL
+        </label>
+        <div className="flex items-center gap-1.5">
+          <input
+            readOnly
+            value={asset.url}
+            className={cn(inputClasses, 'font-mono text-xs py-1.5 flex-1')}
+          />
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={handleCopyUrl}
+            title="Copy URL"
+          >
+            {copiedUrl ? <CheckIcon className="h-3.5 w-3.5 text-accent" /> : <CopyIcon className="h-3.5 w-3.5" />}
+          </Button>
+        </div>
+      </div>
+
+      {/* Technical details */}
+      <div className="grid grid-cols-2 gap-2 text-xs">
+        <div className="rounded border border-edge/60 bg-void/40 p-2">
+          <span className="text-[10px] uppercase text-mist/70 block">Dimensions</span>
+          <span className="font-mono text-frost">
+            {asset.width && asset.height
+              ? `${asset.width} × ${asset.height}`
+              : 'Unknown'}
+          </span>
+        </div>
+        <div className="rounded border border-edge/60 bg-void/40 p-2">
+          <span className="text-[10px] uppercase text-mist/70 block">File Size</span>
+          <span className="font-mono text-frost">{formatBytes(asset.bytes)}</span>
+        </div>
+        <div className="rounded border border-edge/60 bg-void/40 p-2">
+          <span className="text-[10px] uppercase text-mist/70 block">Format</span>
+          <span className="font-mono text-frost">{asset.mime_type}</span>
+        </div>
+        <div className="rounded border border-edge/60 bg-void/40 p-2">
+          <span className="text-[10px] uppercase text-mist/70 block">R2 Key</span>
+          <span className="font-mono text-[10px] text-frost truncate block" title={asset.r2_key}>
+            {asset.r2_key}
+          </span>
+        </div>
+      </div>
+
+      {/* Edit form */}
+      <div className="space-y-3 border-t border-edge pt-3">
+        <div>
+          <label className="block text-[11px] font-medium uppercase tracking-wider text-mist mb-1">
+            Display Name
+          </label>
+          <input
+            value={editName}
+            onChange={(e) => setEditName(e.target.value)}
+            className={cn(inputClasses, 'text-xs')}
+          />
+        </div>
+
+        <div>
+          <label className="block text-[11px] font-medium uppercase tracking-wider text-mist mb-1">
+            Category
+          </label>
+          <select
+            value={editCategory}
+            onChange={(e) => setEditCategory(e.target.value as MediaCategory)}
+            className="w-full rounded border border-edge bg-abyss px-3 py-1.5 text-xs text-frost focus:border-accent focus:outline-none"
+          >
+            <option value="project">Project</option>
+            <option value="profile">Profile</option>
+            <option value="certificate">Certificate</option>
+            <option value="misc">Misc</option>
+          </select>
+        </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="w-full"
+          disabled={isSavingMeta}
+          onClick={() => void handleSaveMeta()}
+        >
+          {isSavingMeta ? 'Saving…' : 'Save Changes'}
+        </Button>
+      </div>
+
+      {/* Delete section */}
+      <div className="border-t border-edge pt-3 space-y-2">
+        {deleteError && (
+          <div className="rounded-lg border border-danger/40 bg-danger/10 p-3 text-xs text-danger">
+            <p className="font-semibold">{deleteError}</p>
+            {deleteReferences && deleteReferences.length > 0 && (
+              <div className="mt-2 space-y-1">
+                <p className="text-[11px] text-mist">Referenced by active content:</p>
+                <ul className="list-disc pl-4 space-y-0.5">
+                  {deleteReferences.map((ref, i) => (
+                    <li key={i} className="font-mono text-[10px]">
+                      {ref.kind}:{ref.key} {ref.hasLiveRef ? '(live)' : ''} {ref.hasDraftRef ? '(draft)' : ''}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="w-full flex items-center justify-center gap-2 border-danger/50 text-danger hover:bg-danger/10 hover:border-danger hover:text-danger"
+          disabled={isDeleting}
+          onClick={() => void handleDelete()}
+        >
+          <TrashIcon className="h-3.5 w-3.5" />
+          {isDeleting ? 'Deleting from R2…' : 'Delete Asset'}
+        </Button>
+      </div>
+    </AdminCard>
+  )
+}
+
 export function MediaView() {
   const { refreshActivity } = useAdminData()
 
@@ -59,6 +276,7 @@ export function MediaView() {
   const [stats, setStats] = useState<MediaStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [refreshIndex, setRefreshIndex] = useState(0)
 
   const [categoryTab, setCategoryTab] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState('')
@@ -71,52 +289,37 @@ export function MediaView() {
   const [isDragging, setIsDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // Editing state
-  const [editName, setEditName] = useState('')
-  const [editCategory, setEditCategory] = useState<MediaCategory>('project')
-  const [isSavingMeta, setIsSavingMeta] = useState(false)
-  const [copiedUrl, setCopiedUrl] = useState(false)
-
-  // Deletion state
-  const [isDeleting, setIsDeleting] = useState(false)
-  const [deleteError, setDeleteError] = useState<string | null>(null)
-  const [deleteReferences, setDeleteReferences] = useState<ReferenceMatch[] | null>(null)
-
-  const loadData = useCallback(async () => {
-    try {
-      setLoading(true)
-      setError(null)
-      const [listRes, statsRes] = await Promise.all([
-        listMedia({
-          category: categoryTab !== 'all' ? categoryTab : undefined,
-          search: searchQuery || undefined,
-          limit: 100,
-        }),
-        getMediaStats(),
-      ])
-      setAssets(listRes.items)
-      setStats(statsRes)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load media assets.')
-    } finally {
-      setLoading(false)
-    }
-  }, [categoryTab, searchQuery])
+  const reloadData = useCallback(() => {
+    setRefreshIndex((i) => i + 1)
+  }, [])
 
   useEffect(() => {
-    void loadData()
-  }, [loadData])
+    let active = true
 
-  // Sync selected asset form
-  useEffect(() => {
-    if (selectedAsset) {
-      setEditName(selectedAsset.display_name)
-      setEditCategory(selectedAsset.category)
-      setDeleteError(null)
-      setDeleteReferences(null)
-      setCopiedUrl(false)
+    void Promise.all([
+      listMedia({
+        category: categoryTab !== 'all' ? categoryTab : undefined,
+        search: searchQuery || undefined,
+        limit: 100,
+      }),
+      getMediaStats(),
+    ])
+      .then(([listRes, statsRes]) => {
+        if (!active) return
+        setAssets(listRes.items)
+        setStats(statsRes)
+        setLoading(false)
+      })
+      .catch((err) => {
+        if (!active) return
+        setError(err instanceof Error ? err.message : 'Failed to load media assets.')
+        setLoading(false)
+      })
+
+    return () => {
+      active = false
     }
-  }, [selectedAsset])
+  }, [categoryTab, searchQuery, refreshIndex])
 
   const handleUploadFiles = async (files: FileList | File[]) => {
     const validFiles = Array.from(files).filter((f) =>
@@ -132,7 +335,7 @@ export function MediaView() {
       setUploadError(null)
       const res = await uploadMediaFiles(validFiles, uploadCategory)
       void refreshActivity()
-      await loadData()
+      reloadData()
       if (res.uploaded.length > 0) {
         setSelectedAsset(res.uploaded[0])
       }
@@ -149,57 +352,6 @@ export function MediaView() {
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       void handleUploadFiles(e.dataTransfer.files)
     }
-  }
-
-  const handleSaveMeta = async () => {
-    if (!selectedAsset) return
-    try {
-      setIsSavingMeta(true)
-      const res = await updateMediaItem(selectedAsset.id, {
-        displayName: editName,
-        category: editCategory,
-      })
-      setSelectedAsset(res.asset)
-      setAssets((prev) =>
-        prev ? prev.map((a) => (a.id === res.asset.id ? res.asset : a)) : null
-      )
-      void refreshActivity()
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to update metadata.')
-    } finally {
-      setIsSavingMeta(false)
-    }
-  }
-
-  const handleDelete = async () => {
-    if (!selectedAsset) return
-    const confirmed = window.confirm(`Permanently delete "${selectedAsset.display_name}" from Cloudflare R2?`)
-    if (!confirmed) return
-
-    try {
-      setIsDeleting(true)
-      setDeleteError(null)
-      setDeleteReferences(null)
-      await deleteMediaItem(selectedAsset.id)
-      setSelectedAsset(null)
-      void refreshActivity()
-      await loadData()
-    } catch (err: any) {
-      if (err.status === 409 && err.referencingRecords) {
-        setDeleteError(err.message)
-        setDeleteReferences(err.referencingRecords)
-      } else {
-        setDeleteError(err instanceof Error ? err.message : 'Failed to delete asset.')
-      }
-    } finally {
-      setIsDeleting(false)
-    }
-  }
-
-  const handleCopyUrl = (url: string) => {
-    navigator.clipboard.writeText(url)
-    setCopiedUrl(true)
-    setTimeout(() => setCopiedUrl(false), 2000)
   }
 
   const visibleAssets = useMemo(() => assets ?? [], [assets])
@@ -373,7 +525,6 @@ export function MediaView() {
                       loading="lazy"
                       className="h-full w-full object-cover transition-transform group-hover:scale-105"
                       onError={(e) => {
-                        // Fallback to proxy route if direct custom domain has DNS propagation delay
                         const img = e.currentTarget
                         if (!img.src.includes('/media/')) {
                           img.src = `/media/${asset.r2_key.replace(/^media\//, '')}`
@@ -402,155 +553,23 @@ export function MediaView() {
         {/* Inspector Panel */}
         {selectedAsset && (
           <div className="lg:col-span-1">
-            <AdminCard className="sticky top-6 p-4 space-y-4">
-              <div className="flex items-center justify-between border-b border-edge pb-3">
-                <h3 className="text-sm font-semibold text-frost">Asset Inspector</h3>
-                <button
-                  onClick={() => setSelectedAsset(null)}
-                  className="rounded p-1 text-mist hover:text-frost hover:bg-void"
-                >
-                  <XIcon className="h-4 w-4" />
-                </button>
-              </div>
-
-              {/* Preview image */}
-              <div className="aspect-video w-full overflow-hidden rounded-lg border border-edge bg-void flex items-center justify-center">
-                <img
-                  src={selectedAsset.url}
-                  alt={selectedAsset.display_name}
-                  className="h-full w-full object-contain"
-                  onError={(e) => {
-                    const img = e.currentTarget
-                    if (!img.src.includes('/media/')) {
-                      img.src = `/media/${selectedAsset.r2_key.replace(/^media\//, '')}`
-                    }
-                  }}
-                />
-              </div>
-
-              {/* Public URL Box */}
-              <div>
-                <label className="block text-[11px] font-medium uppercase tracking-wider text-mist mb-1">
-                  Public URL
-                </label>
-                <div className="flex items-center gap-1.5">
-                  <input
-                    readOnly
-                    value={selectedAsset.url}
-                    className={cn(inputClasses, 'font-mono text-xs py-1.5 flex-1')}
-                  />
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleCopyUrl(selectedAsset.url)}
-                    title="Copy URL"
-                  >
-                    {copiedUrl ? <CheckIcon className="h-3.5 w-3.5 text-accent" /> : <CopyIcon className="h-3.5 w-3.5" />}
-                  </Button>
-                </div>
-              </div>
-
-              {/* Technical details */}
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="rounded border border-edge/60 bg-void/40 p-2">
-                  <span className="text-[10px] uppercase text-mist/70 block">Dimensions</span>
-                  <span className="font-mono text-frost">
-                    {selectedAsset.width && selectedAsset.height
-                      ? `${selectedAsset.width} × ${selectedAsset.height}`
-                      : 'Unknown'}
-                  </span>
-                </div>
-                <div className="rounded border border-edge/60 bg-void/40 p-2">
-                  <span className="text-[10px] uppercase text-mist/70 block">File Size</span>
-                  <span className="font-mono text-frost">{formatBytes(selectedAsset.bytes)}</span>
-                </div>
-                <div className="rounded border border-edge/60 bg-void/40 p-2">
-                  <span className="text-[10px] uppercase text-mist/70 block">Format</span>
-                  <span className="font-mono text-frost">{selectedAsset.mime_type}</span>
-                </div>
-                <div className="rounded border border-edge/60 bg-void/40 p-2">
-                  <span className="text-[10px] uppercase text-mist/70 block">R2 Key</span>
-                  <span className="font-mono text-[10px] text-frost truncate block" title={selectedAsset.r2_key}>
-                    {selectedAsset.r2_key}
-                  </span>
-                </div>
-              </div>
-
-              {/* Edit form */}
-              <div className="space-y-3 border-t border-edge pt-3">
-                <div>
-                  <label className="block text-[11px] font-medium uppercase tracking-wider text-mist mb-1">
-                    Display Name
-                  </label>
-                  <input
-                    value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
-                    className={cn(inputClasses, 'text-xs')}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-medium uppercase tracking-wider text-mist mb-1">
-                    Category
-                  </label>
-                  <select
-                    value={editCategory}
-                    onChange={(e) => setEditCategory(e.target.value as MediaCategory)}
-                    className="w-full rounded border border-edge bg-abyss px-3 py-1.5 text-xs text-frost focus:border-accent focus:outline-none"
-                  >
-                    <option value="project">Project</option>
-                    <option value="profile">Profile</option>
-                    <option value="certificate">Certificate</option>
-                    <option value="misc">Misc</option>
-                  </select>
-                </div>
-
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="w-full"
-                  disabled={isSavingMeta}
-                  onClick={handleSaveMeta}
-                >
-                  {isSavingMeta ? 'Saving…' : 'Save Changes'}
-                </Button>
-              </div>
-
-              {/* Delete section */}
-              <div className="border-t border-edge pt-3 space-y-2">
-                {deleteError && (
-                  <div className="rounded-lg border border-danger/40 bg-danger/10 p-3 text-xs text-danger">
-                    <p className="font-semibold">{deleteError}</p>
-                    {deleteReferences && deleteReferences.length > 0 && (
-                      <div className="mt-2 space-y-1">
-                        <p className="text-[11px] text-mist">Referenced by active content:</p>
-                        <ul className="list-disc pl-4 space-y-0.5">
-                          {deleteReferences.map((ref, i) => (
-                            <li key={i} className="font-mono text-[10px]">
-                              {ref.kind}:{ref.key} {ref.hasLiveRef ? '(live)' : ''} {ref.hasDraftRef ? '(draft)' : ''}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="w-full flex items-center justify-center gap-2 border-danger/50 text-danger hover:bg-danger/10 hover:border-danger hover:text-danger"
-                  disabled={isDeleting}
-                  onClick={handleDelete}
-                >
-                  <TrashIcon className="h-3.5 w-3.5" />
-                  {isDeleting ? 'Deleting from R2…' : 'Delete Asset'}
-                </Button>
-              </div>
-            </AdminCard>
+            <AssetInspector
+              key={selectedAsset.id}
+              asset={selectedAsset}
+              onClose={() => setSelectedAsset(null)}
+              onUpdated={(updated) => {
+                setSelectedAsset(updated)
+                setAssets((prev) =>
+                  prev ? prev.map((a) => (a.id === updated.id ? updated : a)) : null
+                )
+                void refreshActivity()
+              }}
+              onDeleted={() => {
+                setSelectedAsset(null)
+                void refreshActivity()
+                reloadData()
+              }}
+            />
           </div>
         )}
       </div>

@@ -135,7 +135,9 @@ async function isValidRoute(pathname, env, url) {
             .bind(slug)
             .first()
           if (row) return true
-        } catch {}
+        } catch {
+          // ignore database query error and proceed to 404
+        }
       }
       return false
     }
@@ -152,7 +154,9 @@ async function isValidRoute(pathname, env, url) {
           .bind(slug)
           .first()
         if (row) return true
-      } catch {}
+      } catch {
+        // ignore database query error
+      }
     }
   }
   return false
@@ -223,7 +227,9 @@ export async function onRequest(context) {
           const edgeShell = await renderProjectEdgeShell(env, url, slug, project)
           if (edgeShell) return edgeShell
         }
-      } catch {}
+      } catch {
+        // ignore dynamic shell generation error and proceed to fallback
+      }
     }
 
     return context.next()

@@ -13,7 +13,9 @@ export const onRequestGet: PagesFunction<PagesEnv> = async ({ request, env }) =>
     if (res.status === 200) {
       xml = await res.text()
     }
-  } catch {}
+  } catch {
+    // fallback if static sitemap is missing
+  }
 
   if (!xml) {
     xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n</urlset>`
@@ -37,7 +39,9 @@ export const onRequestGet: PagesFunction<PagesEnv> = async ({ request, env }) =>
       if (entriesToAdd.length > 0) {
         xml = xml.replace('</urlset>', `${entriesToAdd.join('\n')}\n</urlset>`)
       }
-    } catch {}
+    } catch {
+      // ignore database errors when merging dynamic sitemap
+    }
   }
 
   return new Response(xml, {

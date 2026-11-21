@@ -27,8 +27,12 @@ export function useSessionTimeout({
 }) {
   const [showWarning, setShowWarning] = useState(false)
   const [secondsRemaining, setSecondsRemaining] = useState(120)
-  const lastActiveRef = useRef(Date.now())
+  const lastActiveRef = useRef(0)
   const keepingAliveRef = useRef(false)
+
+  useEffect(() => {
+    lastActiveRef.current = Date.now()
+  }, [])
 
   // Track genuine user interaction
   const recordActivity = useCallback(() => {

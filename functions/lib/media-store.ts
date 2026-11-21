@@ -156,7 +156,9 @@ function sniffPngDimensions(bytes: Uint8Array): { width: number | null; height: 
       const height = view.getUint32(20, false)
       return { width, height }
     }
-  } catch {}
+  } catch {
+    // fallback if unparseable
+  }
   return { width: null, height: null }
 }
 
@@ -183,7 +185,9 @@ function sniffWebpDimensions(bytes: Uint8Array): { width: number | null; height:
       const height = 1 + ((val >> 14) & 0x3fff)
       return { width, height }
     }
-  } catch {}
+  } catch {
+    // fallback if unparseable
+  }
   return { width: null, height: null }
 }
 
@@ -214,7 +218,9 @@ function sniffJpegDimensions(bytes: Uint8Array): { width: number | null; height:
       }
       offset += segmentLen
     }
-  } catch {}
+  } catch {
+    // fallback if unparseable
+  }
   return { width: null, height: null }
 }
 
@@ -237,7 +243,9 @@ function sniffAvifDimensions(bytes: Uint8Array): { width: number | null; height:
         }
       }
     }
-  } catch {}
+  } catch {
+    // fallback if unparseable
+  }
   return { width: null, height: null }
 }
 
@@ -345,7 +353,9 @@ export async function uploadMediaAsset(
     // Atomic compensation: clean up R2 if D1 insertion failed
     try {
       await bucket.delete(r2Key)
-    } catch {}
+    } catch {
+      // ignore rollback failure
+    }
     throw err
   }
 }
@@ -480,7 +490,7 @@ export async function listMediaAssets(
   const limit = Math.min(Math.max(options.limit ?? 50, 1), 200)
   const offset = Math.max(options.offset ?? 0, 0)
 
-  let whereClauses = ["state != 'deleted'"]
+  const whereClauses = ["state != 'deleted'"]
   const params: unknown[] = []
 
   if (options.category && options.category !== 'all') {

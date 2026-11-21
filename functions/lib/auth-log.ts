@@ -46,7 +46,7 @@ export async function logAuthEvent(
       .prepare(`INSERT INTO auth_log (ts, ip, country, ok, note) VALUES (?, ?, ?, ?, ?)`)
       .bind(ts, meta.ip, meta.country ?? null, okVal, note)
       .run()
-  } catch (primaryError) {
+  } catch {
     // 2. Self-healing fallback: 4-column schema if 'country' column is missing in older/remote DBs
     try {
       await db

@@ -26,75 +26,89 @@ export interface MediaEntry {
 export function useMediaLibrary() {
   const [entries, setEntries] = useState<MediaEntry[] | null>(null)
   const [error, setError] = useState('')
+  const [refreshTrigger, setRefreshTrigger] = useState(0)
 
-  const loadEntries = useCallback(async () => {
-    let combined: MediaEntry[] = []
-    let fetchError = ''
-
-    // 1. Fetch live R2 media assets (if authenticated)
-    try {
-      const r2Data = await listMedia({ limit: 100 })
-      const r2Entries: MediaEntry[] = (r2Data.items ?? []).map((asset) => ({
-        path: asset.url,
-        bytes: asset.bytes,
-        width: asset.width,
-        height: asset.height,
-        displayName: asset.display_name,
-        source: 'r2',
-      }))
-      combined.push(...r2Entries)
-    } catch {
-      // Ignored if unauthenticated or endpoint unavailable; fallback to manifest
-    }
-
-    // 2. Fetch static media manifest
-    try {
-      const res = await fetch('/media-manifest.json')
-      if (res.ok) {
-        const manifest: {
-          media: Record<string, { bytes: number; width: number | null; height: number | null }>
-        } = await res.json()
-
-        const staticEntries: MediaEntry[] = Object.entries(manifest.media).map(([path, meta]) => ({
-          path,
-          ...meta,
-          source: 'static',
-        }))
-        combined.push(...staticEntries)
-      }
-    } catch (e: any) {
-      if (combined.length === 0) {
-        fetchError = e.message || 'Media library unavailable'
-      }
-    }
-
-    // Deduplicate by path
-    const seen = new Set<string>()
-    const unique: MediaEntry[] = []
-    for (const item of combined) {
-      if (!seen.has(item.path)) {
-        seen.add(item.path)
-        unique.push(item)
-      }
-    }
-
-    unique.sort((a, b) => {
-      // Prioritize R2 uploads, then alphabetically
-      if (a.source !== b.source) return a.source === 'r2' ? -1 : 1
-      return a.path.localeCompare(b.path)
-    })
-
-    setEntries(unique)
-    if (fetchError && unique.length === 0) {
-      setError(fetchError)
-    }
+  const reload = useCallback(() => {
+    setRefreshTrigger((c) => c + 1)
   }, [])
 
   useEffect(() => {
-    void loadEntries()
-  }, [loadEntries])
+    let cancelled = false
 
-  return { entries, error, reload: loadEntries }
+    async function fetchAll() {
+      const combined: MediaEntry[] = []
+      let fetchError = ''
+
+      // 1. Fetch live R2 media assets (if authenticated)
+      try {
+        const r2Data = await listMedia({ limit: 100 })
+        if (cancelled) return
+        const r2Entries: MediaEntry[] = (r2Data.items ?? []).map((asset) => ({
+          path: asset.url,
+          bytes: asset.bytes,
+          width: asset.width,
+          height: asset.height,
+          displayName: asset.display_name,
+          source: 'r2',
+        }))
+        combined.push(...r2Entries)
+      } catch {
+        // Ignored if unauthenticated or endpoint unavailable; fallback to manifest
+      }
+
+      // 2. Fetch static media manifest
+      try {
+        const res = await fetch('/media-manifest.json')
+        if (res.ok && !cancelled) {
+          const manifest: {
+            media: Record<string, { bytes: number; width: number | null; height: number | null }>
+          } = await res.json()
+
+          const staticEntries: MediaEntry[] = Object.entries(manifest.media).map(([path, meta]) => ({
+            path,
+            ...meta,
+            source: 'static',
+          }))
+          combined.push(...staticEntries)
+        }
+      } catch (e: unknown) {
+        if (combined.length === 0) {
+          fetchError = e instanceof Error ? e.message : 'Media library unavailable'
+        }
+      }
+
+      if (cancelled) return
+
+      // Deduplicate by path
+      const seen = new Set<string>()
+      const unique: MediaEntry[] = []
+      for (const item of combined) {
+        if (!seen.has(item.path)) {
+          seen.add(item.path)
+          unique.push(item)
+        }
+      }
+
+      unique.sort((a, b) => {
+        // Prioritize R2 uploads, then alphabetically
+        if (a.source !== b.source) return a.source === 'r2' ? -1 : 1
+        return a.path.localeCompare(b.path)
+      })
+
+      setEntries(unique)
+      if (fetchError && unique.length === 0) {
+        setError(fetchError)
+      }
+    }
+
+    void fetchAll()
+
+    return () => {
+      cancelled = true
+    }
+  }, [refreshTrigger])
+
+  return { entries, error, reload }
 }
 
 interface PickerProps {

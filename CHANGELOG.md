@@ -5,6 +5,52 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] — 2026-11-21
+
+Production-quality CMS upgrade featuring Cloudflare R2 media storage, professional Admin Media Library, server-authoritative 15-minute session security, decoupled SEO-preserving publishing, and self-healing audit history.
+
+### Cloudflare R2 Media Storage
+
+- **Native R2 Storage Integration** — Integrated Cloudflare R2 bucket `ali-faniani-portfolio-media` via `MEDIA_BUCKET` binding, serving public media via `https://media.alifaniani.ir`.
+- **Magic-Byte MIME Validation** — Enforced strict binary signature sniffing for WebP, PNG, JPEG, and AVIF. Rejects SVGs, executables, scripts, and spoofed extensions.
+- **Automatic Dimension Sniffing** — High-performance binary parser extracts width and height for WebP, PNG, JPEG, and AVIF files at upload time.
+- **Atomic Upload Compensation** — Automatically purges uploaded R2 objects if subsequent D1 database registration encounters any failure.
+- **Reference Integrity Protection** — Pre-deletion check scans D1 published and draft content for media references; safely blocks deletion with HTTP 409 Conflict detailing referencing records.
+- **Content Security Policy** — Updated CSP headers in `public/_headers` to allow `https://media.alifaniani.ir` in `img-src` and `connect-src`.
+- **Media Fallback Proxy** — Added `functions/media/[[path]].ts` proxy route to stream from R2 with immutable caching headers as local/preview fallback.
+
+### Admin Media Library & Picker
+
+- **Modern Media Library UI** — Completely redesigned `src/admin/views/MediaView.tsx` with drag-and-drop file upload zone, category selector, multi-file support, and progress indicators.
+- **Category Tabs & Search** — Filter media by category (`All`, `Projects`, `Profile`, `Certificates`, `Misc`) with real-time text search and live item counters.
+- **Asset Inspector Sidebar** — Detailed inspection panel featuring large preview, technical metadata (dimensions, size, format, key), one-click public URL copy, editable display name, category reassignment, and safe deletion.
+- **Upgraded MediaPicker** — Enhanced `src/admin/MediaPicker.tsx` to merge live R2 media assets with legacy build assets, support inline instant uploads, and eliminate false-positive publish warnings for R2 URLs.
+
+### Decoupled Publishing & SEO Preservation
+
+- **Zod Content Schema Alignment** — Updated `mediaRefSchema` in `src/lib/content-schema.ts` to allow both root-relative paths and full `https://media.alifaniani.ir/*` URLs.
+- **Publish Pipeline Validation** — Updated `functions/lib/publish.ts` to validate R2 media references alongside static manifest assets.
+- **Dynamic Edge Shell Fallback** — In `functions/_middleware.js`, newly published projects missing from build-time static HTML shells are dynamically served via D1 edge rendering with full SEO `<title>`, `<meta name="description">`, OpenGraph, Twitter cards, and `<link rel="canonical">` tags (HTTP 200 with `X-Content-Source: d1-edge-shell`).
+- **Strict 404 & Crawl Protection** — Nonexistent, archived, or draft-only projects strictly return HTTP 404 with `X-Robots-Tag: noindex`.
+- **Dynamic Sitemap Route** — Added `functions/sitemap.xml.ts` edge route to merge newly published D1 projects into the sitemap dynamically.
+
+### Session Security & Audit History
+
+- **Strict Inactivity & Ceiling Policy** — Enforced 15-minute idle timeout and 12-hour absolute session ceiling on the server via `functions/lib/sessions.ts`.
+- **Write Throttling** — Throttled `last_used_at` updates to at most once per 2 minutes, reducing D1 writes by >85% while bounding the effective inactivity window to 13–15 minutes.
+- **Client Inactivity Modal** — Implemented `src/admin/useSessionTimeout.ts` with user activity detection, warning modal at 13 minutes, live 2-minute countdown, and one-click session renewal.
+- **Explicit Keepalive Route** — Implemented `POST /api/admin/session` with mutation authentication.
+- **Settings Activity Display Fix** — Replaced misleading static build timestamp with actual `session.lastUsedAt` and `session.expiresAt` in `SettingsView`.
+- **Self-Healing Audit Logging** — Added resilient 2-phase insert in `functions/lib/auth-log.ts` to prevent silent write failures regardless of table column state.
+- **Missing Audit Events** — Emitted `session_expired`, `session_rejected`, `media_uploaded`, `media_upload_failed`, `media_deleted`, and `media_delete_rejected`.
+- **Immediate Activity UI Synchronization** — Synchronized `PublishingView`, `ProjectsView`, `ProfileView`, and `LinksView` mutations with the activity feed.
+
+### Migrations & Release Tooling
+
+- **Database Migrations** — Added `migrations/0004_auth_log_indexing.sql` (index on `auth_log(ts DESC)`) and `migrations/0005_media_assets.sql` (`media_assets` table).
+- **Legacy Media Migration Tool** — Created `scripts/migrate-media-to-r2.mjs` with `--dry-run`, `--generate-sql`, and `--upload --remote`. Migrated and verified all 39 legacy assets (5.80 MB) to Cloudflare R2 with SHA-256 checksums.
+- **Test Suite Expansion** — Added 13 new integration and unit tests across session security, auth logging, R2 media management, and edge publishing (135 tests passing).
+
 ## [2.0.0] — 2026-09-14
 
 Stable release: the private D1-backed CMS and the Portfolio Control Center
