@@ -20,10 +20,31 @@ export const onRequestGet: PagesFunction<PagesEnv> = async ({ env }) => {
       )
       .all<{ data: string }>()
 
+    // Aggregate real views per project from project_analytics_daily
+    const viewsMap = new Map<string, number>()
+    try {
+      const viewRows = await env.DB
+        .prepare(
+          'SELECT project_slug, SUM(views) as total_views FROM project_analytics_daily GROUP BY project_slug'
+        )
+        .all<{ project_slug: string; total_views: number }>()
+      for (const row of viewRows.results ?? []) {
+        if (row.project_slug) {
+          viewsMap.set(row.project_slug, row.total_views || 0)
+        }
+      }
+    } catch {
+      // Non-fatal if analytics table is not populated
+    }
+
     const projects = (rows.results ?? [])
       .map((r) => {
         try {
-          return JSON.parse(r.data)
+          const p = JSON.parse(r.data)
+          if (p && typeof p === 'object' && p.slug) {
+            p.views = viewsMap.get(p.slug) ?? 0
+          }
+          return p
         } catch {
           return null
         }

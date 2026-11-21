@@ -466,6 +466,16 @@ export class FakeD1Database {
         return { success: true, meta: { changes: 1 } }
       }
       return { success: true, meta: { changes: 0 } }
+    } else if (/UPDATE admin_notifications\s+SET state = 'dismissed'/.test(sql)) {
+      const [now, id] = params
+      const targetRows = (this.tables.admin_notifications ??= [])
+      const row = targetRows.find((r) => r.id === id)
+      if (row && (row.state === 'active' || row.state === 'acknowledged')) {
+        row.state = 'dismissed'
+        row.resolved_at = now
+        return { success: true, meta: { changes: 1 } }
+      }
+      return { success: true, meta: { changes: 0 } }
     }
     return { success: true, meta: { changes: 1 } }
   }

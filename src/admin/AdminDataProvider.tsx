@@ -29,6 +29,7 @@ import {
   fetchNotifications,
   acknowledgeNotification as ackApi,
   resolveNotification as resApi,
+  dismissNotification as disApi,
   type AdminNotification,
 } from './notificationsApi'
 import type { SessionState } from './authApi'
@@ -48,6 +49,7 @@ export interface AdminData {
   refreshNotifications: () => Promise<void>
   acknowledgeNotification: (id: string) => Promise<boolean>
   resolveNotification: (id: string) => Promise<boolean>
+  dismissNotification: (id: string) => Promise<boolean>
   refreshAll: () => Promise<void>
 }
 
@@ -195,6 +197,26 @@ export function AdminDataProvider({
     [guard]
   )
 
+  const dismissNotification = useCallback(
+    async (id: string): Promise<boolean> => {
+      try {
+        const ok = await disApi(id)
+        if (ok) {
+          setNotifications((prev) =>
+            prev
+              ? prev.map((n) => (n.id === id ? { ...n, state: 'dismissed' as const } : n))
+              : null
+          )
+        }
+        return ok
+      } catch (e) {
+        guard(e, setNotificationsError)
+        return false
+      }
+    },
+    [guard]
+  )
+
   const refreshAll = useCallback(async () => {
     await Promise.allSettled([
       refreshContent(),
@@ -236,6 +258,7 @@ export function AdminDataProvider({
       refreshNotifications,
       acknowledgeNotification,
       resolveNotification,
+      dismissNotification,
       refreshAll,
     }),
     [
@@ -253,6 +276,7 @@ export function AdminDataProvider({
       refreshNotifications,
       acknowledgeNotification,
       resolveNotification,
+      dismissNotification,
       refreshAll,
     ]
   )

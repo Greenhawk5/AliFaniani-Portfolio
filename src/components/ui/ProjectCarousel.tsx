@@ -2,7 +2,6 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import type { Project } from '@/data/types'
 import { ArrowRightIcon } from './icons'
-import { TechTag } from './Badge'
 import { cn } from '@/lib/cn'
 
 interface ProjectCarouselProps {
@@ -151,7 +150,7 @@ export function ProjectCarousel({
       <div
         key={current.slug}
         aria-live="polite"
-        className="mt-4 transition-all duration-300"
+        className="my-5 transition-all duration-300"
       >
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <Link
@@ -164,21 +163,6 @@ export function ProjectCarousel({
             <ArrowRightIcon className="h-4 w-4 text-accent transition-transform duration-200 group-hover/link:translate-x-1" />
           </Link>
           <span className="font-mono text-xs text-mist/60">{current.year}</span>
-        </div>
-
-        <p className="mt-1.5 text-sm font-medium text-mist/90">{current.subtitle}</p>
-
-        <p className="mt-2.5 line-clamp-2 text-xs leading-relaxed text-mist/70 sm:text-sm">
-          {current.shortDescription}
-        </p>
-
-        <div className="mt-4 flex flex-wrap gap-1.5">
-          {current.technologies.slice(0, 4).map((tech) => (
-            <TechTag key={tech}>{tech}</TechTag>
-          ))}
-          {current.technologies.length > 4 && (
-            <TechTag>+{current.technologies.length - 4}</TechTag>
-          )}
         </div>
       </div>
 

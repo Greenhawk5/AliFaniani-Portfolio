@@ -5,7 +5,6 @@ import { SITE } from '@/app/config'
 import { BrandLogo } from '@/components/ui/BrandLogo'
 import { computeFeaturedProjects, useProjectStore } from '@/stores/projectStore'
 import { projects as staticProjects, type Project } from '@/data/projects'
-import { ArrowRightIcon } from '@/components/ui/icons'
 import { GooExperienceIcon } from '@/components/home/GooExperienceIcon'
 import { ProjectCarousel } from '@/components/ui/ProjectCarousel'
 
@@ -195,9 +194,11 @@ export default function Home() {
                 Interactive 3D Scene
               </div>
 
-              <div className="flex w-full items-center justify-between gap-4">
-                <GooExperienceIcon className="h-16 w-16 text-accent drop-shadow-[0_0_12px_rgba(57,255,139,0.35)] transition-all duration-300 group-hover:scale-105 group-hover:drop-shadow-[0_0_24px_rgba(57,255,139,0.6)] sm:h-20 sm:w-20" />
-                <ArrowRightIcon className="h-7 w-7 text-accent/80 transition-transform duration-300 group-hover:translate-x-2 group-hover:text-accent" />
+              {/* Horizontal animated icon track without layout shifts */}
+              <div className="relative h-16 w-full sm:h-20" aria-hidden="true">
+                <div className="absolute top-0 animate-cta-glide motion-reduce:animate-none">
+                  <GooExperienceIcon className="h-16 w-16 text-accent drop-shadow-[0_0_12px_rgba(57,255,139,0.35)] transition-all duration-300 group-hover:scale-105 group-hover:drop-shadow-[0_0_24px_rgba(57,255,139,0.6)] sm:h-20 sm:w-20" />
+                </div>
               </div>
 
               <div>

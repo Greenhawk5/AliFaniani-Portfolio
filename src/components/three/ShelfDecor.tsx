@@ -2,6 +2,7 @@ import { useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { env } from '@/three/env'
+import { useUiStore } from '@/stores/uiStore'
 import { Interactable } from './Interactable'
 import { SocialBoard } from './SocialBoard'
 import { ShelfCharacters } from './ShelfCharacters'
@@ -176,24 +177,30 @@ function Posters() {
 
   return (
     <group>
-      <group position={[3.9, 1.72, -4.44]}>
-        <mesh castShadow material={frame}>
-          <boxGeometry args={[0.64, 0.82, 0.04]} />
-        </mesh>
-        <mesh position={[0, 0, 0.025]}>
-          <planeGeometry args={[0.56, 0.74]} />
-          {/* Subtle green-tinged emissive, consistent with the clock/board
-              screens (0.75–1.1 range) — soft glow via the existing bloom. */}
-          <meshStandardMaterial
-            map={logoTexture}
-            emissive="#ffffff"
-            emissiveMap={logoTexture}
-            emissiveIntensity={0.85}
-            roughness={0.9}
-            metalness={0}
-          />
-        </mesh>
-      </group>
+      <Interactable
+        id="visitorCounter"
+        label="Visitor Statistics — click to inspect"
+        onActivate={() => useUiStore.getState().setVisitorStatsOpen(true)}
+      >
+        <group position={[3.9, 1.72, -4.44]}>
+          <mesh castShadow material={frame}>
+            <boxGeometry args={[0.64, 0.82, 0.04]} />
+          </mesh>
+          <mesh position={[0, 0, 0.025]}>
+            <planeGeometry args={[0.56, 0.74]} />
+            {/* Subtle green-tinged emissive, consistent with the clock/board
+                screens (0.75–1.1 range) — soft glow via the existing bloom. */}
+            <meshStandardMaterial
+              map={logoTexture}
+              emissive="#ffffff"
+              emissiveMap={logoTexture}
+              emissiveIntensity={0.85}
+              roughness={0.9}
+              metalness={0}
+            />
+          </mesh>
+        </group>
+      </Interactable>
     </group>
   )
 }

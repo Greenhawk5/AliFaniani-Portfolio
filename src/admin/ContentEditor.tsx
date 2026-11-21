@@ -20,6 +20,7 @@ import { updateContent, archiveContent, deleteContent, discardDraft, getContent,
 import { Field, inputClasses, Notice, StateBadge } from './Field'
 import { ProjectForm, type ProjectDraft } from './ProjectForm'
 import { LinkForm, type LinkDraft } from './LinkForm'
+import { ProfileForm } from './ProfileForm'
 import { AdminModal, AdminNotice, relativeTime, absoluteTime, toast } from './ui/primitives'
 import { cn } from '@/lib/cn'
 
@@ -195,6 +196,7 @@ export function ContentEditor({ item, onSaved, onClose }: EditorProps) {
 
   const isProject = item.kind === 'project'
   const isLink = item.kind === 'link'
+  const isProfile = item.kind === 'profile-section'
 
   return (
     <div className="space-y-4 pb-24">
@@ -220,10 +222,9 @@ export function ContentEditor({ item, onSaved, onClose }: EditorProps) {
             <button
               role="tab"
               aria-selected={mode === 'form'}
-              disabled={!isProject && !isLink}
               onClick={() => setMode('form')}
               className={cn(
-                'cursor-pointer rounded-md px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider transition-colors disabled:cursor-not-allowed disabled:opacity-30',
+                'cursor-pointer rounded-md px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider transition-colors',
                 mode === 'form' ? 'bg-accent/15 text-accent' : 'text-mist hover:text-frost'
               )}
             >
@@ -286,7 +287,10 @@ export function ContentEditor({ item, onSaved, onClose }: EditorProps) {
       {/* Editor body */}
       {text !== null && isProject && mode === 'form' && <ProjectJsonBridge text={text} onChange={setText} />}
       {text !== null && isLink && mode === 'form' && <LinkJsonBridge text={text} onChange={setText} />}
-      {text !== null && (mode === 'json' || (!isProject && !isLink)) && (
+      {text !== null && isProfile && mode === 'form' && (
+        <ProfileJsonBridge sectionKey={item.key} text={text} onChange={setText} />
+      )}
+      {text !== null && mode === 'json' && (
         <Field label="Content (JSON)" hint="validated by the server on save">
           <JsonArea text={text} onChange={setText} />
         </Field>
@@ -485,6 +489,37 @@ function LinkJsonBridge({ text, onChange }: { text: string; onChange: (next: str
     )
   }
   return <LinkForm value={parsed} onChange={(next) => onChange(JSON.stringify(next, null, 2))} />
+}
+
+function ProfileJsonBridge({
+  sectionKey,
+  text,
+  onChange,
+}: {
+  sectionKey: string
+  text: string
+  onChange: (next: string) => void
+}) {
+  let parsed: Record<string, unknown> | null
+  try {
+    parsed = JSON.parse(text) as Record<string, unknown>
+  } catch {
+    parsed = null
+  }
+  if (!parsed || typeof parsed !== 'object') {
+    return (
+      <AdminNotice kind="warning" title="Structured editor unavailable">
+        The JSON is invalid. Fix it in the JSON tab to bring back the form editor.
+      </AdminNotice>
+    )
+  }
+  return (
+    <ProfileForm
+      sectionKey={sectionKey}
+      value={parsed}
+      onChange={(next) => onChange(JSON.stringify(next, null, 2))}
+    />
+  )
 }
 
 async function getText(kind: string, key: string): Promise<{ content: string; live: string | null; updatedAt: string }> {

@@ -77,6 +77,7 @@ export const techGroupSchema = z.object({
 export const projectSchema = z.object({
   slug: slugSchema,
   title: z.string().min(1),
+  shortName: z.string().max(10).optional(),
   subtitle: z.string().min(1),
   shortDescription: z.string().min(1),
   overview: z.string().min(1),
@@ -95,6 +96,7 @@ export const projectSchema = z.object({
   documentation: z.string().url().optional(),
   featured: z.boolean().optional(),
   featuredOrder: z.number().int().min(1).max(5).optional(),
+  views: z.number().int().optional(),
 })
 
 /* ------------------------------ profile sections --------------------------- */

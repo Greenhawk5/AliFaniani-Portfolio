@@ -13,6 +13,7 @@ import { AdminSwitch } from './ui/form-controls'
 export interface ProjectDraft {
   slug: string
   title: string
+  shortName?: string
   subtitle: string
   shortDescription: string
   overview: string
@@ -66,6 +67,15 @@ export function ProjectForm({ value, onChange }: Props) {
           </Field>
           <Field label="Title">
             <input value={value.title} onChange={(e) => set('title', e.target.value)} className={inputClasses} required />
+          </Field>
+          <Field label="Custom abbreviation" hint="Optional, max 10 chars (e.g. GA for 3D Board)">
+            <input
+              value={value.shortName ?? ''}
+              onChange={(e) => set('shortName', e.target.value || undefined)}
+              maxLength={10}
+              placeholder="e.g. GA"
+              className={`${inputClasses} font-mono text-xs`}
+            />
           </Field>
           <Field label="Category">
             <input value={value.category} onChange={(e) => set('category', e.target.value)} className={inputClasses} required />

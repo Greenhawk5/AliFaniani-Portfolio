@@ -37,13 +37,14 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
       ...init.headers,
     },
   })
-  const payload = (await response.json().catch(() => null)) as (T & { error?: string }) | null
+  const payload = (await response.json().catch(() => null)) as (T & { error?: string; issues?: { path: string; message: string }[] }) | null
   if (!response.ok) {
     const error = new Error(payload?.error ?? `Request failed (${response.status})`) as Error & {
       status?: number
       issues?: { path: string; message: string }[]
     }
     error.status = response.status
+    error.issues = payload?.issues
     throw error
   }
   return payload as T

@@ -5,6 +5,7 @@ export interface BoardSlide {
   accent: string
   accent2: string
   initial: string
+  shortName?: string
 }
 
 const W = 1024
@@ -63,7 +64,9 @@ export function createBoardRenderer(slides: BoardSlide[]): BoardRenderer {
   let isDirty = true
 
   function drawInitialPanel(slide: BoardSlide) {
-    ctx.font = 'bold 124px "JetBrains Mono", monospace'
+    const text = (slide.shortName?.trim() || slide.initial).trim()
+    const fontSize = text.length <= 2 ? 124 : text.length <= 4 ? 92 : text.length <= 6 ? 70 : 52
+    ctx.font = `bold ${fontSize}px "JetBrains Mono", monospace`
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
     const cx = 600 + 376 / 2
@@ -71,7 +74,7 @@ export function createBoardRenderer(slides: BoardSlide[]): BoardRenderer {
     ctx.shadowColor = `${slide.accent}55`
     ctx.shadowBlur = 22
     ctx.fillStyle = slide.accent
-    ctx.fillText(slide.initial, cx, cy)
+    ctx.fillText(text, cx, cy)
     ctx.shadowBlur = 0
     ctx.textBaseline = 'alphabetic'
     ctx.textAlign = 'left'
@@ -100,32 +103,60 @@ export function createBoardRenderer(slides: BoardSlide[]): BoardRenderer {
     ctx.fillStyle = slide.accent
     ctx.fillRect(48, 64, 56, 5)
 
-    // Title
+    // Title with font scaling and clamping to prevent overflow
     ctx.fillStyle = '#e8ecf4'
-    ctx.font = 'bold 58px Inter, sans-serif'
-    ctx.fillText(slide.title, 48, 160)
+    let titleFontSize = 58
+    ctx.font = `bold ${titleFontSize}px Inter, sans-serif`
+    while (ctx.measureText(slide.title).width > W - 120 && titleFontSize > 34) {
+      titleFontSize -= 4
+      ctx.font = `bold ${titleFontSize}px Inter, sans-serif`
+    }
+    let displayTitle = slide.title
+    if (ctx.measureText(displayTitle).width > W - 120) {
+      while (displayTitle.length > 3 && ctx.measureText(displayTitle + '...').width > W - 120) {
+        displayTitle = displayTitle.slice(0, -1)
+      }
+      displayTitle += '...'
+    }
+    ctx.fillText(displayTitle, 48, 160)
 
     // Initial neon badge
     drawInitialPanel(slide)
 
-    // Subtitle
+    // Subtitle / Tagline clamping
     ctx.fillStyle = '#9aa4b8'
+    let displayTagline = slide.tagline
     ctx.font = '28px Inter, sans-serif'
-    ctx.fillText(slide.tagline, 48, 210)
+    if (ctx.measureText(displayTagline).width > W - 120) {
+      while (displayTagline.length > 3 && ctx.measureText(displayTagline + '...').width > W - 120) {
+        displayTagline = displayTagline.slice(0, -1)
+      }
+      displayTagline += '...'
+    }
+    ctx.fillText(displayTagline, 48, 210)
 
-    // Technology pills
+    // Technology pills with line-wrapping so long stacks never overflow the canvas frame
     let x = 48
+    let y = 260
     ctx.font = '19px "JetBrains Mono", monospace'
-    for (const tag of slide.tags.slice(0, 5)) {
+    for (const tag of slide.tags) {
       const w = ctx.measureText(tag).width + 28
+      if (x + w > 580) {
+        if (y === 260 && x > 48) {
+          x = 48
+          y = 310
+        } else {
+          break
+        }
+      }
       ctx.fillStyle = 'rgba(255,255,255,0.06)'
       ctx.beginPath()
-      ctx.roundRect(x, 260, w, 38, 10)
+      ctx.roundRect(x, y, w, 38, 10)
       ctx.fill()
       ctx.strokeStyle = `${slide.accent}44`
       ctx.stroke()
       ctx.fillStyle = '#c9d1d9'
-      ctx.fillText(tag, x + 14, 285)
+      ctx.fillText(tag, x + 14, y + 25)
       x += w + 12
     }
 
