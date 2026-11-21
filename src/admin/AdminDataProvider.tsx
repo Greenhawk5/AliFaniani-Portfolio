@@ -25,6 +25,12 @@ import {
 } from './contentApi'
 import { fetchDeployState, type DeployStateInfo } from './publishApi'
 import { fetchActivity, type ActivityEvent, type ActivitySummary } from './activityApi'
+import {
+  fetchNotifications,
+  acknowledgeNotification as ackApi,
+  resolveNotification as resApi,
+  type AdminNotification,
+} from './notificationsApi'
 import type { SessionState } from './authApi'
 
 export interface AdminData {
@@ -33,10 +39,15 @@ export interface AdminData {
   deploy: DeployStateInfo | null
   activity: { events: ActivityEvent[]; summary: ActivitySummary } | null
   activityError: string
+  notifications: AdminNotification[] | null
+  notificationsError: string
   session: SessionState | null
   refreshContent: () => Promise<void>
   refreshDeploy: () => Promise<void>
   refreshActivity: () => Promise<void>
+  refreshNotifications: () => Promise<void>
+  acknowledgeNotification: (id: string) => Promise<boolean>
+  resolveNotification: (id: string) => Promise<boolean>
   refreshAll: () => Promise<void>
 }
 
@@ -85,6 +96,8 @@ export function AdminDataProvider({
   const [deploy, setDeploy] = useState<DeployStateInfo | null>(null)
   const [activity, setActivity] = useState<{ events: ActivityEvent[]; summary: ActivitySummary } | null>(null)
   const [activityError, setActivityError] = useState('')
+  const [notifications, setNotifications] = useState<AdminNotification[] | null>(null)
+  const [notificationsError, setNotificationsError] = useState('')
   const authLostRef = useRef(false)
 
   const guard = useCallback(
@@ -132,9 +145,64 @@ export function AdminDataProvider({
     }
   }, [guard])
 
+  const refreshNotifications = useCallback(async () => {
+    try {
+      const data = await fetchNotifications()
+      setNotifications(data)
+      setNotificationsError('')
+    } catch (e) {
+      guard(e, setNotificationsError)
+    }
+  }, [guard])
+
+  const acknowledgeNotification = useCallback(
+    async (id: string): Promise<boolean> => {
+      try {
+        const ok = await ackApi(id)
+        if (ok) {
+          setNotifications((prev) =>
+            prev
+              ? prev.map((n) => (n.id === id ? { ...n, state: 'acknowledged' as const } : n))
+              : null
+          )
+        }
+        return ok
+      } catch (e) {
+        guard(e, setNotificationsError)
+        return false
+      }
+    },
+    [guard]
+  )
+
+  const resolveNotification = useCallback(
+    async (id: string): Promise<boolean> => {
+      try {
+        const ok = await resApi(id)
+        if (ok) {
+          setNotifications((prev) =>
+            prev
+              ? prev.map((n) => (n.id === id ? { ...n, state: 'resolved' as const } : n))
+              : null
+          )
+        }
+        return ok
+      } catch (e) {
+        guard(e, setNotificationsError)
+        return false
+      }
+    },
+    [guard]
+  )
+
   const refreshAll = useCallback(async () => {
-    await Promise.allSettled([refreshContent(), refreshDeploy(), refreshActivity()])
-  }, [refreshContent, refreshDeploy, refreshActivity])
+    await Promise.allSettled([
+      refreshContent(),
+      refreshDeploy(),
+      refreshActivity(),
+      refreshNotifications(),
+    ])
+  }, [refreshContent, refreshDeploy, refreshActivity, refreshNotifications])
 
   // Initial load runs once; refresh functions are stable, but the effect
   // only triggers on mount (the refresh* fns only change identity if
@@ -159,13 +227,34 @@ export function AdminDataProvider({
       deploy,
       activity,
       activityError,
+      notifications,
+      notificationsError,
       session,
       refreshContent,
       refreshDeploy,
       refreshActivity,
+      refreshNotifications,
+      acknowledgeNotification,
+      resolveNotification,
       refreshAll,
     }),
-    [items, itemsError, deploy, activity, activityError, session, refreshContent, refreshDeploy, refreshActivity, refreshAll]
+    [
+      items,
+      itemsError,
+      deploy,
+      activity,
+      activityError,
+      notifications,
+      notificationsError,
+      session,
+      refreshContent,
+      refreshDeploy,
+      refreshActivity,
+      refreshNotifications,
+      acknowledgeNotification,
+      resolveNotification,
+      refreshAll,
+    ]
   )
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>

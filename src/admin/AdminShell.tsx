@@ -29,6 +29,7 @@ import { NAV_GROUPS, type AdminView } from './routes'
 import { StatusDot, AdminModal } from './ui/primitives'
 import { SiteVersion } from './SiteVersion'
 import { useSessionTimeout } from './useSessionTimeout'
+import { useAdminData } from './AdminDataProvider'
 import type { SessionState } from './authApi'
 
 const VIEW_ICONS: Record<AdminView, (props: { className?: string }) => ReactNode> = {
@@ -97,6 +98,8 @@ export function AdminShell({
 
   const effectiveExpiresAt = session?.expiresAt ?? sessionExpiresAt
   const expiryLabel = formatExpiry(effectiveExpiresAt)
+  const data = useAdminData()
+  const activeAlertsCount = (data.notifications ?? []).filter((n) => n.state === 'active').length
 
   const nav = (
     <nav aria-label="Admin sections" className="flex-1 space-y-5 overflow-y-auto px-3 py-4">
@@ -111,6 +114,7 @@ export function AdminShell({
             {group.items.map((item) => {
               const Icon = VIEW_ICONS[item.view]
               const active = view === item.view
+              const isOverview = item.view === 'overview'
               return (
                 <li key={item.view}>
                   <button
@@ -126,6 +130,17 @@ export function AdminShell({
                   >
                     <Icon className="h-5 w-5 shrink-0" />
                     {!collapsed && <span className="truncate">{item.label}</span>}
+                    {isOverview && activeAlertsCount > 0 && (
+                      <span
+                        className={cn(
+                          'flex h-4 min-w-[16px] items-center justify-center rounded-full bg-amber px-1 font-mono text-[9px] font-bold text-void',
+                          collapsed ? 'absolute right-2 top-2' : 'ml-auto'
+                        )}
+                        title={`${activeAlertsCount} active alert${activeAlertsCount === 1 ? '' : 's'}`}
+                      >
+                        {activeAlertsCount}
+                      </span>
+                    )}
                   </button>
                 </li>
               )
@@ -222,8 +237,13 @@ export function AdminShell({
             <MenuIcon className="h-5 w-5" />
           </button>
           <p className="flex min-w-0 flex-1 items-center gap-2 truncate text-sm text-mist">
-            <StatusDot tone="ok" />
+            <StatusDot tone={activeAlertsCount > 0 ? 'warning' : 'ok'} />
             <span className="truncate sr-only sm:not-sr-only">Portfolio Control Center</span>
+            {activeAlertsCount > 0 && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-amber/40 bg-amber/10 px-2 py-0.5 font-mono text-[10px] text-amber">
+                {activeAlertsCount} alert{activeAlertsCount === 1 ? '' : 's'}
+              </span>
+            )}
           </p>
           <Button
             variant="outline"
