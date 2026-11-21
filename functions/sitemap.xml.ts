@@ -48,3 +48,4 @@ export const onRequestGet: PagesFunction<PagesEnv> = async ({ request, env }) =>
     },
   })
 }
+

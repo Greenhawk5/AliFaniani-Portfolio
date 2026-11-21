@@ -23,3 +23,4 @@ CREATE INDEX IF NOT EXISTS idx_media_category ON media_assets(category);
 CREATE INDEX IF NOT EXISTS idx_media_created  ON media_assets(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_media_state    ON media_assets(state);
 CREATE INDEX IF NOT EXISTS idx_media_r2_key   ON media_assets(r2_key);
+

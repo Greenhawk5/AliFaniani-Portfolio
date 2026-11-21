@@ -18,3 +18,4 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   const stats = await getMediaStats(env.DB)
   return jsonResponse(stats)
 }
+

@@ -24,3 +24,4 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   const data = await listMediaAssets(env.DB, { category, search, limit, offset })
   return jsonResponse(data)
 }
+

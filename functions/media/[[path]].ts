@@ -38,3 +38,4 @@ export const onRequestGet: PagesFunction<PagesEnv, 'path'> = async ({ request, e
     headers,
   })
 }
+

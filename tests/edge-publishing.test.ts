@@ -221,3 +221,4 @@ describe('Decoupled Edge Publishing & SEO (v2.2.0 Phase 4)', () => {
     expect(xml).toContain('<lastmod>2026-11-21</lastmod>')
   })
 })
+
