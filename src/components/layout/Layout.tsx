@@ -5,6 +5,7 @@ import { Footer } from './Footer'
 import { BackToTop } from './BackToTop'
 import { SettingsPanel } from './SettingsPanel'
 import { useUiStore } from '@/stores/uiStore'
+import { useAnalyticsTracker } from '@/hooks/useAnalyticsTracker'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -34,6 +35,7 @@ function EscapeHandler() {
 
 export function Layout() {
   const { pathname } = useLocation()
+  useAnalyticsTracker()
   // The landing page (/) uses its own minimal composition — no global navbar.
   // The room (/room) is a full-screen 3D experience — no footer/back-to-top.
   const isLanding = pathname === '/'
