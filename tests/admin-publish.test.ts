@@ -216,6 +216,20 @@ describe('POST /api/admin/publish', () => {
     expect(row.draft_data).not.toBeNull()
   })
 
+  it('E2: valid R2 media reference (https://media.alifaniani.ir/...) → passes validation and publishes', async () => {
+    const r2Url = 'https://media.alifaniani.ir/media/project/test-timestamp-rand-hero.webp'
+    seedPublished('r2-proj', {}, { ...PROJECT, slug: 'r2-proj', banner: r2Url })
+    interceptFetch((url) => (url.includes('/dispatches') ? new Response(null, { status: 204 }) : turnstileHandler(true)(url)))
+    const { cookies, csrf } = await loginCtx()
+    const response = await publishHandler(makeContext(publishRequest(cookies, csrf), env))
+    expect(response.status).toBe(200)
+    const body = (await response.json()) as { published: { projects: number } }
+    expect(body.published.projects).toBe(1)
+    const row = db.tables.content![0] as Record<string, unknown>
+    expect(row.draft_data).toBeNull()
+    expect(JSON.parse(row.data as string).banner).toBe(r2Url)
+  })
+
   it('F: batch failure → 500, no partial publication', async () => {
     seedPublished('proj-a', {}, { ...PROJECT, slug: 'proj-a', title: 'A2' })
     seedPublished('proj-b', {}, { ...PROJECT, slug: 'proj-b', title: 'B2' })

@@ -33,8 +33,10 @@ export const skillLevelSchema = z.enum(['Advanced', 'Strong', 'Familiar'])
  * (starts with /assets/).
  */
 export const mediaRefSchema = z.string().min(1).refine(
-  (value) => value.startsWith('/') && !value.startsWith('//'),
-  'Media reference must be a root-relative path (starting with a single /)'
+  (value) =>
+    (value.startsWith('/') && !value.startsWith('//')) ||
+    value.startsWith('https://media.alifaniani.ir/'),
+  'Media reference must be a root-relative path or https://media.alifaniani.ir/ URL'
 )
 
 /* --------------------------------- project --------------------------------- */

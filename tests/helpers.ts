@@ -89,9 +89,15 @@ export class FakeD1Database {
       const hash = params[0]
       return (rows.find((r) => r.token_hash === hash) ?? null) as Row | null
     }
-    if (/FROM content WHERE kind = \? AND key = \?/.test(sql)) {
-      const [kind, key] = params
-      return (rows.find((r) => r.kind === kind && r.key === key) ?? null) as Row | null
+    if (/FROM content WHERE/i.test(sql)) {
+      if (/kind = 'project' AND key = \? AND state = 'published'/.test(sql)) {
+        const slug = params[0]
+        return (rows.find((r) => r.kind === 'project' && r.key === slug && r.state === 'published') ?? null) as Row | null
+      }
+      if (/kind = \? AND key = \?/.test(sql)) {
+        const [kind, key] = params
+        return (rows.find((r) => r.kind === kind && r.key === key) ?? null) as Row | null
+      }
     }
     if (/SELECT \* FROM media_assets WHERE id = \?/.test(sql)) {
       const id = params[0]

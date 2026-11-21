@@ -75,6 +75,49 @@ function redirect(url, pathname, status) {
  */
 const PRIVATE_ROUTES = ['/admin']
 
+function escapeAttr(value) {
+  return String(value).replaceAll('&', '&amp;').replaceAll('"', '&quot;')
+}
+
+function setAttr(html, pattern, value) {
+  return html.replace(pattern, `$1${escapeAttr(value)}$2`)
+}
+
+async function renderProjectEdgeShell(env, url, slug, project) {
+  try {
+    const baseRes = await env.ASSETS.fetch(new URL('/index.html', url.origin).toString())
+    if (baseRes.status !== 200) return null
+    let html = await baseRes.text()
+
+    const title = `${project.title || slug} | Ali Faniani`
+    const description = project.shortDescription || project.subtitle || project.overview || ''
+    const canonical = `https://alifaniani.ir/projects/${slug}`
+    const ogImage = project.banner
+      ? (project.banner.startsWith('http') ? project.banner : `https://alifaniani.ir${project.banner}`)
+      : 'https://alifaniani.ir/og-image.webp'
+
+    html = setAttr(html, /(<title>)[^<]*(<\/title>)/, title)
+    html = setAttr(html, /(<meta[^>]*name="description"[^>]*content=")[^"]*(")/, description)
+    html = setAttr(html, /(<link rel="canonical" href=")[^"]*(")/, canonical)
+    html = setAttr(html, /(<meta[^>]*property="og:url"[^>]*content=")[^"]*(")/, canonical)
+    html = setAttr(html, /(<meta[^>]*property="og:title"[^>]*content=")[^"]*(")/, title)
+    html = setAttr(html, /(<meta[^>]*property="og:description"[^>]*content=")[^"]*(")/, description)
+    html = setAttr(html, /(<meta[^>]*property="og:image"[^>]*content=")[^"]*(")/, ogImage)
+    html = setAttr(html, /(<meta[^>]*name="twitter:title"[^>]*content=")[^"]*(")/, title)
+    html = setAttr(html, /(<meta[^>]*name="twitter:description"[^>]*content=")[^"]*(")/, description)
+    html = setAttr(html, /(<meta[^>]*name="twitter:image"[^>]*content=")[^"]*(")/, ogImage)
+
+    const headers = new Headers(baseRes.headers)
+    headers.set('Content-Type', 'text/html; charset=utf-8')
+    headers.set('Cache-Control', 'public, max-age=60, s-maxage=300')
+    headers.set('X-Content-Source', 'd1-edge-shell')
+
+    return new Response(html, { status: 200, headers })
+  } catch {
+    return null
+  }
+}
+
 async function isValidRoute(pathname, env, url) {
   if (FALLBACK_ROUTES.includes(pathname)) return true
   const meta = await loadContentMeta(env, url)
@@ -82,13 +125,37 @@ async function isValidRoute(pathname, env, url) {
     if (meta.staticRoutes.includes(pathname)) return true
     if (pathname.startsWith('/projects/')) {
       const slug = pathname.split('/')[2] ?? ''
-      return meta.projectSlugs.includes(slug)
+      if (meta.projectSlugs.includes(slug)) return true
+
+      // Fallback: check live D1 for newly published projects
+      if (env.DB) {
+        try {
+          const row = await env.DB
+            .prepare("SELECT 1 FROM content WHERE kind = 'project' AND key = ? AND state = 'published'")
+            .bind(slug)
+            .first()
+          if (row) return true
+        } catch {}
+      }
+      return false
     }
     return false
   }
-  // Meta unavailable (unexpected): fall back to prefix-level match for
-  // project detail URLs; specific unknown slugs then 404 client-side.
-  return pathname.startsWith('/projects/')
+
+  // Meta unavailable: check D1 if project route
+  if (pathname.startsWith('/projects/')) {
+    const slug = pathname.split('/')[2] ?? ''
+    if (env.DB) {
+      try {
+        const row = await env.DB
+          .prepare("SELECT 1 FROM content WHERE kind = 'project' AND key = ? AND state = 'published'")
+          .bind(slug)
+          .first()
+        if (row) return true
+      } catch {}
+    }
+  }
+  return false
 }
 
 export async function onRequest(context) {
@@ -139,11 +206,26 @@ export async function onRequest(context) {
   }
 
   if (await isValidRoute(pathname, env, url)) {
-    // Serve the route-specific generated shell (route-correct initial
-    // <head>) when it exists; `/` and any missing shell fall back to the
-    // standard SPA response.
+    // 1. Serve pre-rendered static shell if present
     const shell = await env.ASSETS.fetch(new URL(pathname + '.html', url.origin).toString())
     if (shell.status === 200) return shell
+
+    // 2. If project route without pre-rendered shell, dynamically generate edge shell from D1
+    if (pathname.startsWith('/projects/') && env.DB) {
+      const slug = pathname.split('/')[2] ?? ''
+      try {
+        const row = await env.DB
+          .prepare("SELECT data FROM content WHERE kind = 'project' AND key = ? AND state = 'published'")
+          .bind(slug)
+          .first()
+        if (row && row.data) {
+          const project = JSON.parse(row.data)
+          const edgeShell = await renderProjectEdgeShell(env, url, slug, project)
+          if (edgeShell) return edgeShell
+        }
+      } catch {}
+    }
+
     return context.next()
   }
 

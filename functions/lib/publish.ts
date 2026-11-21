@@ -83,7 +83,7 @@ export function validatePublishTargets(
       }
     }
     for (const ref of refs) {
-      if (!ref.startsWith('/assets/') && !mediaManifest[ref]) {
+      if (!ref.startsWith('/assets/') && !ref.startsWith('https://media.alifaniani.ir/') && !mediaManifest[ref]) {
         issues.push({ path: `${kind}:${key}`, message: `media reference not in manifest: ${ref}` })
       }
     }
