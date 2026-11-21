@@ -43,12 +43,13 @@ export function ProjectBoard() {
 
   useFrame((_, dt) => {
     slideTimer.current += dt
+    const nowSec = performance.now() / 1000
     if (slideTimer.current > SLIDE_DURATION) {
       slideTimer.current = 0
-      renderer.advance()
+      renderer.advance(nowSec)
       nextProject()
     }
-    if (renderer.update(env.time)) {
+    if (renderer.update(nowSec)) {
       texture.needsUpdate = true
     }
     if (material.current) {
@@ -62,11 +63,12 @@ export function ProjectBoard() {
       return
     lastNavNonce.current = boardNav.nonce
     slideTimer.current = 0
+    const nowSec = performance.now() / 1000
     if (boardNav.dir === 1) {
-      renderer.advance()
+      renderer.advance(nowSec)
       nextProject()
     } else {
-      renderer.back()
+      renderer.back(nowSec)
       useProjectStore.setState((s) => ({
         activeIndex: (s.activeIndex - 1 + featuredProjects().length) % featuredProjects().length,
       }))

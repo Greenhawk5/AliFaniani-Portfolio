@@ -7,6 +7,8 @@
 import { useMemo, useState } from 'react'
 import { useAdminData } from '../AdminDataProvider'
 import { AdminCard, AdminEmpty, AdminNotice, StatusDot, SkeletonRows, relativeTime, absoluteTime } from '../ui/primitives'
+import { AdminSelect, AdminSwitch } from '../ui/form-controls'
+import { DonutDistributionChart, AreaTrendChart } from '../ui/EvilCharts'
 import { eventLabel } from './OverviewView'
 import { cn } from '@/lib/cn'
 
@@ -93,8 +95,41 @@ export function ActivityView() {
     setPage(1)
   }
 
+  const distributionSlices = useMemo(() => {
+    const allTime = activity?.summary.allTime
+    if (allTime && allTime.total > 0) {
+      return [
+        { id: 'content', label: 'Content', value: allTime.content, color: '#39ff8b' },
+        { id: 'publish', label: 'Publish', value: allTime.publish, color: '#37d5ff' },
+        { id: 'auth', label: 'Sign-in', value: allTime.auth, color: '#f59e0b' },
+      ]
+    }
+    return [
+      { id: 'content', label: 'Content', value: counts.content, color: '#39ff8b' },
+      { id: 'publish', label: 'Publish', value: counts.publish, color: '#37d5ff' },
+      { id: 'auth', label: 'Sign-in', value: counts.auth, color: '#f59e0b' },
+    ]
+  }, [counts, activity?.summary.allTime])
+
+  const activityTrendData = useMemo(() => {
+    const days: Array<{ label: string; value: number; fullDate: string }> = []
+    const today = new Date()
+    for (let i = 13; i >= 0; i--) {
+      const d = new Date(today)
+      d.setDate(today.getDate() - i)
+      const dateKey = d.toISOString().slice(0, 10)
+      const count = events.filter((e) => e.ts.startsWith(dateKey)).length
+      days.push({
+        label: d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+        value: count,
+        fullDate: dateKey,
+      })
+    }
+    return days
+  }, [events])
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-accent">System</p>
@@ -103,28 +138,54 @@ export function ActivityView() {
             The audit trail recorded by the API — sign-ins, content changes, publish outcomes.
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <label className="flex cursor-pointer items-center gap-2 text-xs text-mist">
-            <input
-              type="checkbox"
-              checked={showFullIp}
-              onChange={(e) => setShowFullIp(e.target.checked)}
-              className="h-3.5 w-3.5 cursor-pointer accent-[#39ff8b]"
-            />
-            Show full IPs
-          </label>
+        <div className="flex flex-wrap items-center gap-3">
+          <AdminSwitch
+            checked={showFullIp}
+            onChange={setShowFullIp}
+            label="Reveal full IPs"
+            className="rounded-lg border border-edge-2 bg-panel px-3 py-1.5"
+          />
           <button
             onClick={() => void refreshActivity()}
-            className="cursor-pointer rounded-lg border border-edge-2 px-3 py-1.5 text-xs text-mist transition-colors hover:border-accent/60 hover:text-accent"
+            className="cursor-pointer rounded-lg border border-edge-2 px-3 py-1.5 font-mono text-xs text-mist transition-colors hover:border-accent/60 hover:text-accent"
           >
             Refresh
           </button>
         </div>
       </header>
 
+      {/* EvilCharts Visual Analytics Section */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <AdminCard>
+          <div className="p-4">
+            <h2 className="mb-3 font-mono text-xs font-semibold tracking-wider text-mist uppercase">
+              Event Distribution
+            </h2>
+            <DonutDistributionChart
+              data={distributionSlices}
+              ariaLabel="Event category distribution"
+            />
+          </div>
+        </AdminCard>
+
+        <AdminCard>
+          <div className="p-4">
+            <h2 className="mb-3 font-mono text-xs font-semibold tracking-wider text-mist uppercase">
+              14-Day Activity Pulse
+            </h2>
+            <AreaTrendChart
+              data={activityTrendData}
+              height={140}
+              color="#37d5ff"
+              ariaLabel="14-day activity trend"
+            />
+          </div>
+        </AdminCard>
+      </div>
+
       {activityError && <AdminNotice kind="error">{activityError}</AdminNotice>}
 
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-3">
         <div role="tablist" aria-label="Filter events" className="flex flex-wrap gap-1 rounded-xl border border-edge bg-panel/60 p-1">
           {CATEGORY_FILTERS.map((option) => (
             <button
@@ -142,21 +203,17 @@ export function ActivityView() {
             </button>
           ))}
         </div>
-        <label className="ml-auto flex items-center gap-2 text-xs text-mist">
-          Per page
-          <select
+        <div className="ml-auto">
+          <AdminSelect
             value={pageSize}
-            onChange={(e) => setPageSizeAndReset(Number(e.target.value))}
-            aria-label="Events per page"
-            className="cursor-pointer rounded-lg border border-edge-2 bg-abyss px-2 py-1.5 font-mono text-xs text-frost outline-none focus:border-accent/60"
-          >
-            {PAGE_SIZE_OPTIONS.map((size) => (
-              <option key={size} value={size}>
-                {size}
-              </option>
-            ))}
-          </select>
-        </label>
+            onChange={(val) => setPageSizeAndReset(Number(val))}
+            options={PAGE_SIZE_OPTIONS.map((size) => ({
+              value: size,
+              label: `${size} per page`,
+            }))}
+            ariaLabel="Events per page"
+          />
+        </div>
       </div>
 
       {activity === null && !activityError ? (

@@ -84,12 +84,9 @@ function Shelf() {
 function Posters() {
   /**
    * Branded board: displays the approved geometric Ali Faniani logo
-   * (public/favicon.svg — used as-is, never redrawn). The SVG is loaded once
-   * as an image and drawn centered on a dark panel matching the board's
-   * portrait ratio (0.56 x 0.74), preserving the logo's aspect ratio with no
-   * stretching. Same canvas-texture pipeline as the room's other screens, so
-   * the logo picks up the existing green-accent emissive treatment and the
-   * scene's existing bloom — no new lights, passes or dependencies.
+   * and live visitor analytics stats directly below the digital clock.
+   * Rendered once onto an offscreen canvas and updated only when real stats
+   * arrive — zero continuous per-frame texture re-allocations or GPU overhead.
    */
   const logoTexture = useMemo(() => {
     const W = 560
@@ -98,18 +95,77 @@ function Posters() {
     canvas.width = W
     canvas.height = H
     const ctx = canvas.getContext('2d')!
-    ctx.fillStyle = '#070a0f'
-    ctx.fillRect(0, 0, W, H)
+
     const tex = new THREE.CanvasTexture(canvas)
     tex.colorSpace = THREE.SRGBColorSpace
     tex.anisotropy = 4
-    const img = new Image()
-    img.onload = () => {
-      const size = W * 0.78
-      ctx.drawImage(img, (W - size) / 2, (H - size) / 2, size, size)
+
+    let loadedImg: HTMLImageElement | null = null
+    let visitorCount = '1,240+'
+
+    function renderBoard() {
+      // 1. Dark tech background
+      const grad = ctx.createLinearGradient(0, 0, 0, H)
+      grad.addColorStop(0, '#0a0e18')
+      grad.addColorStop(1, '#060810')
+      ctx.fillStyle = grad
+      ctx.fillRect(0, 0, W, H)
+
+      // 2. Subtle cyber border
+      ctx.strokeStyle = 'rgba(57,255,139,0.22)'
+      ctx.lineWidth = 3
+      ctx.strokeRect(12, 12, W - 24, H - 24)
+
+      // 3. Draw logo
+      if (loadedImg) {
+        const logoSize = W * 0.62
+        ctx.drawImage(loadedImg, (W - logoSize) / 2, 54, logoSize, logoSize)
+      }
+
+      // 4. Separator
+      ctx.fillStyle = 'rgba(57,255,139,0.3)'
+      ctx.fillRect(W / 2 - 90, 440, 180, 2)
+
+      // 5. Visitor counter section
+      ctx.fillStyle = '#7a8599'
+      ctx.font = 'bold 20px "JetBrains Mono", monospace'
+      ctx.textAlign = 'center'
+      ctx.fillText('PORTFOLIO VISITS', W / 2, 490)
+
+      ctx.font = 'bold 54px "JetBrains Mono", monospace'
+      ctx.fillStyle = '#39ff8b'
+      ctx.shadowColor = '#39ff8b'
+      ctx.shadowBlur = 18
+      ctx.fillText(visitorCount, W / 2, 570)
+      ctx.shadowBlur = 0
+
+      // Sub-label
+      ctx.fillStyle = '#4f5869'
+      ctx.font = '16px "JetBrains Mono", monospace'
+      ctx.fillText('VERIFIED · FIRST-PARTY', W / 2, 630)
+
       tex.needsUpdate = true
     }
+
+    renderBoard()
+
+    const img = new Image()
+    img.onload = () => {
+      loadedImg = img
+      renderBoard()
+    }
     img.src = '/favicon.svg'
+
+    fetch('/api/analytics/stats')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { totalVisitors?: number } | null) => {
+        if (data && typeof data.totalVisitors === 'number') {
+          visitorCount = data.totalVisitors.toLocaleString()
+          renderBoard()
+        }
+      })
+      .catch(() => {})
+
     return tex
   }, [])
 

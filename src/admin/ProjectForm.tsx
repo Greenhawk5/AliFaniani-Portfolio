@@ -8,6 +8,7 @@
 import { Button } from '@/components/ui/Button'
 import { Field, inputClasses } from './Field'
 import { MediaPicker } from './MediaPicker'
+import { AdminSwitch } from './ui/form-controls'
 
 export interface ProjectDraft {
   slug: string
@@ -28,6 +29,8 @@ export interface ProjectDraft {
   demo?: string
   demoStatus?: string
   documentation?: string
+  featured?: boolean
+  featuredOrder?: number
 }
 
 interface Props {
@@ -88,6 +91,26 @@ export function ProjectForm({ value, onChange }: Props) {
         <Field label="Overview" hint="case-study intro">
           <textarea value={value.overview} onChange={(e) => set('overview', e.target.value)} rows={4} className={inputClasses} required />
         </Field>
+        <div className="grid gap-3 sm:grid-cols-2 pt-3 border-t border-edge/40">
+          <AdminSwitch
+            checked={!!value.featured}
+            onChange={(checked) => set('featured', checked)}
+            label="Featured on Homepage"
+            description="Pin to Selected Work carousel"
+          />
+          {value.featured && (
+            <Field label="Featured priority order" hint="1 (highest) to 5">
+              <input
+                type="number"
+                min={1}
+                max={5}
+                value={value.featuredOrder ?? 1}
+                onChange={(e) => set('featuredOrder', Number(e.target.value))}
+                className={inputClasses}
+              />
+            </Field>
+          )}
+        </div>
       </fieldset>
 
       <fieldset className="space-y-3 rounded-xl border border-edge p-4">

@@ -20,7 +20,7 @@ import {
   relativeTime,
   absoluteTime,
 } from '../ui/primitives'
-import { MiniBars } from '../ui/MiniBars'
+import { AreaTrendChart } from '../ui/EvilCharts'
 import { FolderIcon, UserIcon, LinkIcon, RocketIcon, SearchIcon } from '../ui/icons'
 import { CheckIcon } from '@/components/ui/icons'
 import { Button } from '@/components/ui/Button'
@@ -28,6 +28,8 @@ import { cn } from '@/lib/cn'
 
 interface Attention {
   id: string
+  notifId?: string
+  state?: 'active' | 'acknowledged'
   tone: 'danger' | 'warning' | 'info'
   title: string
   description: string
@@ -40,6 +42,24 @@ export function OverviewView({ onNavigate: navigate }: { onNavigate: (view: Admi
 
   const attention = useMemo<Attention[]>(() => {
     const issues: Attention[] = []
+
+    // 1. First priority: Real actionable notifications from D1 admin_notifications table
+    if (data.notifications) {
+      for (const n of data.notifications) {
+        if (n.state === 'resolved' || n.state === 'expired') continue
+        const tone: 'danger' | 'warning' | 'info' =
+          n.severity === 'critical' ? 'danger' : n.severity === 'warning' ? 'warning' : 'info'
+        issues.push({
+          id: n.id,
+          notifId: n.id,
+          state: n.state,
+          tone,
+          title: n.title,
+          description: n.message,
+        })
+      }
+    }
+
     if (counts.edited > 0) {
       issues.push({
         id: 'unpublished',
@@ -86,7 +106,7 @@ export function OverviewView({ onNavigate: navigate }: { onNavigate: (view: Admi
       })
     }
     return issues
-  }, [counts.edited, data.deploy, data.activity, data.itemsError])
+  }, [data.notifications, counts.edited, data.deploy, data.activity, data.itemsError])
 
   return (
     <div className="space-y-5">
@@ -135,14 +155,41 @@ export function OverviewView({ onNavigate: navigate }: { onNavigate: (view: Admi
               >
                 <StatusDot tone={issue.tone === 'info' ? 'info' : issue.tone} />
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-frost">{issue.title}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium text-frost">{issue.title}</p>
+                    {issue.state === 'acknowledged' && (
+                      <span className="rounded border border-edge-2 bg-panel-2 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-mist">
+                        Acknowledged
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs text-mist">{issue.description}</p>
                 </div>
-                {issue.action && (
-                  <Button variant="outline" size="sm" onClick={() => navigate(issue.action!.view)}>
-                    {issue.action.label}
-                  </Button>
-                )}
+                <div className="flex flex-wrap items-center gap-2">
+                  {issue.notifId && issue.state === 'active' && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => void data.acknowledgeNotification(issue.notifId!)}
+                    >
+                      Acknowledge
+                    </Button>
+                  )}
+                  {issue.notifId && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => void data.resolveNotification(issue.notifId!)}
+                    >
+                      Resolve
+                    </Button>
+                  )}
+                  {issue.action && (
+                    <Button variant="outline" size="sm" onClick={() => navigate(issue.action!.view)}>
+                      {issue.action.label}
+                    </Button>
+                  )}
+                </div>
               </li>
             ))}
           </ul>
@@ -421,7 +468,7 @@ function RecentActivityList({
  * footer names the exact date range so sparse windows read clearly. */
 function ActivityPulse({ events, error }: { events: { ts: string }[]; error: string }) {
   const data = useMemo(() => {
-    const days: { label: string; fullLabel: string; count: number }[] = []
+    const days: Array<{ label: string; value: number; fullDate: string }> = []
     const today = new Date()
     for (let i = 13; i >= 0; i--) {
       const day = new Date(today)
@@ -429,26 +476,27 @@ function ActivityPulse({ events, error }: { events: { ts: string }[]; error: str
       const key = day.toISOString().slice(0, 10)
       days.push({
         label: key.slice(5),
-        fullLabel: day.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
-        count: events.filter((e) => e.ts.slice(0, 10) === key).length,
+        fullDate: day.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+        value: events.filter((e) => e.ts.slice(0, 10) === key).length,
       })
     }
     return days
   }, [events])
 
   if (error) return <p className="text-xs text-mist">{error}</p>
-  const total = data.reduce((sum, d) => sum + d.count, 0)
+  const total = data.reduce((sum, d) => sum + d.value, 0)
   if (total === 0) {
     return <p className="py-6 text-center text-xs text-mist/70">No admin events in the last 14 days.</p>
   }
-  const range = `${data[0]?.fullLabel} – ${data[data.length - 1]?.fullLabel}`
+  const range = `${data[0]?.fullDate} – ${data[data.length - 1]?.fullDate}`
   return (
     <div>
-      <MiniBars data={data} className="h-28" ariaLabel={`Admin events per day, ${range}, ${total} total`} />
-      <div className="mt-2 flex justify-between font-mono text-[9px] tabular-nums text-mist/60">
-        <span>{data[0]?.fullLabel}</span>
-        <span>today</span>
-      </div>
+      <AreaTrendChart
+        data={data}
+        height={130}
+        color="#39ff8b"
+        ariaLabel={`Admin events per day, ${range}, ${total} total`}
+      />
     </div>
   )
 }

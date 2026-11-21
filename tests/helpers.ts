@@ -73,10 +73,14 @@ export class FakeD1Database {
   }
 
   private tableFor(sql: string): Row[] {
-    if (/sessions/i.test(sql)) return this.tables.sessions ??= []
-    if (/auth_log/i.test(sql)) return this.tables.auth_log ??= []
-    if (/media_assets/i.test(sql)) return this.tables.media_assets ??= []
-    if (/[s]{0}content/i.test(sql)) return this.tables.content ??= []
+    if (/sessions/i.test(sql)) return (this.tables.sessions ??= [])
+    if (/auth_log/i.test(sql)) return (this.tables.auth_log ??= [])
+    if (/media_assets/i.test(sql)) return (this.tables.media_assets ??= [])
+    if (/page_view_events/i.test(sql)) return (this.tables.page_view_events ??= [])
+    if (/project_analytics_daily/i.test(sql)) return (this.tables.project_analytics_daily ??= [])
+    if (/analytics_daily/i.test(sql)) return (this.tables.analytics_daily ??= [])
+    if (/admin_notifications/i.test(sql)) return (this.tables.admin_notifications ??= [])
+    if (/[s]{0}content/i.test(sql)) return (this.tables.content ??= [])
     return (this.tables.other ??= [])
   }
 
@@ -110,6 +114,36 @@ export class FakeD1Database {
         filtered = filtered.filter((r) => r.category === cat)
       }
       return { count: filtered.length } as Row
+    }
+    if (/SELECT SUM\(views\) as total_views, SUM\(unique_visitors\) as total_visitors FROM analytics_daily/.test(sql)) {
+      const dailyRows = this.tables.analytics_daily ?? []
+      const totalViews = dailyRows.reduce((sum, r) => sum + Number(r.views || 0), 0)
+      const totalVisitors = dailyRows.reduce((sum, r) => sum + Number(r.unique_visitors || 0), 0)
+      return { total_views: totalViews, total_visitors: totalVisitors } as Row
+    }
+    if (/SELECT COUNT\(\*\) as count FROM content WHERE kind = 'project' AND state = 'published'/.test(sql)) {
+      const contentRows = this.tables.content ?? []
+      const count = contentRows.filter((r) => r.kind === 'project' && r.state === 'published').length
+      return { count } as Row
+    }
+    if (/SELECT id FROM admin_notifications WHERE type = \? AND title = \? AND state = 'active'/.test(sql) || /SELECT id FROM admin_notifications WHERE type = \? AND title = \? AND state IN \('active', 'acknowledged'\)/.test(sql)) {
+      const notifRows = this.tables.admin_notifications ?? []
+      const [type, title] = params
+      const found = notifRows.find((r) => r.type === type && r.title === title && r.state === 'active')
+      return found ? ({ id: found.id } as Row) : null
+    }
+    if (/SELECT\s+COUNT\(\*\) as total,.*FROM auth_log/is.test(sql)) {
+      const authRows = this.tables.auth_log ?? []
+      const total = authRows.length
+      const content_count = authRows.filter((r) => String(r.note ?? '').startsWith('content_') || String(r.note ?? '').startsWith('media_')).length
+      const publish_count = authRows.filter((r) => String(r.note ?? '').startsWith('publish_') || String(r.note ?? '').startsWith('sync_') || String(r.note ?? '').startsWith('deploy_')).length
+      const auth_count = authRows.filter((r) => String(r.note ?? '').startsWith('login_') || String(r.note ?? '').startsWith('session_')).length
+      return { total, content_count, publish_count, auth_count } as Row
+    }
+    if (/SELECT \* FROM admin_notifications WHERE id = \?/.test(sql)) {
+      const notifRows = this.tables.admin_notifications ?? []
+      const found = notifRows.find((r) => r.id === params[0])
+      return (found ?? null) as Row | null
     }
     return null
   }
@@ -175,6 +209,65 @@ export class FakeD1Database {
         return filtered.slice(offset, offset + limit)
       }
       return filtered
+    }
+    if (sql.includes('FROM analytics_daily')) {
+      const dailyRows = [...(this.tables.analytics_daily ?? [])]
+      if (/GROUP BY date/i.test(sql)) {
+        const byDate: Record<string, { date: string; views: number; visitors: number }> = {}
+        for (const r of dailyRows) {
+          const d = String(r.date)
+          byDate[d] ??= { date: d, views: 0, visitors: 0 }
+          byDate[d].views += Number(r.views || 0)
+          byDate[d].visitors += Number(r.unique_visitors || 0)
+        }
+        return Object.values(byDate).sort((a, b) => a.date.localeCompare(b.date))
+      }
+      if (/GROUP BY path/i.test(sql)) {
+        const byPath: Record<string, { path: string; views: number; visitors: number }> = {}
+        for (const r of dailyRows) {
+          const p = String(r.path)
+          byPath[p] ??= { path: p, views: 0, visitors: 0 }
+          byPath[p].views += Number(r.views || 0)
+          byPath[p].visitors += Number(r.unique_visitors || 0)
+        }
+        return Object.values(byPath).sort((a, b) => b.views - a.views)
+      }
+      return dailyRows
+    }
+    if (sql.includes('FROM project_analytics_daily')) {
+      const projRows = [...(this.tables.project_analytics_daily ?? [])]
+      if (/GROUP BY project_slug/i.test(sql)) {
+        const bySlug: Record<string, { slug: string; project_slug: string; views: number; visitors: number }> = {}
+        for (const r of projRows) {
+          const s = String(r.project_slug)
+          bySlug[s] ??= { slug: s, project_slug: s, views: 0, visitors: 0 }
+          bySlug[s].views += Number(r.views || 0)
+          bySlug[s].visitors += Number(r.unique_visitors || 0)
+        }
+        return Object.values(bySlug).sort((a, b) => b.views - a.views)
+      }
+      return projRows
+    }
+    if (sql.includes('FROM page_view_events')) {
+      const pageEvents = [...(this.tables.page_view_events ?? [])]
+      if (/GROUP BY device_type/i.test(sql)) {
+        const byDevice: Record<string, { device_type: string; count: number }> = {}
+        for (const r of pageEvents) {
+          if (Number(r.is_bot) === 1) continue
+          const dev = String(r.device_type || 'desktop')
+          byDevice[dev] ??= { device_type: dev, count: 0 }
+          byDevice[dev].count++
+        }
+        return Object.values(byDevice).sort((a, b) => b.count - a.count)
+      }
+      return pageEvents
+    }
+    if (sql.includes('FROM admin_notifications')) {
+      let notifs = [...(this.tables.admin_notifications ?? [])]
+      if (/WHERE state = \?/.test(sql) && params[0]) {
+        notifs = notifs.filter((n) => n.state === params[0])
+      }
+      return notifs.sort((a, b) => String(b.created_at ?? '').localeCompare(String(a.created_at ?? '')))
     }
     return []
   }
@@ -302,6 +395,77 @@ export class FakeD1Database {
       this.tables.media_assets = remaining
       rows.length = 0
       rows.push(...remaining)
+    } else if (/INSERT INTO page_view_events/.test(sql)) {
+      const [id, session_hash, path, referrer, country, device_type, is_bot, created_at] = params
+      const targetRows = (this.tables.page_view_events ??= [])
+      targetRows.push({ id, session_hash, path, referrer, country, device_type, is_bot, created_at })
+    } else if (/INSERT INTO analytics_daily/.test(sql)) {
+      const [date, path, unique_visitors] = params
+      const targetRows = (this.tables.analytics_daily ??= [])
+      const existing = targetRows.find((r) => r.date === date && r.path === path)
+      if (existing) {
+        existing.views = Number(existing.views || 0) + 1
+        existing.unique_visitors = Number(existing.unique_visitors || 0) + Number(unique_visitors || 0)
+      } else {
+        targetRows.push({ date, path, views: 1, unique_visitors: Number(unique_visitors || 0) })
+      }
+    } else if (/INSERT INTO project_analytics_daily/.test(sql)) {
+      const [date, project_slug, unique_visitors] = params
+      const targetRows = (this.tables.project_analytics_daily ??= [])
+      const existing = targetRows.find((r) => r.date === date && r.project_slug === project_slug)
+      if (existing) {
+        existing.views = Number(existing.views || 0) + 1
+        existing.unique_visitors = Number(existing.unique_visitors || 0) + Number(unique_visitors || 0)
+      } else {
+        targetRows.push({ date, project_slug, views: 1, unique_visitors: Number(unique_visitors || 0) })
+      }
+    } else if (/INSERT INTO admin_notifications/.test(sql)) {
+      const [id, type, severity, title, message, metadata, created_at, expires_at] = params
+      const targetRows = (this.tables.admin_notifications ??= [])
+      targetRows.push({
+        id,
+        type,
+        severity,
+        title,
+        message,
+        metadata,
+        state: 'active',
+        created_at,
+        expires_at,
+        acknowledged_at: null,
+        resolved_at: null,
+      })
+    } else if (/UPDATE admin_notifications\s+SET state = 'expired'/.test(sql)) {
+      const [nowIso] = params
+      const targetRows = (this.tables.admin_notifications ??= [])
+      let count = 0
+      for (const row of targetRows) {
+        if ((row.state === 'active' || row.state === 'acknowledged') && row.expires_at && String(row.expires_at) < String(nowIso)) {
+          row.state = 'expired'
+          count++
+        }
+      }
+      return { success: true, meta: { changes: count } }
+    } else if (/UPDATE admin_notifications\s+SET state = 'acknowledged'/.test(sql)) {
+      const [now, id] = params
+      const targetRows = (this.tables.admin_notifications ??= [])
+      const row = targetRows.find((r) => r.id === id)
+      if (row && row.state === 'active') {
+        row.state = 'acknowledged'
+        row.acknowledged_at = now
+        return { success: true, meta: { changes: 1 } }
+      }
+      return { success: true, meta: { changes: 0 } }
+    } else if (/UPDATE admin_notifications\s+SET state = 'resolved'/.test(sql)) {
+      const [now, id] = params
+      const targetRows = (this.tables.admin_notifications ??= [])
+      const row = targetRows.find((r) => r.id === id)
+      if (row && (row.state === 'active' || row.state === 'acknowledged')) {
+        row.state = 'resolved'
+        row.resolved_at = now
+        return { success: true, meta: { changes: 1 } }
+      }
+      return { success: true, meta: { changes: 0 } }
     }
     return { success: true, meta: { changes: 1 } }
   }

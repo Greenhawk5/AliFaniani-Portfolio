@@ -1,10 +1,13 @@
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useDocumentMeta } from '@/hooks/useDocumentMeta'
 import { SITE } from '@/app/config'
 import { BrandLogo } from '@/components/ui/BrandLogo'
-import { projects } from '@/data/projects'
+import { computeFeaturedProjects, useProjectStore } from '@/stores/projectStore'
+import { projects as staticProjects, type Project } from '@/data/projects'
 import { ArrowRightIcon } from '@/components/ui/icons'
 import { GooExperienceIcon } from '@/components/home/GooExperienceIcon'
+import { ProjectCarousel } from '@/components/ui/ProjectCarousel'
 
 const focusRing =
   'focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-4'
@@ -15,6 +18,13 @@ const PRIMARY_LINKS = [
   { label: 'Contact', to: '/contact' },
 ] as const
 
+interface PublicStats {
+  totalVisitors: number
+  totalViews: number
+  activeProjects: number
+  popularProjects?: string[]
+}
+
 /**
  * Lightweight, SEO-first landing page for `/`.
  *
@@ -23,11 +33,48 @@ const PRIMARY_LINKS = [
  * content is real, semantic HTML driven by the shared profile/project data.
  */
 export default function Home() {
+  const [stats, setStats] = useState<PublicStats | null>(null)
+  const [projectList, setProjectList] = useState<Project[]>(staticProjects)
+  const popularSlugs = useProjectStore((s) => s.popularSlugs)
+
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/analytics/stats')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: PublicStats | null) => {
+        if (!cancelled && data && typeof data.totalVisitors === 'number') {
+          setStats(data)
+          if (Array.isArray(data.popularProjects) && data.popularProjects.length > 0) {
+            useProjectStore.getState().setPopularSlugs(data.popularProjects)
+          }
+        }
+      })
+      .catch(() => {})
+
+    fetch('/api/projects')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: Project[] | null) => {
+        if (!cancelled && Array.isArray(data) && data.length > 0) {
+          setProjectList(data)
+        }
+      })
+      .catch(() => {})
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   useDocumentMeta({
     title: 'Ali Faniani — Software Developer',
     description:
       'Ali Faniani is a software developer building practical software systems across AI, backend engineering, web, and automation with modern technologies.',
   })
+
+  const carouselItems = useMemo(
+    () => computeFeaturedProjects(projectList, popularSlugs),
+    [projectList, popularSlugs]
+  )
 
   return (
     <div className="relative flex min-h-dvh flex-col overflow-hidden">
@@ -46,17 +93,26 @@ export default function Home() {
               Portfolio
             </span>
           </div>
-          <p className="hidden items-center gap-2 font-mono text-[10px] tracking-[0.2em] text-mist/70 uppercase sm:flex">
-            <span
-              aria-hidden="true"
-              className="h-1.5 w-1.5 animate-pulse-soft rounded-full bg-accent"
-            />
-            Open to freelance &amp; full-time
-          </p>
+
+          <div className="flex items-center gap-4">
+            {stats && (
+              <span className="hidden items-center gap-1.5 rounded-full border border-edge-2 bg-panel-2/70 px-2.5 py-1 font-mono text-[10px] text-mist/80 sm:inline-flex">
+                <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
+                {stats.totalVisitors.toLocaleString()} visits
+              </span>
+            )}
+            <p className="hidden items-center gap-2 font-mono text-[10px] tracking-[0.2em] text-mist/70 uppercase sm:flex">
+              <span
+                aria-hidden="true"
+                className="h-1.5 w-1.5 animate-pulse-soft rounded-full bg-accent"
+              />
+              Open to freelance &amp; full-time
+            </p>
+          </div>
         </header>
 
         {/* Main composition: identity left, CTA right */}
-        <main className="grid flex-1 content-center gap-14 py-14 lg:grid-cols-[1.2fr_1fr] lg:gap-20">
+        <main className="grid flex-1 content-center gap-12 py-12 lg:grid-cols-[1.2fr_1fr] lg:gap-16">
           <section aria-label="Introduction">
             <p className="animate-fade-up font-mono text-[11px] tracking-[0.3em] text-accent uppercase">
               AI · Backend · Web · Automation
@@ -81,14 +137,14 @@ export default function Home() {
 
             <nav
               aria-label="Primary"
-              className="animate-fade-up mt-10 flex flex-col items-start"
+              className="animate-fade-up mt-8 flex flex-col items-start"
               style={{ animationDelay: '240ms' }}
             >
               {PRIMARY_LINKS.map((link) => (
                 <Link
                   key={link.to}
                   to={link.to}
-                  className={`group flex items-center gap-4 py-2.5 text-lg text-mist transition-colors hover:text-frost ${focusRing}`}
+                  className={`group flex items-center gap-4 py-2 text-lg text-mist transition-colors hover:text-frost ${focusRing}`}
                 >
                   <span
                     aria-hidden="true"
@@ -99,25 +155,24 @@ export default function Home() {
               ))}
             </nav>
 
-            <div className="animate-fade-up mt-10" style={{ animationDelay: '320ms' }}>
-              <p className="font-mono text-[10px] tracking-[0.3em] text-mist/60 uppercase">
-                Selected work
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {projects.map((project) => (
-                  <Link
-                    key={project.slug}
-                    to={`/projects/${project.slug}`}
-                    className={`flex items-center gap-2 rounded-full border border-edge-2 bg-panel/60 px-4 py-2.5 text-sm text-frost transition-colors hover:border-accent/50 hover:text-accent ${focusRing}`}
-                  >
-                    {project.title}
-                    <ArrowRightIcon className="h-3 w-3 text-accent/70" />
-                  </Link>
-                ))}
+            {/* Selected work — Intelligent interactive carousel */}
+            <div className="animate-fade-up mt-8 max-w-xl" style={{ animationDelay: '320ms' }}>
+              <div className="mb-2 flex items-center justify-between">
+                <p className="font-mono text-[10px] tracking-[0.3em] text-mist/60 uppercase">
+                  Selected work
+                </p>
+                <Link
+                  to="/projects"
+                  className="font-mono text-[10px] tracking-wider text-accent/80 hover:text-accent hover:underline"
+                >
+                  View all ({stats?.activeProjects ?? 6}) →
+                </Link>
               </div>
+              <ProjectCarousel projects={carouselItems} />
             </div>
           </section>
 
+          {/* Interactive 3D room experience CTA */}
           <section
             aria-label="Interactive experience"
             className="animate-fade-up flex items-center lg:justify-end"
@@ -125,20 +180,40 @@ export default function Home() {
           >
             <Link
               to="/room"
-              aria-label="Enter the 3D experience"
-              className={`group flex flex-col items-center gap-6 rounded-2xl p-4 text-center transition-transform duration-300 hover:scale-[1.03] focus-visible:scale-[1.03] lg:items-end ${focusRing}`}
+              aria-label="Enter the 3D developer room experience"
+              className={`group relative flex w-full max-w-md flex-col items-start gap-5 overflow-hidden rounded-2xl border border-edge-2 bg-gradient-to-b from-panel/90 via-panel/75 to-panel-2/80 p-6 backdrop-blur-md transition-all duration-300 hover:border-accent/50 hover:shadow-[0_0_40px_-10px_rgba(57,255,139,0.25)] focus-visible:scale-[1.01] ${focusRing}`}
             >
-              <GooExperienceIcon className="h-24 w-24 text-accent drop-shadow-[0_0_14px_rgba(57,255,139,0.3)] transition-[filter] duration-300 group-hover:drop-shadow-[0_0_26px_rgba(57,255,139,0.55)] md:h-28 md:w-28" />
-              <span className="font-mono text-2xl leading-snug font-semibold tracking-wide text-frost transition-colors duration-300 group-hover:text-accent md:text-3xl lg:self-start lg:text-left">
-                Enter the
-                <br />
-                3D experience
-                <ArrowRightIcon className="ml-2 inline-block h-6 w-6 align-baseline text-accent transition-transform duration-300 group-hover:translate-x-2 md:h-7 md:w-7" />
-              </span>
-              <span className="max-w-xs text-sm leading-relaxed text-mist lg:self-start lg:text-left">
-                Explore my interactive 3D developer room — workspace, project
-                showcase and a live day/night cycle.
-              </span>
+              {/* Subtle ambient light pool in card */}
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-accent/10 blur-2xl transition-opacity duration-300 group-hover:bg-accent/20"
+              />
+
+              {/* Status pill badge */}
+              <div className="flex items-center gap-2 rounded-full border border-accent/25 bg-accent/10 px-3 py-1 font-mono text-[10px] tracking-wider text-accent uppercase">
+                <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
+                Interactive 3D Scene
+              </div>
+
+              <div className="flex w-full items-center justify-between gap-4">
+                <GooExperienceIcon className="h-16 w-16 text-accent drop-shadow-[0_0_12px_rgba(57,255,139,0.35)] transition-all duration-300 group-hover:scale-105 group-hover:drop-shadow-[0_0_24px_rgba(57,255,139,0.6)] sm:h-20 sm:w-20" />
+                <ArrowRightIcon className="h-7 w-7 text-accent/80 transition-transform duration-300 group-hover:translate-x-2 group-hover:text-accent" />
+              </div>
+
+              <div>
+                <span className="font-mono text-2xl font-semibold tracking-wide text-frost transition-colors duration-300 group-hover:text-accent sm:text-3xl">
+                  Enter the 3D Room
+                </span>
+                <p className="mt-2 text-sm leading-relaxed text-mist">
+                  Explore my interactive 3D developer workspace — project showcase,
+                  retro-futuristic desk, and live synchronized day/night cycle.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 border-t border-edge/60 pt-3 font-mono text-[11px] text-accent/90">
+                <span>Launch Experience</span>
+                <span aria-hidden="true">→</span>
+              </div>
             </Link>
           </section>
         </main>
@@ -149,7 +224,12 @@ export default function Home() {
             © {new Date().getFullYear()} {SITE.name}
           </p>
           <p>Jahrom County, Fars Province, Iran · Remote / Worldwide</p>
-          <p>React · TypeScript · Three.js</p>
+          <div className="flex items-center gap-3">
+            <span>React · TypeScript · Three.js</span>
+            {stats && (
+              <span className="text-mist/40">· {stats.totalVisitors.toLocaleString()} total visits</span>
+            )}
+          </div>
         </footer>
       </div>
     </div>

@@ -17,7 +17,7 @@
 </p>
 
 <p>
-  <img src="https://img.shields.io/badge/status-v2.2.0-39ff8b?style=for-the-badge&labelColor=05060a" alt="Version 2.2.0" />
+  <img src="https://img.shields.io/badge/status-v2.3.0-39ff8b?style=for-the-badge&labelColor=05060a" alt="Version 2.3.0" />
   <img src="https://img.shields.io/badge/license-proprietary-9CA3AF?style=for-the-badge&labelColor=05060a" alt="Proprietary license" />
   <img src="https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=white" alt="React 19" />
   <img src="https://img.shields.io/badge/TypeScript-strict-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript strict" />

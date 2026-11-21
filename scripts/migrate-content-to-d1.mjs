@@ -159,7 +159,9 @@ projects.forEach((project, index) => {
   }
   const mediaRefs = [parsed.data.banner, ...parsed.data.screenshots.map((s) => s.src)]
   for (const ref of mediaRefs) {
-    if (!manifest.media[ref]) errors.push(`project '${project.slug}': media reference not in manifest: ${ref}`)
+    if (!ref.startsWith('/assets/') && !ref.startsWith('https://media.alifaniani.ir/') && !manifest.media[ref]) {
+      errors.push(`project '${project.slug}': media reference not in manifest: ${ref}`)
+    }
   }
   rows.push({
     id: `project:${parsed.data.slug}`,

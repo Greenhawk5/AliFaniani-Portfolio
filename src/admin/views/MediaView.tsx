@@ -25,6 +25,7 @@ import {
 } from '../mediaApi'
 import { useAdminData } from '../AdminDataProvider'
 import { AdminCard, AdminEmpty, AdminNotice, Skeleton } from '../ui/primitives'
+import { AdminSelect } from '../ui/form-controls'
 import {
   SearchIcon,
   ImageIcon,
@@ -209,16 +210,17 @@ function AssetInspector({
           <label className="block text-[11px] font-medium uppercase tracking-wider text-mist mb-1">
             Category
           </label>
-          <select
+          <AdminSelect
             value={editCategory}
-            onChange={(e) => setEditCategory(e.target.value as MediaCategory)}
-            className="w-full rounded border border-edge bg-abyss px-3 py-1.5 text-xs text-frost focus:border-accent focus:outline-none"
-          >
-            <option value="project">Project</option>
-            <option value="profile">Profile</option>
-            <option value="certificate">Certificate</option>
-            <option value="misc">Misc</option>
-          </select>
+            onChange={(val) => setEditCategory(val as MediaCategory)}
+            options={[
+              { value: 'project', label: 'Project' },
+              { value: 'profile', label: 'Profile' },
+              { value: 'certificate', label: 'Certificate' },
+              { value: 'misc', label: 'Misc' },
+            ]}
+            ariaLabel="Edit Category"
+          />
         </div>
 
         <Button
@@ -408,16 +410,17 @@ export function MediaView() {
           <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
             <div className="flex items-center gap-2">
               <span className="text-xs text-mist">Target category:</span>
-              <select
+              <AdminSelect
                 value={uploadCategory}
-                onChange={(e) => setUploadCategory(e.target.value as MediaCategory)}
-                className="rounded border border-edge bg-abyss px-2.5 py-1 text-xs text-frost focus:border-accent focus:outline-none"
-              >
-                <option value="project">Projects</option>
-                <option value="profile">Profile</option>
-                <option value="certificate">Certificates</option>
-                <option value="misc">Misc</option>
-              </select>
+                onChange={(val) => setUploadCategory(val as MediaCategory)}
+                options={[
+                  { value: 'project', label: 'Projects' },
+                  { value: 'profile', label: 'Profile' },
+                  { value: 'certificate', label: 'Certificates' },
+                  { value: 'misc', label: 'Misc' },
+                ]}
+                ariaLabel="Upload Target Category"
+              />
             </div>
 
             <Button

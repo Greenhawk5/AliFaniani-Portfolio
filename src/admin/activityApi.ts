@@ -22,6 +22,12 @@ export interface ActivitySummary {
   failedAccess: number
   contentEvents: number
   lastTs: string | null
+  allTime?: {
+    total: number
+    content: number
+    publish: number
+    auth: number
+  }
 }
 
 export async function fetchActivity(
