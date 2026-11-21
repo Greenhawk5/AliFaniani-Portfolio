@@ -23,3 +23,10 @@ database_id = "ace40a08-b291-419d-b96a-e9f557ea2ca1"
 [[kv_namespaces]]
 binding = "RATE_LIMIT"
 id = "5c29dc9556ce49cc87b749212dbaedd7"
+
+# R2 — Cloudflare R2 Media Storage (v2.2.0)
+# Stores media uploaded via admin Media Library, served via media.alifaniani.ir
+[[r2_buckets]]
+binding = "MEDIA_BUCKET"
+bucket_name = "ali-faniani-portfolio-media"
+

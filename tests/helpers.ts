@@ -75,6 +75,7 @@ export class FakeD1Database {
   private tableFor(sql: string): Row[] {
     if (/sessions/i.test(sql)) return this.tables.sessions ??= []
     if (/auth_log/i.test(sql)) return this.tables.auth_log ??= []
+    if (/media_assets/i.test(sql)) return this.tables.media_assets ??= []
     if (/[s]{0}content/i.test(sql)) return this.tables.content ??= []
     return (this.tables.other ??= [])
   }
@@ -92,6 +93,18 @@ export class FakeD1Database {
       const [kind, key] = params
       return (rows.find((r) => r.kind === kind && r.key === key) ?? null) as Row | null
     }
+    if (/SELECT \* FROM media_assets WHERE id = \?/.test(sql)) {
+      const id = params[0]
+      return (rows.find((r) => r.id === id) ?? null) as Row | null
+    }
+    if (/SELECT COUNT\(\*\) as count FROM media_assets/.test(sql)) {
+      let filtered = rows.filter((r) => r.state !== 'deleted')
+      if (/category = \?/.test(sql)) {
+        const cat = params[0]
+        filtered = filtered.filter((r) => r.category === cat)
+      }
+      return { count: filtered.length } as Row
+    }
     return null
   }
 
@@ -107,6 +120,48 @@ export class FakeD1Database {
       const limit = limitMatch ? params[0] : undefined
       if (typeof limit === 'number') return rows.slice(0, limit)
       return rows
+    }
+    if (sql.includes('FROM media_assets')) {
+      const rows = [...(this.tables.media_assets ?? [])]
+      if (/GROUP BY category/i.test(sql)) {
+        const grouped: Record<string, { count: number; total_bytes: number }> = {}
+        for (const r of rows) {
+          if (r.state === 'deleted') continue
+          const cat = String(r.category)
+          grouped[cat] ??= { count: 0, total_bytes: 0 }
+          grouped[cat].count++
+          grouped[cat].total_bytes += Number(r.bytes || 0)
+        }
+        return Object.entries(grouped).map(([category, data]) => ({
+          category,
+          count: data.count,
+          total_bytes: data.total_bytes,
+        }))
+      }
+
+      let filtered = rows.filter((r) => r.state !== 'deleted')
+      if (/category = \?/.test(sql)) {
+        const cat = params[0]
+        filtered = filtered.filter((r) => r.category === cat)
+      }
+      if (/display_name LIKE \?/.test(sql)) {
+        const searchTerm = String(params[params.length - 3] || '').replace(/%/g, '').toLowerCase()
+        if (searchTerm) {
+          filtered = filtered.filter((r) =>
+            String(r.display_name ?? '').toLowerCase().includes(searchTerm) ||
+            String(r.original_name ?? '').toLowerCase().includes(searchTerm) ||
+            String(r.associated_key ?? '').toLowerCase().includes(searchTerm)
+          )
+        }
+      }
+      filtered.sort((a, b) => String(b.created_at ?? '').localeCompare(String(a.created_at ?? '')))
+      const limitMatch = /LIMIT\s+\?\s+OFFSET\s+\?/.exec(sql)
+      if (limitMatch && params.length >= 2) {
+        const limit = Number(params[params.length - 2])
+        const offset = Number(params[params.length - 1])
+        return filtered.slice(offset, offset + limit)
+      }
+      return filtered
     }
     return []
   }
@@ -200,6 +255,40 @@ export class FakeD1Database {
           row.expires_at = params[1]
         }
       }
+    } else if (/INSERT INTO media_assets/.test(sql)) {
+      const [id, r2_key, url, original_name, display_name, mime_type, bytes, width, height, category, associated_key, created_at, updated_at] = params
+      rows.push({
+        id,
+        r2_key,
+        url,
+        original_name,
+        display_name,
+        mime_type,
+        bytes,
+        width,
+        height,
+        category,
+        associated_key,
+        state: 'ready',
+        created_at,
+        updated_at,
+        deleted_at: null,
+      })
+    } else if (/UPDATE media_assets/.test(sql)) {
+      const [displayName, category, associatedKey, now, id] = params
+      const row = rows.find((r) => r.id === id)
+      if (row) {
+        row.display_name = displayName
+        row.category = category
+        row.associated_key = associatedKey
+        row.updated_at = now
+      }
+    } else if (/DELETE FROM media_assets WHERE id/.test(sql)) {
+      const id = params[0]
+      const remaining = rows.filter((r) => r.id !== id)
+      this.tables.media_assets = remaining
+      rows.length = 0
+      rows.push(...remaining)
     }
     return { success: true, meta: { changes: 1 } }
   }
@@ -210,6 +299,65 @@ export class FakeD1Database {
 
   authRows(): Row[] {
     return this.tables.auth_log ?? []
+  }
+
+  mediaRows(): Row[] {
+    return this.tables.media_assets ?? []
+  }
+}
+
+/* --------------------------------- R2 stub --------------------------------- */
+
+export class FakeR2Bucket {
+  objects = new Map<string, { body: Uint8Array; httpMetadata?: Record<string, string>; customMetadata?: Record<string, string>; httpEtag: string }>()
+  failPuts = false
+  failDeletes = false
+
+  async put(key: string, value: ArrayBuffer | Uint8Array, options?: { httpMetadata?: Record<string, string>; customMetadata?: Record<string, string> }) {
+    if (this.failPuts) throw new Error('R2 put failed')
+    const bytes = value instanceof Uint8Array ? value : new Uint8Array(value)
+    const httpEtag = '"fake-etag-' + key + '"'
+    this.objects.set(key, { body: bytes, httpMetadata: options?.httpMetadata, customMetadata: options?.customMetadata, httpEtag })
+    return { key, size: bytes.length, etag: httpEtag, httpEtag }
+  }
+
+  async get(key: string) {
+    const obj = this.objects.get(key)
+    if (!obj) return null
+    return {
+      key,
+      size: obj.body.length,
+      httpMetadata: obj.httpMetadata,
+      customMetadata: obj.customMetadata,
+      httpEtag: obj.httpEtag,
+      body: new ReadableStream({
+        start(controller) {
+          controller.enqueue(obj.body)
+          controller.close()
+        },
+      }),
+      arrayBuffer: async () => obj.body.buffer,
+      text: async () => new TextDecoder().decode(obj.body),
+    }
+  }
+
+  async delete(key: string | string[]) {
+    if (this.failDeletes) throw new Error('R2 delete failed')
+    const keys = Array.isArray(key) ? key : [key]
+    for (const k of keys) {
+      this.objects.delete(k)
+    }
+  }
+
+  async list() {
+    const objects = Array.from(this.objects.entries()).map(([key, obj]) => ({
+      key,
+      size: obj.body.length,
+      httpMetadata: obj.httpMetadata,
+      customMetadata: obj.customMetadata,
+      httpEtag: obj.httpEtag,
+    }))
+    return { objects, truncated: false }
   }
 }
 
@@ -284,6 +432,7 @@ export function makeEnv(db: FakeD1Database, kv: FakeKV, overrides: Partial<TestE
   return {
     DB: db as unknown as D1Database,
     RATE_LIMIT: kv as unknown as KVNamespace,
+    MEDIA_BUCKET: (overrides.MEDIA_BUCKET ?? new FakeR2Bucket()) as unknown as R2Bucket,
     ASSETS: {} as Fetcher,
     ADMIN_PASSWORD: 'test-admin-password-correct',
     TURNSTILE_SECRET: 'test-turnstile-secret',

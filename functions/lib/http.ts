@@ -28,6 +28,10 @@ export function badRequestResponse(error: string): Response {
   return jsonResponse({ ok: false, error }, 400)
 }
 
+export function notFoundResponse(error = 'Not found'): Response {
+  return jsonResponse({ ok: false, error }, 404)
+}
+
 export function rateLimitedResponse(retryAfterSeconds: number): Response {
   return jsonResponse({ ok: false, error: 'Too many attempts. Please try again later.' }, 429, {
     'Retry-After': String(Math.max(1, Math.ceil(retryAfterSeconds))),

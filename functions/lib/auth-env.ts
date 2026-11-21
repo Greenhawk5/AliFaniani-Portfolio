@@ -20,6 +20,7 @@ export interface PagesEnv {
   DB: D1Database
   RATE_LIMIT: KVNamespace
   ASSETS: Fetcher
+  MEDIA_BUCKET?: R2Bucket
   RESEND_API_KEY?: string
   EMAIL_FROM?: string
   EMAIL_TO?: string
