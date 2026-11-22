@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/Card'
 import { Badge, TechTag } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { ArrowRightIcon, ExternalLinkIcon, SearchIcon, CloseIcon } from '@/components/ui/icons'
+import { Select } from '@/components/ui/Select'
 import { projects as staticProjects, type Project } from '@/data/projects'
 import { SITE } from '@/app/config'
 import { ROUTE_META } from '@/data/route-meta'
@@ -60,6 +61,30 @@ export default function Projects() {
   const technologies = useMemo(() => {
     return Array.from(new Set(projectList.flatMap((p) => p.technologies))).sort()
   }, [projectList])
+
+  const categoryOptions = useMemo(() => {
+    return [
+      { value: 'all', label: 'All Categories' },
+      ...categories.map((c) => ({ value: c, label: c })),
+    ]
+  }, [categories])
+
+  const techOptions = useMemo(() => {
+    return [
+      { value: 'all', label: 'All Technologies' },
+      ...technologies.map((t) => ({ value: t, label: t })),
+    ]
+  }, [technologies])
+
+  const sortOptions = useMemo(() => {
+    return [
+      { value: 'latest', label: 'Sort: Latest' },
+      { value: 'oldest', label: 'Sort: Oldest' },
+      { value: 'most-viewed', label: 'Sort: Most Viewed' },
+      { value: 'least-viewed', label: 'Sort: Least Viewed' },
+      { value: 'alphabetical', label: 'Sort: Alphabetical' },
+    ]
+  }, [])
 
   // Filter and sort projects
   const filteredProjects = useMemo(() => {
@@ -146,13 +171,13 @@ export default function Projects() {
         <section aria-label="Project discovery controls" className="mb-8 space-y-4">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             {/* Search Input */}
-            <div className="relative flex-1 max-w-md">
+            <div className="relative flex-1 max-w-md w-full">
               <SearchIcon className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-mist" />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search projects by name, stack, category..."
+                placeholder="Search projects..."
                 aria-label="Search projects"
                 className="w-full rounded-xl border border-edge-2 bg-panel/80 py-2.5 pr-10 pl-10 text-sm text-frost placeholder:text-mist/50 backdrop-blur-sm transition-colors focus:border-accent/60 focus:outline-none focus:ring-1 focus:ring-accent/50"
               />
@@ -169,65 +194,36 @@ export default function Projects() {
             </div>
 
             {/* Filter and Sort Dropdowns */}
-            <div className="flex flex-wrap items-center gap-2.5">
+            <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
               {/* Category Filter */}
-              <div className="flex items-center gap-1.5">
-                <label htmlFor="category-select" className="sr-only">
-                  Filter by category
-                </label>
-                <select
-                  id="category-select"
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="rounded-xl border border-edge-2 bg-panel/80 px-3 py-2 font-mono text-xs text-frost backdrop-blur-sm transition-colors hover:border-accent/40 focus:border-accent/60 focus:outline-none"
-                >
-                  <option value="all">All Categories</option>
-                  {categories.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <Select
+                id="category-select"
+                value={category}
+                options={categoryOptions}
+                onChange={setCategory}
+                ariaLabel="Filter by category"
+                className="w-full sm:w-auto min-w-[9.5rem]"
+              />
 
               {/* Technology Filter */}
-              <div className="flex items-center gap-1.5">
-                <label htmlFor="tech-select" className="sr-only">
-                  Filter by technology
-                </label>
-                <select
-                  id="tech-select"
-                  value={tech}
-                  onChange={(e) => setTech(e.target.value)}
-                  className="rounded-xl border border-edge-2 bg-panel/80 px-3 py-2 font-mono text-xs text-frost backdrop-blur-sm transition-colors hover:border-accent/40 focus:border-accent/60 focus:outline-none"
-                >
-                  <option value="all">All Technologies</option>
-                  {technologies.map((t) => (
-                    <option key={t} value={t}>
-                      {t}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <Select
+                id="tech-select"
+                value={tech}
+                options={techOptions}
+                onChange={setTech}
+                ariaLabel="Filter by technology"
+                className="w-full sm:w-auto min-w-[10rem]"
+              />
 
               {/* Sort Selector */}
-              <div className="flex items-center gap-1.5">
-                <label htmlFor="sort-select" className="sr-only">
-                  Sort projects
-                </label>
-                <select
-                  id="sort-select"
-                  value={sort}
-                  onChange={(e) => setSort(e.target.value as SortOption)}
-                  className="rounded-xl border border-edge-2 bg-panel/80 px-3 py-2 font-mono text-xs text-frost backdrop-blur-sm transition-colors hover:border-accent/40 focus:border-accent/60 focus:outline-none"
-                >
-                  <option value="latest">Sort: Latest</option>
-                  <option value="oldest">Sort: Oldest</option>
-                  <option value="most-viewed">Sort: Most Viewed</option>
-                  <option value="least-viewed">Sort: Least Viewed</option>
-                  <option value="alphabetical">Sort: Alphabetical</option>
-                </select>
-              </div>
+              <Select
+                id="sort-select"
+                value={sort}
+                options={sortOptions}
+                onChange={(val) => setSort(val as SortOption)}
+                ariaLabel="Sort projects"
+                className="w-full sm:w-auto min-w-[9.5rem]"
+              />
             </div>
           </div>
 

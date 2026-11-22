@@ -60,12 +60,21 @@ describe('Intelligent Selected Work Ranking', () => {
     expect(result.map((p) => p.slug)).toEqual(['proj-0', 'proj-1', 'proj-2', 'proj-3', 'proj-4'])
   })
 
-  it('preserves shortDescription on all ranked projects for single-line display', () => {
+  it('preserves shortDescription on all ranked projects', () => {
     const result = computeFeaturedProjects(sampleProjects, [])
     for (const project of result) {
       expect(project.shortDescription).toBeDefined()
       expect(typeof project.shortDescription).toBe('string')
       expect(project.shortDescription.length).toBeGreaterThan(0)
+    }
+  })
+
+  it('preserves subtitle on all ranked projects for Selected Work single-line display', () => {
+    const result = computeFeaturedProjects(sampleProjects, [])
+    for (const project of result) {
+      expect(project.subtitle).toBeDefined()
+      expect(typeof project.subtitle).toBe('string')
+      expect(project.subtitle.length).toBeGreaterThan(0)
     }
   })
 })

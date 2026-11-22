@@ -118,7 +118,7 @@ const BUFFER_DASH: [number, number] = [4, 3];
 // canvas at 2× DPR spreads a 1px line across device pixels — roughly halving
 // perceived intensity. Using the border token's full alpha lands both engines at
 // the same apparent brightness.
-const GRID_LINE_OPACITY = 1; // dashed y-axis split lines, × border alpha
+const GRID_LINE_OPACITY = 0.15; // subtle horizontal split lines, low-opacity
 const AXIS_POINTER_OPACITY = 1; // tooltip cursor line, × border alpha
 // The skeleton is CLIPPED to a small sweeping window — only the wave section
 // inside it exists (stroke + fill), everything outside is fully transparent,
@@ -867,7 +867,7 @@ function buildMainAxes(ctx: OptionBuildContext): { xAxis: XAxisOption; yAxis: YA
     splitLine: {
       // Hidden while loading — the skeleton floats on a clean canvas.
       show: showGrid && !isLoading,
-      lineStyle: { color: splitLineColor, type: [3, 3] as [number, number], width: 1 },
+      lineStyle: { color: "rgba(255, 255, 255, 0.06)", type: "solid", width: 1 },
     },
     axisLabel: {
       // Hidden while loading — skeleton values are meaningless, and the

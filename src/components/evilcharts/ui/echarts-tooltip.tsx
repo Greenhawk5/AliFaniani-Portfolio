@@ -23,8 +23,8 @@ export const roundnessClass: Record<TooltipRoundness, string> = {
 };
 
 export const tooltipVariantClass: Record<TooltipVariant, string> = {
-  default: "bg-background",
-  "frosted-glass": "bg-background/50 backdrop-blur-md",
+  default: "bg-[#0b0e17] border border-[#2a3149] text-[#e8ecf4]",
+  "frosted-glass": "bg-[#0b0e17]/95 backdrop-blur-md border border-[#2a3149] text-[#e8ecf4]",
 };
 
 // ECharts inserts formatter strings as HTML. Encode plain text and quoted
@@ -65,8 +65,8 @@ export function tooltipRow({
   return `<div class="flex w-full flex-wrap items-center gap-2${escapeTooltipHtml(dimmed)}">
           ${indicatorHtml}
           <div class="flex flex-1 items-center justify-between gap-4 leading-none">
-            <span class="text-muted-foreground">${escapeTooltipHtml(labelText)}</span>
-            <span class="text-foreground font-mono font-medium tabular-nums">${escapeTooltipHtml(valueText)}</span>
+            <span class="text-[#8b93a7] font-mono text-xs">${escapeTooltipHtml(labelText)}</span>
+            <span class="text-[#e8ecf4] font-mono font-medium tabular-nums text-xs">${escapeTooltipHtml(valueText)}</span>
           </div>
         </div>`;
 }
@@ -85,8 +85,8 @@ export function tooltipShell({
   roundness: TooltipRoundness;
   variant: TooltipVariant;
 }): string {
-  return `<div class="grid min-w-32 items-start gap-1.5 border border-border/50 px-2.5 py-1.5 text-xs shadow-xl ${roundnessClass[roundness]} ${tooltipVariantClass[variant]}">
-      <div class="font-medium text-primary">${escapeTooltipHtml(label)}</div>
+  return `<div class="grid min-w-32 items-start gap-2 border border-[#2a3149] bg-[#0b0e17] px-3 py-2 text-xs shadow-2xl ${roundnessClass[roundness]} ${tooltipVariantClass[variant]}">
+      <div class="font-mono text-[11px] font-semibold uppercase tracking-wider text-[#39ff8b]">${escapeTooltipHtml(label)}</div>
       <div class="grid gap-1.5">${body}</div>
     </div>`;
 }

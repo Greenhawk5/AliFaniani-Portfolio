@@ -627,7 +627,8 @@ function pieCenterY(legendSlot: LegendSlot): string {
 // item-triggered, so each hover surfaces exactly one sector — its indicator,
 // label, and value, matching ChartTooltipContent with `hideLabel` (no header).
 function createTooltipFormatter(ctx: OptionBuildContext) {
-  const { config, selectedSector, tooltipSlot } = ctx;
+  const { data, dataKey, config, selectedSector, tooltipSlot } = ctx;
+  const total = data.reduce((sum, row) => sum + (Number(row[dataKey]) || 0), 0);
 
   return (params: unknown): string => {
     const p = (Array.isArray(params) ? params[0] : params) as {
@@ -642,7 +643,9 @@ function createTooltipFormatter(ctx: OptionBuildContext) {
     const item = config[name];
     const colorsCount = item ? getColorsCount(item) : 1;
     const labelText = typeof item?.label === "string" ? item.label : name;
-    const value = typeof p.value === "number" ? p.value.toLocaleString() : String(p.value ?? "");
+    const numValue = typeof p.value === "number" ? p.value : Number(p.value) || 0;
+    const percentage = total > 0 ? ((numValue / total) * 100).toFixed(1) : "0.0";
+    const valueDisplay = `${numValue.toLocaleString()} (${percentage}%)`;
     const dimmed = selectedSector != null && selectedSector !== name ? " opacity-30" : "";
 
     // The row shape matches the area chart's indicator + label + value, so it
@@ -653,11 +656,11 @@ function createTooltipFormatter(ctx: OptionBuildContext) {
     const row = tooltipRow({
       indicatorHtml: tooltipIndicatorHtml(name, colorsCount),
       labelText,
-      valueText: value,
+      valueText: valueDisplay,
       dimmed,
     });
 
-    return `<div class="grid min-w-32 items-start gap-1.5 border border-border/50 px-2.5 py-1.5 text-xs shadow-xl ${roundnessClass[tooltipSlot.roundness]} ${tooltipVariantClass[tooltipSlot.variant]}">
+    return `<div class="grid min-w-36 items-start gap-1.5 border border-[#2a3149] bg-[#0b0e17] px-3 py-2 text-xs shadow-2xl ${roundnessClass[tooltipSlot.roundness]} ${tooltipVariantClass[tooltipSlot.variant]}">
       <div class="grid gap-1.5">${row}</div>
     </div>`;
   };
