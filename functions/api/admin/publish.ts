@@ -25,9 +25,9 @@
  */
 
 import type { AdminEnv } from '../../lib/auth-env'
-import { jsonResponse, unauthorizedResponse, clientIp } from '../../lib/http'
+import { jsonResponse, unauthorizedResponse, badRequestResponse, clientIp } from '../../lib/http'
 import { requireMutationAuth } from '../../lib/session-auth'
-import { preparePublish, ValidationError } from '../../lib/publish'
+import { preparePublish, ValidationError, type SelectedTarget } from '../../lib/publish'
 import { recordDeployState } from '../../lib/deploy-state'
 import { dispatchSnapshotSync, dispatchSyncReason } from '../../lib/github-sync'
 import { logAuthEvent, requestCountry } from '../../lib/auth-log'
@@ -39,11 +39,66 @@ interface ManifestShape {
   media?: Record<string, unknown>
 }
 
+interface PublishRequestBody {
+  targets?: SelectedTarget[]
+  action?: 'publish' | 'retry_sync'
+}
+
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   const context = await requireMutationAuth(request, env.DB)
   if (!context) return unauthorizedResponse()
   const ip = clientIp(request)
   const country = requestCountry(request)
+
+  let body: PublishRequestBody = {}
+  try {
+    const contentType = request.headers.get('content-type') || ''
+    if (contentType.includes('application/json')) {
+      body = (await request.json()) as PublishRequestBody
+    }
+  } catch {
+    // Non-JSON or empty bodies default to standard publish-all
+  }
+
+  // Handle retry_sync action
+  if (body.action === 'retry_sync') {
+    const nowIso = new Date().toISOString()
+    const sync = await dispatchSnapshotSync(env.GITHUB_SYNC_TOKEN, {
+      action: 'retry',
+      requested_at: nowIso,
+    })
+    const syncReason = dispatchSyncReason(sync)
+    await recordDeployState(env.RATE_LIMIT, {
+      status: sync.ok ? 'github_syncing' : 'sync_dispatch_failed',
+      requestedAt: nowIso,
+      currentStep: sync.ok ? 3 : 2,
+      stepMessage: sync.ok
+        ? 'Retrying repository snapshot sync on GitHub Actions...'
+        : `Snapshot sync dispatch failed (${syncReason}).`,
+      lastError: sync.ok ? undefined : syncReason,
+    })
+    await logAuthEvent(env.DB, sync.ok ? 'sync_dispatched' : 'sync_dispatch_failed', {
+      ip,
+      country,
+      ok: sync.ok,
+      note: `retry: ${syncReason}`,
+    })
+    return jsonResponse({
+      ok: sync.ok,
+      sync: sync.ok ? { status: 'dispatched' } : { status: 'dispatch_failed', reason: syncReason },
+      deployment: { status: sync.ok ? 'pending_sync' : 'sync_dispatch_failed' },
+    })
+  }
+
+  // Handle selective publishing input validation
+  if (body.targets !== undefined) {
+    if (!Array.isArray(body.targets)) {
+      return badRequestResponse('Field "targets" must be an array of { kind, key } objects.')
+    }
+    if (body.targets.length === 0) {
+      return badRequestResponse('At least one item must be selected to publish.')
+    }
+  }
 
   // 2 — media manifest from the deployed assets (generated at build time)
   let mediaManifest: Record<string, unknown>
@@ -65,11 +120,11 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     return jsonResponse({ ok: false, error: 'Media manifest unavailable — cannot validate publish.' }, 500)
   }
 
-  // 3 — validate everything first
+  // 3 — validate targets (selective or all)
   let plan: Awaited<ReturnType<typeof preparePublish>>['plan']
   let statements: { sql: string; params: unknown[] }[]
   try {
-    const prepared = await preparePublish(env.DB, mediaManifest)
+    const prepared = await preparePublish(env.DB, mediaManifest, body.targets)
     plan = prepared.plan
     statements = prepared.statements as { sql: string; params: unknown[] }[]
   } catch (error) {
@@ -117,22 +172,41 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     note: `${counts.projects}p/${counts.profileSections}s/${counts.links}l`,
   })
 
-  // 5 — repository synchronization dispatch (post-commit; failure does not
-  // roll back the publish and never affects production). The dispatched
-  // workflow reads production D1 itself, mirrors generated files to main,
-  // and only then triggers the Cloudflare deploy hook.
-  const sync = await dispatchSnapshotSync(env.GITHUB_SYNC_TOKEN)
+  // 5 — repository synchronization dispatch with unique operation ID
+  const operationId = 'pub_' + Date.now().toString(36) + '_' + crypto.randomUUID().slice(0, 8)
+  const targetSummary = `${counts.projects} projects, ${counts.profileSections} profile sections, ${counts.links} links`
+  const stateTargets = plan.targets.map((t) => ({
+    kind: t.kind,
+    key: t.key,
+    changeType: t.record.state === 'draft' ? ('new' as const) : ('updated' as const),
+  }))
+
+  const sync = await dispatchSnapshotSync(env.GITHUB_SYNC_TOKEN, {
+    operation_id: operationId,
+    targets_count: plan.targets.length,
+    summary: targetSummary,
+  })
   const syncReason = dispatchSyncReason(sync)
+
   await recordDeployState(env.RATE_LIMIT, {
+    operationId,
     status: sync.ok ? 'pending_sync' : 'sync_dispatch_failed',
     requestedAt: new Date().toISOString(),
+    targetCount: plan.targets.length,
+    targetSummary,
+    targets: stateTargets,
+    currentStep: sync.ok ? 3 : 2,
+    stepMessage: sync.ok
+      ? 'Selected records promoted to database. Snapshot sync dispatched to GitHub...'
+      : 'Selected records promoted to database, but GitHub repository sync dispatch failed.',
     lastError: sync.ok ? undefined : syncReason,
   })
+
   await logAuthEvent(env.DB, sync.ok ? 'sync_dispatched' : 'sync_dispatch_failed', {
     ip,
     country,
     ok: sync.ok,
-    note: syncReason,
+    note: `${operationId} (${syncReason})`,
   })
 
   if (!sync.ok && syncReason !== 'not_configured') {
@@ -141,14 +215,16 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
       severity: 'warning',
       title: 'Snapshot sync dispatch failed',
       message: `Content was published to D1, but automatic GitHub repository sync dispatch failed (${syncReason}). Rebuild remains pending.`,
-      metadata: { reason: syncReason },
+      metadata: { reason: syncReason, operationId },
       expiresAt: new Date(Date.now() + 48 * 3600 * 1000).toISOString(),
     }).catch(() => {})
   }
 
   return jsonResponse({
     ok: true,
+    operationId,
     published: counts,
+    targets: stateTargets,
     deployment: sync.ok
       ? { status: 'pending_sync' }
       : { status: 'pending_sync', reason: 'sync_dispatch_failed' },
