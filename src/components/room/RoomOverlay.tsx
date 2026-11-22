@@ -6,6 +6,7 @@ import { useSettingsStore } from '@/stores/settingsStore'
 import { useClockText } from '@/hooks/useClockText'
 import { timeOfDayLabel } from '@/lib/timeController'
 import { useIsTouch } from '@/hooks/useMediaQuery'
+import { VirtualJoystick } from './VirtualJoystick'
 import {
   ClockIcon,
   CloseIcon,
@@ -40,6 +41,8 @@ export function RoomOverlay() {
   const setMode = useTimeStore((s) => s.setMode)
   const { clock } = useClockText()
   const timezoneMode = useSettingsStore((s) => s.timezoneMode)
+  const cameraMode = useSettingsStore((s) => s.cameraMode)
+  const setCameraMode = useSettingsStore((s) => s.setCameraMode)
   const isTouch = useIsTouch()
   const verb = isTouch ? 'Tap' : 'click'
 
@@ -149,6 +152,32 @@ export function RoomOverlay() {
               Back to room
             </button>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {cameraMode === 'free' && (
+          <>
+            {isTouch && (
+              <VirtualJoystick className="absolute bottom-[max(1.5rem,env(safe-area-inset-bottom))] left-[max(1.25rem,env(safe-area-inset-left))]" />
+            )}
+            <motion.div
+              key="freecam-bar"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 16 }}
+              className="pointer-events-auto absolute bottom-[max(1.25rem,env(safe-area-inset-bottom))] right-[max(1.25rem,env(safe-area-inset-right))] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 flex items-center gap-2.5 rounded-full border border-edge-2 bg-panel/85 py-1.5 pr-1.5 pl-4 backdrop-blur-md shadow-2xl"
+            >
+              <p className="text-xs font-mono text-accent whitespace-nowrap">Free Cam</p>
+              <button
+                onClick={() => setCameraMode('default')}
+                className="flex items-center gap-1 rounded-full bg-accent px-3 py-1 text-xs font-semibold text-void transition-colors hover:bg-[#5cffa2] cursor-pointer"
+              >
+                <ChevronLeftIcon className="h-3.5 w-3.5" />
+                Exit Free Cam
+              </button>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
 
