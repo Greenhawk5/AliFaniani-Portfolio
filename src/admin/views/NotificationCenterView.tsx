@@ -3,7 +3,7 @@
  * deployment statuses, security warnings, and custom administrator notifications.
  */
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useCallback } from 'react'
 import { useAdminData } from '../AdminDataProvider'
 import {
   AdminCard,
@@ -13,6 +13,13 @@ import {
   absoluteTime,
   toast,
 } from '../ui/primitives'
+import {
+  AdminSelect,
+  AdminInput,
+  AdminTextarea,
+  AdminSwitch,
+  type SelectOption,
+} from '../ui/form-controls'
 import { Button } from '@/components/ui/Button'
 import {
   BellIcon,
@@ -43,6 +50,19 @@ const FILTER_TABS: { id: FilterView; label: string }[] = [
   { id: 'system', label: 'System' },
   { id: 'security', label: 'Security' },
   { id: 'custom', label: 'Custom' },
+]
+
+const CATEGORY_OPTIONS: SelectOption<'custom' | 'system' | 'security' | 'content'>[] = [
+  { value: 'custom', label: 'Custom Administrator' },
+  { value: 'system', label: 'System Notification' },
+  { value: 'security', label: 'Security Alert' },
+  { value: 'content', label: 'Publishing / Content' },
+]
+
+const PRIORITY_OPTIONS: SelectOption<'normal' | 'important' | 'critical'>[] = [
+  { value: 'normal', label: 'Normal' },
+  { value: 'important', label: 'Important (Warning)' },
+  { value: 'critical', label: 'Critical (Urgent)' },
 ]
 
 export function NotificationCenterView({
@@ -80,6 +100,18 @@ export function NotificationCenterView({
   const [formPinned, setFormPinned] = useState(false)
   const [formError, setFormError] = useState('')
   const [formSubmitting, setFormSubmitting] = useState(false)
+
+  const handleCloseCreateModal = useCallback(() => {
+    setCreateModalOpen(false)
+  }, [])
+
+  const handleCloseDeleteModal = useCallback(() => {
+    setDeleteTargetId(null)
+  }, [])
+
+  const handleCloseClearArchivedModal = useCallback(() => {
+    setClearArchivedConfirmOpen(false)
+  }, [])
 
   const allNotifications = useMemo(() => notifications ?? [], [notifications])
 
@@ -660,105 +692,74 @@ export function NotificationCenterView({
       {/* Modal: Create Custom Notification */}
       <AdminModal
         open={createModalOpen}
-        onClose={() => setCreateModalOpen(false)}
+        onClose={handleCloseCreateModal}
         title="Create notification"
       >
         <form onSubmit={(e) => void handleCreateSubmit(e)} className="space-y-4">
           {formError && <AdminNotice kind="error">{formError}</AdminNotice>}
 
-          <div>
-            <label htmlFor="notif-title" className="mb-1 block font-mono text-xs font-medium text-mist uppercase tracking-wider">
-              Title *
-            </label>
-            <input
-              id="notif-title"
-              type="text"
-              value={formTitle}
-              onChange={(e) => setFormTitle(e.target.value)}
-              placeholder="e.g. Scheduled Maintenance"
-              maxLength={120}
-              required
-              className="w-full rounded-xl border border-edge-2 bg-panel-2/90 px-3 py-2 text-sm text-frost placeholder:text-mist/50 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/50"
-            />
-          </div>
+          <AdminInput
+            id="notif-title"
+            label="Title *"
+            type="text"
+            value={formTitle}
+            onChange={(e) => setFormTitle(e.target.value)}
+            placeholder="e.g. Scheduled Maintenance"
+            maxLength={120}
+            required
+            autoComplete="off"
+          />
 
-          <div>
-            <label htmlFor="notif-message" className="mb-1 block font-mono text-xs font-medium text-mist uppercase tracking-wider">
-              Message / Details *
-            </label>
-            <textarea
-              id="notif-message"
-              rows={3}
-              value={formMessage}
-              onChange={(e) => setFormMessage(e.target.value)}
-              placeholder="Enter announcement or note details..."
-              maxLength={1000}
-              required
-              className="w-full rounded-xl border border-edge-2 bg-panel-2/90 px-3 py-2 text-sm text-frost placeholder:text-mist/50 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/50"
-            />
-          </div>
+          <AdminTextarea
+            id="notif-message"
+            label="Message / Details *"
+            rows={3}
+            value={formMessage}
+            onChange={(e) => setFormMessage(e.target.value)}
+            placeholder="Enter announcement or note details..."
+            maxLength={1000}
+            required
+          />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label htmlFor="notif-category" className="mb-1 block font-mono text-xs font-medium text-mist uppercase tracking-wider">
-                Category
-              </label>
-              <select
-                id="notif-category"
-                value={formType}
-                onChange={(e) => setFormType(e.target.value as typeof formType)}
-                className="w-full rounded-xl border border-edge-2 bg-panel-2/90 px-3 py-2 font-mono text-xs text-frost focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/50"
-              >
-                <option value="custom">Custom Administrator</option>
-                <option value="system">System Notification</option>
-                <option value="security">Security Alert</option>
-                <option value="content">Publishing / Content</option>
-              </select>
-            </div>
+            <AdminSelect<'custom' | 'system' | 'security' | 'content'>
+              label="Category"
+              value={formType}
+              onChange={setFormType}
+              options={CATEGORY_OPTIONS}
+              ariaLabel="Notification category"
+              className="w-full"
+            />
 
-            <div>
-              <label htmlFor="notif-priority" className="mb-1 block font-mono text-xs font-medium text-mist uppercase tracking-wider">
-                Priority
-              </label>
-              <select
-                id="notif-priority"
-                value={formPriority}
-                onChange={(e) => setFormPriority(e.target.value as typeof formPriority)}
-                className="w-full rounded-xl border border-edge-2 bg-panel-2/90 px-3 py-2 font-mono text-xs text-frost focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/50"
-              >
-                <option value="normal">Normal</option>
-                <option value="important">Important (Warning)</option>
-                <option value="critical">Critical (Urgent)</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label htmlFor="notif-url" className="mb-1 block font-mono text-xs font-medium text-mist uppercase tracking-wider">
-              Destination URL or Route (Optional)
-            </label>
-            <input
-              id="notif-url"
-              type="text"
-              value={formLinkUrl}
-              onChange={(e) => setFormLinkUrl(e.target.value)}
-              placeholder="#/publishing or https://..."
-              maxLength={500}
-              className="w-full rounded-xl border border-edge-2 bg-panel-2/90 px-3 py-2 text-sm text-frost placeholder:text-mist/50 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/50"
+            <AdminSelect<'normal' | 'important' | 'critical'>
+              label="Priority"
+              value={formPriority}
+              onChange={setFormPriority}
+              options={PRIORITY_OPTIONS}
+              ariaLabel="Notification priority"
+              className="w-full"
             />
           </div>
 
-          <div className="flex items-center gap-2 pt-1">
-            <input
-              id="notif-pin"
-              type="checkbox"
+          <AdminInput
+            id="notif-url"
+            label="Destination URL or Route (Optional)"
+            type="text"
+            value={formLinkUrl}
+            onChange={(e) => setFormLinkUrl(e.target.value)}
+            placeholder="#/publishing or https://..."
+            maxLength={500}
+            autoComplete="off"
+          />
+
+          <div className="pt-1">
+            <AdminSwitch
               checked={formPinned}
-              onChange={(e) => setFormPinned(e.target.checked)}
-              className="h-4 w-4 rounded border-edge-2 bg-panel text-accent focus:ring-accent/50"
+              onChange={setFormPinned}
+              label="Pin notification immediately"
+              description="Keep this notification pinned to the top of the admin inbox"
+              className="rounded-xl border border-edge-2 bg-panel-2/60 p-3"
             />
-            <label htmlFor="notif-pin" className="cursor-pointer text-xs text-frost">
-              Pin notification immediately to the top of the list
-            </label>
           </div>
 
           <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-edge">
@@ -766,7 +767,7 @@ export function NotificationCenterView({
               type="button"
               variant="ghost"
               size="sm"
-              onClick={() => setCreateModalOpen(false)}
+              onClick={handleCloseCreateModal}
             >
               Cancel
             </Button>
@@ -784,7 +785,7 @@ export function NotificationCenterView({
       {/* Modal: Delete Confirmation */}
       <AdminModal
         open={deleteTargetId !== null}
-        onClose={() => setDeleteTargetId(null)}
+        onClose={handleCloseDeleteModal}
         title="Delete notification"
       >
         <div className="space-y-4">
@@ -793,13 +794,15 @@ export function NotificationCenterView({
           </p>
           <div className="flex items-center justify-end gap-2.5 pt-2">
             <Button
+              type="button"
               variant="ghost"
               size="sm"
-              onClick={() => setDeleteTargetId(null)}
+              onClick={handleCloseDeleteModal}
             >
               Cancel
             </Button>
             <Button
+              type="button"
               variant="outline"
               size="sm"
               className="border-danger text-danger hover:bg-danger/10"
@@ -814,7 +817,7 @@ export function NotificationCenterView({
       {/* Modal: Clear Archived Confirmation */}
       <AdminModal
         open={clearArchivedConfirmOpen}
-        onClose={() => setClearArchivedConfirmOpen(false)}
+        onClose={handleCloseClearArchivedModal}
         title="Clear archived notifications"
       >
         <div className="space-y-4">
@@ -823,13 +826,15 @@ export function NotificationCenterView({
           </p>
           <div className="flex items-center justify-end gap-2.5 pt-2">
             <Button
+              type="button"
               variant="ghost"
               size="sm"
-              onClick={() => setClearArchivedConfirmOpen(false)}
+              onClick={handleCloseClearArchivedModal}
             >
               Cancel
             </Button>
             <Button
+              type="button"
               variant="outline"
               size="sm"
               className="border-danger text-danger hover:bg-danger/10"
