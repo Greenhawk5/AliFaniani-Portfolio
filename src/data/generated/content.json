@@ -1,10 +1,11 @@
 {
   "schemaVersion": 1,
-  "exportedAt": "2026-11-21T21:12:17.854Z",
+  "exportedAt": "2026-11-22T18:27:42.979Z",
   "projects": [
     {
       "slug": "buckshot-tracker",
       "title": "Buckshot Tracker",
+      "shortName": "BT",
       "subtitle": "Buckshot Roulette tactical ammunition tracker for Telegram",
       "shortDescription": "A Telegram Mini App for tracking Buckshot Roulette ammunition, calculating shell probabilities, and managing tactical game sessions using React, TypeScript, and serverless technologies.",
       "overview": "Buckshot Tracker is a tactical companion for Buckshot Roulette, built as a Telegram Mini App. It provides real-time ammunition tracking, probability calculations, chamber position intelligence, and session history. The platform also includes a dedicated administrative dashboard for analytics, user management, system monitoring, and player feedback, powered by a serverless backend and persistent SQLite storage.",
@@ -92,6 +93,7 @@
     {
       "slug": "greenhawk-ai",
       "title": "GreenHawk AI",
+      "shortName": "G-AI",
       "subtitle": "AI-powered black & white image colorization platform",
       "shortDescription": "An AI-powered web application for black-and-white image colorization using CNN, GAN, and diffusion-based deep learning approaches through a FastAPI backend.",
       "overview": "GreenHawk AI is an AI-powered web application for black-and-white image colorization. It brings multiple deep-learning approaches, including CNN, GAN, and diffusion-based models, together behind a FastAPI backend and web interface so users can explore colorization results through a practical software system.",
@@ -180,7 +182,8 @@
     },
     {
       "slug": "hawklyx",
-      "title": "HAWKLYX — Brent Oil Monitor",
+      "title": "HAWKLYX",
+      "shortName": "HLX",
       "subtitle": "A smarter way to monitor Brent crude oil markets",
       "shortDescription": "A premium Android application for monitoring Brent crude oil prices, featuring interactive historical charts, two dedicated home-screen widgets, and a Cloudflare-powered backend for coordinated market data collection.",
       "overview": "HAWKLYX is an Android application designed to make Brent crude oil price monitoring accessible, intuitive, and reliable. Built with Kotlin and Jetpack Compose, it combines a refined dark interface with interactive historical price charts and two Android home-screen widgets for at-a-glance market insights. Its Cloudflare Workers backend coordinates upstream data requests, persists historical observations, manages refresh quotas, and helps preserve the latest valid price when the upstream provider is temporarily unavailable. The project brings together native Android development, serverless backend engineering, scheduled data collection, persistent coordination, and automated testing in a single end-to-end application.",
@@ -293,6 +296,7 @@
     {
       "slug": "morsemate",
       "title": "MorseMate Bot",
+      "shortName": "MB",
       "subtitle": "Bilingual Telegram bot for Text ↔ Morse conversion",
       "shortDescription": "A bilingual English/Persian Telegram bot for reliable Text ↔ Morse conversion, built on Cloudflare Workers.",
       "overview": "MorseMate is a lightweight bilingual Telegram bot that converts text to Morse code and Morse code back to text in English and Persian. It runs entirely on Cloudflare Workers, uses Cloudflare KV for persistent user state, and keeps the Morse engine independent from Telegram-specific logic.",
@@ -355,6 +359,7 @@
     {
       "slug": "hawkbucks",
       "title": "HawkBucks",
+      "shortName": "HB-W",
       "subtitle": "Fortnite Save The World V-Bucks mission tracker",
       "shortDescription": "A Fortnite Save The World mission tracking platform using React, TypeScript, Cloudflare serverless technologies, APIs, and automation.",
       "overview": "HawkBucks is a Fortnite Save The World mission tracking platform. Its React and TypeScript web application works with Cloudflare serverless technologies, APIs, data processing, persistent storage, and automated workflows to turn mission information into a usable web experience.",
@@ -433,11 +438,13 @@
         "The React frontend reads normalized mission and history data through the Worker API"
       ],
       "repository": "https://github.com/Greenhawk5/HawkBucks-Web",
-      "demo": "https://hawkbucks.com"
+      "demo": "https://hawkbucks.com",
+      "featured": true
     },
     {
       "slug": "hawkbucks-bot",
       "title": "HawkBucks Bot",
+      "shortName": "HB-B",
       "subtitle": "Telegram V-Bucks mission assistant",
       "shortDescription": "A Telegram automation bot with scheduled jobs, mission data processing, reminders, image generation, and persistent user management.",
       "overview": "HawkBucks Bot is a Telegram automation system for mission information. It combines scheduled jobs, mission data processing, reminders, image generation, webhooks, and persistent user and group management to support automated delivery through Telegram.",
@@ -665,6 +672,13 @@
           "date": "March 2024",
           "href": "https://quera.org/certificate/QvyE6bky/",
           "image": "/media/certificates/telegram-bot-certificate.webp"
+        },
+        {
+          "title": "B.Sc. in Computer Science",
+          "provider": "Shahid Chamran University of Ahvaz",
+          "date": "June 2026",
+          "href": "https://media.alifaniani.ir/media/certificate/mwqqqbvh-1a1d2a66-b-sc-in-computer-science-certificate.jpg",
+          "image": "https://media.alifaniani.ir/media/certificate/mwqqqbvh-1a1d2a66-b-sc-in-computer-science-certificate.jpg"
         }
       ]
     },
