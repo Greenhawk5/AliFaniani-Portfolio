@@ -19,7 +19,7 @@
  *   Cloudflare's own test configuration.)
  */
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 
 declare global {
   interface Window {
@@ -31,7 +31,15 @@ declare global {
   }
 }
 
-const SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined
+export type TurnstileStatus = 'idle' | 'loading' | 'ready' | 'success' | 'expired' | 'error'
+
+/**
+ * Public Cloudflare Turnstile site key for alifaniani.ir and localhost.
+ * Public by definition — not a secret. Falls back to this verified key if
+ * VITE_TURNSTILE_SITE_KEY was omitted during local/CLI builds.
+ */
+const FALLBACK_SITE_KEY = '0x4AAAAAAEaJ3GKT_GSYZE-7'
+const SITE_KEY = (import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined) || FALLBACK_SITE_KEY
 
 /** Local-QA-only build flag — never set in the Cloudflare Pages environment. */
 const DEV_TEST = import.meta.env.VITE_ADMIN_TURNSTILE_DEV_TEST === '1'
@@ -49,51 +57,105 @@ export function useTurnstile(action: string) {
   const containerRef = useRef<HTMLDivElement>(null)
   const widgetIdRef = useRef<string | null>(null)
   const [token, setToken] = useState('')
+  const [status, setStatus] = useState<TurnstileStatus>('loading')
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [graceExpired, setGraceExpired] = useState(false)
+  const [renderNonce, setRenderNonce] = useState(0)
 
-  useEffect(() => {
-    if (!SITE_KEY) return
-    let cancelled = false
+  const renderWidget = useCallback(() => {
+    if (!containerRef.current) return
+    if (!SITE_KEY) {
+      setStatus('error')
+      setErrorMessage('Security configuration error: Cloudflare Turnstile site key is missing.')
+      return
+    }
+    if (!window.turnstile) {
+      setStatus('loading')
+      return
+    }
+    if (widgetIdRef.current) return
 
-    const render = () => {
-      if (cancelled || !containerRef.current || !window.turnstile || widgetIdRef.current) return
+    try {
       widgetIdRef.current = window.turnstile.render(containerRef.current, {
         sitekey: SITE_KEY,
         action,
         theme: 'dark',
-        callback: (value: string) => setToken(value),
-        'expired-callback': () => setToken(''),
-        'error-callback': () => setToken(''),
+        callback: (value: string) => {
+          setToken(value)
+          setStatus('success')
+          setErrorMessage(null)
+        },
+        'expired-callback': () => {
+          setToken('')
+          setStatus('expired')
+          setErrorMessage('Verification expired. Please complete the security check again.')
+        },
+        'error-callback': (code?: string) => {
+          setToken('')
+          setStatus('error')
+          setErrorMessage(
+            code
+              ? `Turnstile verification failed (code: ${code}). Please retry.`
+              : 'Turnstile verification failed. Please check your connection or retry.'
+          )
+        },
+      })
+      setStatus('ready')
+    } catch {
+      setStatus('error')
+      setErrorMessage('Failed to initialize the Cloudflare Turnstile widget.')
+    }
+  }, [action])
+
+  useEffect(() => {
+    let cancelled = false
+
+    const onScriptLoad = () => {
+      if (!cancelled) {
+        renderWidget()
+      }
+    }
+
+    const onScriptError = () => {
+      if (!cancelled) {
+        setStatus('error')
+        setErrorMessage('Failed to load Cloudflare verification script. Check network or ad blocker.')
+      }
+    }
+
+    let script = document.querySelector<HTMLScriptElement>('script[data-turnstile="true"]')
+    if (!script) {
+      script = document.createElement('script')
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'
+      script.async = true
+      script.defer = true
+      script.dataset.turnstile = 'true'
+      document.head.appendChild(script)
+    }
+
+    script.addEventListener('load', onScriptLoad)
+    script.addEventListener('error', onScriptError)
+
+    if (window.turnstile) {
+      queueMicrotask(() => {
+        if (!cancelled) renderWidget()
       })
     }
 
-    const script =
-      document.querySelector<HTMLScriptElement>('script[data-turnstile="true"]') ??
-      (() => {
-        const element = document.createElement('script')
-        element.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'
-        element.async = true
-        element.defer = true
-        element.dataset.turnstile = 'true'
-        document.head.appendChild(element)
-        return element
-      })()
-    script.addEventListener('load', render)
-    if (window.turnstile) render()
-
     return () => {
       cancelled = true
-      script.removeEventListener('load', render)
-      // Remove the rendered widget from the DOM. Without this, React
-      // StrictMode's mount→unmount→mount cycle (and any route transition)
-      // leaves an orphaned iframe behind and Turnstile logs
-      // "Cannot find Widget cf-chl-widget-…".
+      script?.removeEventListener('load', onScriptLoad)
+      script?.removeEventListener('error', onScriptError)
       if (widgetIdRef.current && window.turnstile) {
-        window.turnstile.remove(widgetIdRef.current)
+        try {
+          window.turnstile.remove(widgetIdRef.current)
+        } catch {
+          // ignore
+        }
         widgetIdRef.current = null
       }
     }
-  }, [action])
+  }, [action, renderWidget, renderNonce])
 
   // Dev-test builds only: surface the manual fallback when the widget cannot
   // deliver a token (no key in this build, or the widget hangs/errors).
@@ -103,10 +165,33 @@ export function useTurnstile(action: string) {
     return () => clearTimeout(timer)
   }, [token])
 
-  const reset = () => {
-    if (widgetIdRef.current && window.turnstile) window.turnstile.reset(widgetIdRef.current)
+  const reset = useCallback(() => {
+    if (widgetIdRef.current && window.turnstile) {
+      try {
+        window.turnstile.reset(widgetIdRef.current)
+      } catch {
+        // ignore
+      }
+    }
     setToken('')
-  }
+    setStatus('ready')
+    setErrorMessage(null)
+  }, [])
+
+  const retry = useCallback(() => {
+    if (widgetIdRef.current && window.turnstile) {
+      try {
+        window.turnstile.remove(widgetIdRef.current)
+      } catch {
+        // ignore
+      }
+      widgetIdRef.current = null
+    }
+    setToken('')
+    setStatus('loading')
+    setErrorMessage(null)
+    setRenderNonce((n) => n + 1)
+  }, [])
 
   // Conditional closure: in production builds DEV_TEST folds to false, this
   // is `undefined`, and no code path references the marker token — so the
@@ -115,13 +200,17 @@ export function useTurnstile(action: string) {
   const approveDevTest = DEV_TEST
     ? () => {
         setToken(DEV_TEST_TOKEN)
+        setStatus('success')
       }
     : undefined
 
   return {
     containerRef,
     token,
+    status,
+    errorMessage,
     reset,
+    retry,
     approveDevTest,
     showDevFallback: DEV_TEST && !token && (!SITE_KEY || graceExpired),
     widgetConfigured: !!SITE_KEY,

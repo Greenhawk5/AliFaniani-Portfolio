@@ -175,12 +175,31 @@ function Posters() {
     []
   )
 
+  const focus = useUiStore((s) => s.focus)
+  const isCameraMoving = useUiStore((s) => s.isCameraMoving)
+  const setVisitorStatsOpen = useUiStore((s) => s.setVisitorStatsOpen)
+
+  const isFocused = focus === 'visitorCounter'
+
+  const handleActivate = () => {
+    // Stage 2: Only open telemetry modal when the camera is already stationed in front
+    // of the counter and not currently animating.
+    if (isFocused && !isCameraMoving) {
+      setVisitorStatsOpen(true)
+    }
+  }
+
   return (
     <group>
       <Interactable
         id="visitorCounter"
-        label="Visitor Statistics — click to inspect"
-        onActivate={() => useUiStore.getState().setVisitorStatsOpen(true)}
+        label={
+          isFocused
+            ? 'Visitor Statistics — click to inspect telemetry'
+            : 'Visitor Counter — click to approach'
+        }
+        focusable
+        onActivate={handleActivate}
       >
         <group position={[3.9, 1.72, -4.44]}>
           <mesh castShadow material={frame}>

@@ -19,6 +19,7 @@ const FOCUS_TITLES: Record<string, string> = {
   clock: 'Digital Wall Clock',
   projectBoard: 'Project Board',
   socialBoard: 'Social Board',
+  visitorCounter: 'Visitor Statistics',
 }
 
 const BOARD_NAV_TARGETS: ReadonlySet<FocusTarget> = new Set(['projectBoard', 'socialBoard'])

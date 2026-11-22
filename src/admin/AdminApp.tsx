@@ -87,7 +87,17 @@ function LoginForm({ onSuccess }: { onSuccess: () => void }) {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
-  const { containerRef, token, reset, approveDevTest, showDevFallback, widgetConfigured } = useTurnstile('admin-login')
+  const {
+    containerRef,
+    token,
+    status: turnstileStatus,
+    errorMessage: turnstileError,
+    reset,
+    retry,
+    approveDevTest,
+    showDevFallback,
+    widgetConfigured,
+  } = useTurnstile('admin-login')
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -152,7 +162,37 @@ function LoginForm({ onSuccess }: { onSuccess: () => void }) {
             autoComplete="current-password"
             required
           />
-          <div ref={containerRef} className="turnstile-container" />
+          <div ref={containerRef} className="turnstile-container min-h-[65px] flex items-center justify-center" />
+          {turnstileStatus === 'loading' && !turnstileError && (
+            <div className="flex items-center justify-center gap-2 py-1 font-mono text-xs text-mist/70">
+              <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
+              Initializing Cloudflare verification...
+            </div>
+          )}
+          {turnstileStatus === 'expired' && (
+            <div className="flex items-center justify-between rounded-lg border border-amber/30 bg-amber/10 px-3 py-2 font-mono text-xs text-amber">
+              <span>Verification expired.</span>
+              <button
+                type="button"
+                onClick={reset}
+                className="underline hover:text-frost cursor-pointer"
+              >
+                Refresh
+              </button>
+            </div>
+          )}
+          {turnstileStatus === 'error' && (
+            <div className="space-y-1.5 rounded-lg border border-danger/40 bg-danger/10 px-3 py-2.5 font-mono text-xs text-danger">
+              <p>{turnstileError ?? 'Security verification failed to initialize.'}</p>
+              <button
+                type="button"
+                onClick={retry}
+                className="inline-flex items-center gap-1 font-semibold underline hover:text-frost cursor-pointer"
+              >
+                ↻ Retry verification
+              </button>
+            </div>
+          )}
           {showDevFallback && (
             <div className="space-y-1.5 rounded-lg border border-amber/40 bg-amber/8 px-3 py-2.5">
               <p className="text-xs leading-relaxed text-amber">

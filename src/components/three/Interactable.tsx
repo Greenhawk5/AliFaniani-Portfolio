@@ -9,6 +9,7 @@ const FOCUSABLE: ReadonlySet<string> = new Set([
   'shelf',
   'projectBoard',
   'socialBoard',
+  'visitorCounter',
 ])
 
 interface InteractableProps {

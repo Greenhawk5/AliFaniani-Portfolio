@@ -73,6 +73,13 @@ export const FOCUS_PRESETS: Record<FocusTarget, { pos: THREE.Vector3; target: TH
     pos: new THREE.Vector3(-1.55, 2.72, 2.6),
     target: new THREE.Vector3(-4.44, 2.75, 2.6),
   },
+  // Visitor Counter: mounted on the back wall at (3.9, 1.72, -4.44) facing +Z.
+  // Positioned directly in front at eye level (1.75) and pulled back ~2.34 units
+  // along +Z, cleanly framed and readable without fisheye distortion.
+  visitorCounter: {
+    pos: new THREE.Vector3(3.9, 1.75, -2.1),
+    target: new THREE.Vector3(3.9, 1.72, -4.44),
+  },
 }
 
 export function CameraRig() {
@@ -120,6 +127,7 @@ export function CameraRig() {
     const destTarget = preset?.target ?? BASE_TARGET
     introTween.current?.kill()
     const duration = motionMode === 'reduced' ? 0.4 : 1.5
+    const setIsCameraMoving = useUiStore.getState().setIsCameraMoving
     gsap.to(anchor.current, {
       x: destPos.x,
       y: destPos.y,
@@ -127,6 +135,8 @@ export function CameraRig() {
       duration,
       ease: 'power3.inOut',
       overwrite: true,
+      onStart: () => setIsCameraMoving(true),
+      onComplete: () => setIsCameraMoving(false),
     })
     gsap.to(look.current, {
       x: destTarget.x,
@@ -155,6 +165,7 @@ export function CameraRig() {
     const destTarget = preset?.target ?? BASE_TARGET
     introTween.current?.kill()
     const duration = motionMode === 'reduced' ? 0.4 : 1.5
+    const setIsCameraMoving = useUiStore.getState().setIsCameraMoving
     gsap.to(anchor.current, {
       x: destPos.x,
       y: destPos.y,
@@ -162,6 +173,8 @@ export function CameraRig() {
       duration,
       ease: 'power3.inOut',
       overwrite: true,
+      onStart: () => setIsCameraMoving(true),
+      onComplete: () => setIsCameraMoving(false),
     })
     gsap.to(look.current, {
       x: destTarget.x,
@@ -181,7 +194,7 @@ export function CameraRig() {
     // parallax reads as zooming into the subject. Dampen it per-focus while
     // keeping a subtle cinematic drift.
     const parallaxScale =
-      focus === 'shelf' || focus === 'projectBoard' || focus === 'socialBoard' ? 0.25 : 1
+      focus === 'shelf' || focus === 'projectBoard' || focus === 'socialBoard' || focus === 'visitorCounter' ? 0.25 : 1
     const targetX = parallax ? pointer.x * 0.42 * parallaxScale : 0
     const targetY = parallax ? -pointer.y * 0.2 * parallaxScale : 0
     const k = 1 - Math.exp(-dt * 3.2)

@@ -22,7 +22,8 @@ declare global {
   }
 }
 
-const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined
+const TURNSTILE_SITE_KEY =
+  (import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined) || '0x4AAAAAAEaJ3GKT_GSYZE-7'
 
 type FormErrors = Partial<Record<'firstName' | 'lastName' | 'email' | 'message', string>>
 
