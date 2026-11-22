@@ -175,7 +175,7 @@ export function ActivityView() {
             </h2>
             <AreaTrendChart
               data={activityTrendData}
-              height={140}
+              height={180}
               color="#37d5ff"
               ariaLabel="14-day activity trend"
             />

@@ -17,6 +17,12 @@
   --color-amber: #ffb454;
   --color-danger: #ff5470;
 
+  --color-background: #0b0e17;
+  --color-foreground: #e8ecf4;
+  --color-muted-foreground: #8b93a7;
+  --color-border: #1e2436;
+  --color-primary: #39ff8b;
+
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
 

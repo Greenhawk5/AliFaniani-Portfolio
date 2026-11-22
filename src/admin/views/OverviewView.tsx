@@ -6,7 +6,7 @@
  * delegated to Cloudflare Web Analytics (see Integrations).
  */
 
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useAdminData, useContentCounts } from '../AdminDataProvider'
 import type { AdminView } from '../routes'
 import {
@@ -21,7 +21,7 @@ import {
   absoluteTime,
 } from '../ui/primitives'
 import { AreaTrendChart } from '../ui/EvilCharts'
-import { FolderIcon, UserIcon, LinkIcon, RocketIcon, SearchIcon } from '../ui/icons'
+import { FolderIcon, UserIcon, UsersIcon, LinkIcon, RocketIcon, SearchIcon } from '../ui/icons'
 import { CheckIcon } from '@/components/ui/icons'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/lib/cn'
@@ -39,6 +39,27 @@ interface Attention {
 export function OverviewView({ onNavigate: navigate }: { onNavigate: (view: AdminView, param?: string) => void }) {
   const data = useAdminData()
   const counts = useContentCounts()
+  const [visitorStats, setVisitorStats] = useState<{ totalVisitors: number; totalViews: number } | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/analytics/stats')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json: { totalVisitors?: number; totalViews?: number } | null) => {
+        if (!cancelled && json && typeof json.totalVisitors === 'number') {
+          setVisitorStats({
+            totalVisitors: json.totalVisitors,
+            totalViews: json.totalViews ?? 0,
+          })
+        }
+      })
+      .catch(() => {
+        /* non-fatal fallback */
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const attention = useMemo<Attention[]>(() => {
     const issues: Attention[] = []
@@ -121,7 +142,24 @@ export function OverviewView({ onNavigate: navigate }: { onNavigate: (view: Admi
               : `${attention.length} item${attention.length === 1 ? '' : 's'} need${attention.length === 1 ? 's' : ''} attention.`}
           </p>
         </div>
-        <Button size="sm" variant="outline" onClick={() => void data.refreshAll()}>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => {
+            void data.refreshAll()
+            fetch('/api/analytics/stats')
+              .then((res) => (res.ok ? res.json() : null))
+              .then((json: { totalVisitors?: number; totalViews?: number } | null) => {
+                if (json && typeof json.totalVisitors === 'number') {
+                  setVisitorStats({
+                    totalVisitors: json.totalVisitors,
+                    totalViews: json.totalViews ?? 0,
+                  })
+                }
+              })
+              .catch(() => {})
+          }}
+        >
           Refresh
         </Button>
       </header>
@@ -213,13 +251,13 @@ export function OverviewView({ onNavigate: navigate }: { onNavigate: (view: Admi
           Content
         </h2>
         {data.items === null && !data.itemsError ? (
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            {Array.from({ length: 4 }, (_, i) => (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+            {Array.from({ length: 5 }, (_, i) => (
               <Skeleton key={i} className="h-[92px] rounded-xl" />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
             <StatTile
               label="Projects"
               value={counts.projects.filter((p) => p.state !== 'archived').length}
@@ -237,6 +275,13 @@ export function OverviewView({ onNavigate: navigate }: { onNavigate: (view: Admi
               value={counts.links.filter((p) => p.state !== 'archived').length}
               hint="Social + contact destinations"
               icon={<LinkIcon className="h-4 w-4" />}
+            />
+            <StatTile
+              label="Total visits"
+              value={visitorStats ? visitorStats.totalVisitors.toLocaleString() : '—'}
+              hint={visitorStats ? `${visitorStats.totalViews.toLocaleString()} views` : 'Unique sessions'}
+              tone="accent"
+              icon={<UsersIcon className="h-4 w-4" />}
             />
             <StatTile
               label="Unpublished changes"

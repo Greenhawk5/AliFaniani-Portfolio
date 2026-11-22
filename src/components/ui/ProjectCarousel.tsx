@@ -167,13 +167,13 @@ export function ProjectCarousel({
           <span className="shrink-0 font-mono text-xs text-mist/60">{current.year}</span>
         </div>
 
-        {/* Dedicated fixed-height, single-line description to prevent layout shift */}
+        {/* Dedicated fixed-height, single-line subtitle to prevent layout shift */}
         <div className="mt-1.5 flex h-5 items-center overflow-hidden">
           <p
             className="w-full truncate font-mono text-xs text-mist/80"
-            title={current.shortDescription}
+            title={current.subtitle || ''}
           >
-            {current.shortDescription}
+            {current.subtitle || ''}
           </p>
         </div>
       </div>
