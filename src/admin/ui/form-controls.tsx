@@ -410,15 +410,17 @@ export function AdminSwitch({
         disabled={disabled}
         onClick={() => !disabled && onChange(!checked)}
         className={cn(
-          'relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-accent',
-          checked ? 'bg-accent' : 'bg-panel-2 border-edge-2'
+          'relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border transition-all duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 focus-visible:ring-offset-panel',
+          checked
+            ? 'border-accent/80 bg-accent shadow-[0_0_8px_rgba(57,255,139,0.25)]'
+            : 'border-edge-2 bg-void shadow-inner hover:border-mist/50'
         )}
       >
         <span
           aria-hidden="true"
           className={cn(
-            'pointer-events-none inline-block h-4 w-4 transform rounded-full bg-void shadow-md ring-0 transition duration-200 ease-in-out',
-            checked ? 'translate-x-4 bg-void' : 'translate-x-0.5 bg-mist/60'
+            'pointer-events-none inline-block h-4 w-4 transform rounded-full shadow-md transition duration-200 ease-in-out',
+            checked ? 'translate-x-4 bg-void' : 'translate-x-0.5 bg-frost/90 ring-1 ring-white/10'
           )}
         />
       </button>

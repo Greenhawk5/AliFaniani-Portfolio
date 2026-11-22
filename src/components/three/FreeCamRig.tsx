@@ -2,22 +2,23 @@ import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import { useFrame, useThree } from '@react-three/fiber'
 import { useUiStore } from '@/stores/uiStore'
+import { useFreecamStore } from '@/stores/freecamStore'
 
 // Manual exploration camera. Mounted only while cameraMode === 'free'; the
 // cinematic rig (CameraRig) stands by and resumes exactly where it left off.
 const MOVE_SPEED = 2.4 // units/s at room scale
-const SPRINT_MULTIPLIER = 2.6
+const SPRINT_MULTIPLIER = 2.4
 const LOOK_SENSITIVITY = 0.0032 // radians per pixel
 const DRAG_SUPPRESS_PX = 6 // drags past this are not clicks
-const ROTATE_DAMP = 16 // higher = snappier look smoothing
-const MOVE_DAMP = 10 // higher = quicker accel/decel
+const ROTATE_DAMP = 18 // snappier look smoothing
+const MOVE_DAMP = 12 // quick, natural momentum accel/decel
 const PITCH_LIMIT = Math.PI / 2 - 0.06
-const CAMERA_RADIUS = 0.2 // keeps the near plane out of walls/props
+const CAMERA_RADIUS = 0.22 // keeps the near plane out of walls/props
 
 // Room shell: inner wall faces of the 9x9 floor plus usable headroom. Keeps
 // the camera inside the room at all times.
-const BOUNDS_MIN = new THREE.Vector3(-4.28, 0.35, -4.28)
-const BOUNDS_MAX = new THREE.Vector3(4.28, 4.15, 4.28)
+const BOUNDS_MIN = new THREE.Vector3(-4.15, 0.45, -4.15)
+const BOUNDS_MAX = new THREE.Vector3(4.15, 4.15, 4.15)
 
 // Solid furniture volumes (matching the placed scene geometry), expanded at
 // query time by CAMERA_RADIUS so the camera cannot clip into them.
@@ -25,17 +26,13 @@ const BLOCKERS: THREE.Box3[] = [
   new THREE.Box3(new THREE.Vector3(-0.5, 0.85, -4.175), new THREE.Vector3(2.9, 1.0, -3.025)), // desk top
   new THREE.Box3(new THREE.Vector3(0.29, 1.0, -3.92), new THREE.Vector3(2.11, 2.15, -3.45)), // monitor assembly
   new THREE.Box3(new THREE.Vector3(2.4, 1.0, -4.01), new THREE.Vector3(2.85, 2.01, -3.07)), // pc tower
-  new THREE.Box3(new THREE.Vector3(0.85, 0.0, -2.79), new THREE.Vector3(1.55, 1.56, -2.05)), // chair (GLB model)
+  new THREE.Box3(new THREE.Vector3(0.85, 0.0, -2.79), new THREE.Vector3(1.55, 1.56, -2.05)), // chair
   new THREE.Box3(new THREE.Vector3(2.7, 0.0, 0.6), new THREE.Vector3(3.65, 1.05, 2.9)), // sofa
   new THREE.Box3(new THREE.Vector3(0.56, 0.0, 1.31), new THREE.Vector3(1.44, 0.47, 2.19)), // coffee table
   new THREE.Box3(new THREE.Vector3(3.7, 0.0, 0.6), new THREE.Vector3(4.2, 1.8, 1.1)), // floor lamp
   new THREE.Box3(new THREE.Vector3(-4.6, 1.3, -1.5), new THREE.Vector3(-4.05, 2.8, 1.8)), // wall shelf
 ]
 
-// Physical-key aliases (e.code) keep movement working on any keyboard layout:
-// e.key alone is layout-dependent (e.g. a Persian layout types Persian
-// characters for the W/A/S/D keys). The e.key fallbacks cover environments
-// that report no e.code (some virtual keyboards).
 const KEY_ALIASES: Record<string, 'w' | 'a' | 's' | 'd' | 'q' | 'e' | 'shift'> = {
   KeyW: 'w',
   KeyA: 'a',
@@ -60,9 +57,8 @@ const _right = new THREE.Vector3()
 const _wish = new THREE.Vector3()
 
 // Clamp into the room shell, then push out of any furniture box along the axis
-// of least penetration. Continuous damped motion keeps pushes small and stable
-// (sliding along surfaces instead of sticking).
-function resolvePosition(pos: THREE.Vector3) {
+// of least penetration. Continuous damped motion keeps pushes small and stable.
+export function resolveFreeCamPosition(pos: THREE.Vector3) {
   pos.min(BOUNDS_MAX).max(BOUNDS_MIN)
   for (const box of BLOCKERS) {
     if (
@@ -89,6 +85,7 @@ function resolvePosition(pos: THREE.Vector3) {
     else if (min === pzMin) pos.z = box.min.z - CAMERA_RADIUS
     else pos.z = box.max.z + CAMERA_RADIUS
   }
+  return pos
 }
 
 export function FreeCamRig() {
@@ -113,75 +110,47 @@ export function FreeCamRig() {
     dragDistance: 0,
     suppressClick: false,
     capturedPointerId: null as number | null,
-    // Touch movement: a drag starting in the left zone acts as a virtual
-    // joystick (delta from the touch-start point = move direction); drags
-    // elsewhere look around, exactly like the mouse path. Desktop is untouched.
-    movePointerId: null as number | null,
-    moveStartX: 0,
-    moveStartY: 0,
-    moveX: 0, // -1..1 strafe
-    moveY: 0, // -1..1 forward (+ = forward)
   })
 
   useEffect(() => {
     const s = state.current
     const el = gl.domElement
 
-    // Take over from the cinematic camera exactly where it stands. The base
-    // viewpoint sits outside the room shell, so the nearest legal position is
-    // resolved once here and blended toward over the first frames — no
-    // teleport, and movement input works immediately.
+    // Take over from the cinematic camera smoothly
     camera.getWorldDirection(_dir)
     s.yaw = s.yawTarget = Math.atan2(-_dir.x, -_dir.z)
     s.pitch = s.pitchTarget = Math.asin(THREE.MathUtils.clamp(_dir.y, -1, 1))
     camera.rotation.reorder('YXZ')
     s.entryFrom.copy(camera.position)
     s.pos.copy(camera.position)
-    resolvePosition(s.pos)
+    resolveFreeCamPosition(s.pos)
     s.blend = 0
     s.velocity.set(0, 0, 0)
     s.keys.clear()
     s.dragging = false
     s.suppressClick = false
 
-    // Free Cam owns the view: pause any pending cinematic focus.
     setFocus(null)
     setHoveredLabel(null)
 
     const onPointerDown = (e: PointerEvent) => {
       if (e.button !== 0 || s.dragging) return
-      // Touch left-zone drag = move; everything else keeps the look-drag path.
-      if (e.pointerType === 'touch' && e.clientX < el.clientWidth * 0.45) {
-        if (s.movePointerId !== null) return
-        s.movePointerId = e.pointerId
-        s.moveStartX = e.clientX
-        s.moveStartY = e.clientY
-        s.moveX = 0
-        s.moveY = 0
-        return
-      }
       s.dragging = true
       s.lastX = e.clientX
       s.lastY = e.clientY
       s.dragDistance = 0
       s.suppressClick = false
       s.capturedPointerId = e.pointerId
-      el.setPointerCapture(e.pointerId)
+      try {
+        el.setPointerCapture(e.pointerId)
+      } catch {
+        /* non-fatal */
+      }
       el.style.cursor = 'grabbing'
     }
+
     const onPointerMove = (e: PointerEvent) => {
-      if (e.pointerId === s.movePointerId) {
-        // Virtual joystick: offset from the start point, clamped to a 56px
-        // radius so the response is proportional but saturates like a stick.
-        const dx = e.clientX - s.moveStartX
-        const dy = e.clientY - s.moveStartY
-        const len = Math.hypot(dx, dy)
-        const k = len > 56 ? 56 / len : 1
-        s.moveX = (dx * k) / 56
-        s.moveY = (-dy * k) / 56
-        return
-      }
-      if (!s.dragging) return
+      if (!s.dragging || e.pointerId !== s.capturedPointerId) return
       const dx = e.clientX - s.lastX
       const dy = e.clientY - s.lastY
       s.lastX = e.clientX
@@ -194,27 +163,25 @@ export function FreeCamRig() {
         PITCH_LIMIT
       )
     }
+
     const onPointerUp = (e: PointerEvent) => {
-      if (e.pointerId === s.movePointerId) {
-        s.movePointerId = null
-        s.moveX = 0
-        s.moveY = 0
-        return
-      }
-      if (!s.dragging) return
+      if (e.pointerId !== s.capturedPointerId && !s.dragging) return
       s.dragging = false
-      // Only the synthetic click immediately following a real look-drag on the
-      // canvas is suppressed; the flag is consumed below, so UI clicks are
-      // never affected no matter how far previous drags travelled.
       s.suppressClick = s.dragDistance > DRAG_SUPPRESS_PX
       el.style.cursor = ''
-      if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId)
-      s.capturedPointerId = null
+      if (s.capturedPointerId !== null) {
+        try {
+          if (el.hasPointerCapture(s.capturedPointerId)) {
+            el.releasePointerCapture(s.capturedPointerId)
+          }
+        } catch {
+          /* non-fatal */
+        }
+        s.capturedPointerId = null
+      }
     }
+
     const onClickCapture = (e: MouseEvent) => {
-      // HTML UI (navbar, settings, links) must stay fully interactive: clicks
-      // that did not originate on the canvas pass straight through untouched,
-      // and a stale suppression flag can never leak onto them.
       if (e.target !== el) {
         s.suppressClick = false
         return
@@ -224,26 +191,29 @@ export function FreeCamRig() {
       e.stopPropagation()
       e.preventDefault()
     }
+
     const onKeyDown = (e: KeyboardEvent) => {
       const key = KEY_ALIASES[e.code] ?? KEY_ALIASES[e.key.toLowerCase()]
       if (!key) return
       s.keys.add(key)
-      // Free Cam owns these keys while active (no text inputs exist in the
-      // mode's UI), and the listener is removed the moment Default returns.
       e.preventDefault()
     }
+
     const onKeyUp = (e: KeyboardEvent) => {
       const key = KEY_ALIASES[e.code] ?? KEY_ALIASES[e.key.toLowerCase()]
       if (key) s.keys.delete(key)
     }
+
     const onBlur = () => {
       s.keys.clear()
       s.dragging = false
+      useFreecamStore.getState().reset()
     }
 
     el.addEventListener('pointerdown', onPointerDown)
     el.addEventListener('pointermove', onPointerMove)
     el.addEventListener('pointerup', onPointerUp)
+    el.addEventListener('pointercancel', onPointerUp)
     window.addEventListener('click', onClickCapture, true)
     window.addEventListener('keydown', onKeyDown)
     window.addEventListener('keyup', onKeyUp)
@@ -253,6 +223,7 @@ export function FreeCamRig() {
       el.removeEventListener('pointerdown', onPointerDown)
       el.removeEventListener('pointermove', onPointerMove)
       el.removeEventListener('pointerup', onPointerUp)
+      el.removeEventListener('pointercancel', onPointerUp)
       window.removeEventListener('click', onClickCapture, true)
       window.removeEventListener('keydown', onKeyDown)
       window.removeEventListener('keyup', onKeyUp)
@@ -260,21 +231,19 @@ export function FreeCamRig() {
       el.style.cursor = ''
       if (s.capturedPointerId !== null) {
         try {
-          el.releasePointerCapture(s.capturedPointerId)
+          if (el.hasPointerCapture(s.capturedPointerId)) {
+            el.releasePointerCapture(s.capturedPointerId)
+          }
         } catch {
-          // already released by the browser
+          /* non-fatal */
         }
         s.capturedPointerId = null
       }
-      // Leaving Free Cam must never leave residual input behind: held keys,
-      // velocity, or a pending drag are all discarded with the listeners.
       s.keys.clear()
       s.velocity.set(0, 0, 0)
       s.dragging = false
       s.suppressClick = false
-      s.movePointerId = null
-      s.moveX = 0
-      s.moveY = 0
+      useFreecamStore.getState().reset()
     }
   }, [camera, gl, setFocus, setHoveredLabel])
 
@@ -282,15 +251,23 @@ export function FreeCamRig() {
     const s = state.current
     const dt = Math.min(rawDt, 0.05)
 
-    // Smoothed look: targets move instantly with the pointer while the actual
-    // orientation eases toward them, so drags never snap or jitter.
+    // Smoothed look
     s.yaw = THREE.MathUtils.damp(s.yaw, s.yawTarget, ROTATE_DAMP, dt)
     s.pitch = THREE.MathUtils.damp(s.pitch, s.pitchTarget, ROTATE_DAMP, dt)
 
-    const f = (s.keys.has('w') ? 1 : 0) - (s.keys.has('s') ? 1 : 0) + s.moveY
-    const r = (s.keys.has('d') ? 1 : 0) - (s.keys.has('a') ? 1 : 0) + s.moveX
-    const u = (s.keys.has('e') ? 1 : 0) - (s.keys.has('q') ? 1 : 0)
-    const speed = MOVE_SPEED * (s.keys.has('shift') ? SPRINT_MULTIPLIER : 1)
+    // Merge keyboard + virtual joystick
+    const joy = useFreecamStore.getState()
+    const joyX = joy.moveX
+    const joyY = joy.moveY
+    const joyElevate = joy.elevate
+
+    const f = (s.keys.has('w') ? 1 : 0) - (s.keys.has('s') ? 1 : 0) + joyY
+    const r = (s.keys.has('d') ? 1 : 0) - (s.keys.has('a') ? 1 : 0) + joyX
+    const u = (s.keys.has('e') ? 1 : 0) - (s.keys.has('q') ? 1 : 0) + joyElevate
+
+    const isSprinting = s.keys.has('shift') || Math.hypot(joyX, joyY) > 0.85
+    const speed = MOVE_SPEED * (isSprinting ? SPRINT_MULTIPLIER : 1)
+
     const cosPitch = Math.cos(s.pitch)
     _forward.set(-Math.sin(s.yaw) * cosPitch, Math.sin(s.pitch), -Math.cos(s.yaw) * cosPitch)
     _right.set(Math.cos(s.yaw), 0, -Math.sin(s.yaw))
@@ -298,18 +275,12 @@ export function FreeCamRig() {
     _wish.y += u
     if (_wish.lengthSq() > 1) _wish.normalize()
     _wish.multiplyScalar(speed)
-    // Exponential smoothing gives momentum-like accel/decel without overshoot
-    // — releasing the keys glides to a stop instead of halting dead.
-    s.velocity.lerp(_wish, 1 - Math.exp(-MOVE_DAMP * dt))
 
-    // Movement integrates into the free-cam's own position, which always stays
-    // inside the room shell and out of furniture.
+    s.velocity.lerp(_wish, 1 - Math.exp(-MOVE_DAMP * dt))
     s.pos.addScaledVector(s.velocity, dt)
-    resolvePosition(s.pos)
+    resolveFreeCamPosition(s.pos)
 
     if (s.blend < 1) {
-      // Mode-entry blend: glide from wherever the cinematic camera was into
-      // the legal free-cam position instead of snapping.
       s.blend = Math.min(1, s.blend + dt / 0.7)
       const t = s.blend * s.blend * (3 - 2 * s.blend)
       camera.position.lerpVectors(s.entryFrom, s.pos, t)
@@ -321,4 +292,3 @@ export function FreeCamRig() {
 
   return null
 }
-
