@@ -17,13 +17,14 @@
 </p>
 
 <p>
-  <img src="https://img.shields.io/badge/status-v2.3.0-39ff8b?style=for-the-badge&labelColor=05060a" alt="Version 2.3.0" />
+  <img src="https://img.shields.io/badge/status-v2.5.0-39ff8b?style=for-the-badge&labelColor=05060a" alt="Version 2.5.0" />
   <img src="https://img.shields.io/badge/license-proprietary-9CA3AF?style=for-the-badge&labelColor=05060a" alt="Proprietary license" />
   <img src="https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=white" alt="React 19" />
   <img src="https://img.shields.io/badge/TypeScript-strict-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript strict" />
   <img src="https://img.shields.io/badge/Vite-8-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite 8" />
   <img src="https://img.shields.io/badge/Three.js-r185-000000?style=for-the-badge&logo=threedotjs&logoColor=white" alt="Three.js r185" />
   <img src="https://img.shields.io/badge/Cloudflare_Pages-hosted-F38020?style=for-the-badge&logo=cloudflarepages&logoColor=white" alt="Cloudflare Pages" />
+  <img src="https://img.shields.io/badge/Cloudflare_D1-database-F38020?style=for-the-badge&logo=cloudflare&logoColor=white" alt="Cloudflare D1" />
   <img src="https://img.shields.io/badge/Cloudflare_R2-media-F38020?style=for-the-badge&logo=cloudflare&logoColor=white" alt="Cloudflare R2" />
 </p>
 
@@ -33,122 +34,68 @@
 
 ---
 
-## ✦ About
+## ✦ Overview
 
-This repository contains my personal developer portfolio — a production-focused web experience designed to present my work, technical interests, and projects in two complementary ways:
+This repository contains the production source code for my personal developer portfolio at [alifaniani.ir](https://alifaniani.ir).
 
-- **A lightweight portfolio:** fast, content-first, SEO-oriented, accessible and intentionally isolated from the 3D engine.
-- **An interactive 3D developer room:** a separate `/room` experience where projects and portfolio content can be explored inside a fully rendered environment.
+The project is built around a dual-experience architecture:
+1. **A content-first, high-performance static portfolio:** Designed for instant loading, search engines, mobile responsiveness, and accessibility. It intentionally loads zero Three.js, WebGL, or 3D asset code.
+2. **An interactive 3D developer room at `/room`:** A fully realized 3D workspace powered by React Three Fiber, featuring interactive lighting, physical room objects, project showcase screens, day/night cycles, and mobile touch camera controls.
+3. **An integrated, private Admin Control Center at `/admin`:** A full-featured, zero-trust administrative suite managing dynamic content, Cloudflare R2 media storage, selective publishing, live system health diagnostics, first-party privacy-preserving analytics, and notifications.
 
-> **Build a portfolio that feels like a real product, not just a collection of pages.**
+> **Philosophy:** Deliver an interactive experience that feels like a real digital product, while maintaining strict isolation, sub-second initial page loads, and enterprise-grade reliability.
 
 ---
 
-## ✦ Highlights
+## ✦ Key Highlights (v2.5.0)
 
-| | |
+| Feature | Architecture & Implementation |
 |---|---|
-| ⚡ **Performance-first** | The landing experience does not load Three.js, WebGL or GLB assets. |
-| 🔎 **SEO-first** | Route-specific HTML shells, edge fallback rendering, canonicals, sitemap sync and structured data. |
-| 🧊 **Interactive 3D** | A dedicated developer room powered by React Three Fiber and Three.js. |
-| 🧩 **Code splitting** | The heavy 3D experience is isolated from the lightweight landing page. |
-| 🛡️ **Hardened** | Security headers, CSP, 15-min idle timeout, 12-hr absolute session ceiling, CSRF, Turnstile and layered rate limiting. |
-| 🖼️ **Cloudflare R2** | Native R2 media storage (ali-faniani-portfolio-media) with magic-byte validation and safe deletion. |
-| ♿ **Accessible** | Semantic structure, keyboard focus states, reduced motion and graceful fallbacks. |
-| ☁️ **Edge deployed** | Cloudflare Pages + Pages Functions + D1 + KV + R2 + Wrangler. |
-| 🎨 **Data-driven** | Decoupled CMS publishing: instant edge publishing with D1 fallback + ordered snapshot synchronization. |
+| ⚡ **Performance-First Isolation** | The landing page and public routes ship zero 3D overhead. Three.js, R3F, shaders, and GLB decoders are isolated to `/room`. |
+| 🧊 **Responsive 3D Room Camera** | Geometry-based dynamic object framing (`box.getSize()`), mobile touch orbit with momentum damping, two-finger pinch-to-zoom, and virtual joystick for freecam mode. |
+| 🚀 **Selective CMS Publishing** | Multi-item draft promotion interface allowing administrators to choose specific pending changes to deploy rather than forcing an all-or-nothing publish. |
+| 🛡️ **Zero-Trust Diagnostics** | Server-side health probe (`/api/admin/system/health`) measuring real D1 query latency, table counts, KV bindings, R2 accessibility, and secrets presence without leaking keys. |
+| 📊 **First-Party Analytics** | Privacy-preserving traffic metrics powered by daily rotating salted SHA-256 session hashes (`sha256Hex(ip::ua::date::salt)`). Raw IPs are never stored. |
+| 🖼️ **Cloudflare R2 Media Storage** | Direct asset management with binary magic-byte MIME sniffing (WebP, PNG, JPEG, AVIF), dimension sniffing, atomic upload compensation, and safe deletion checks. |
+| 🔎 **Search & Social SEO Engine** | Verified Google Search Site Name branding (`Ali Faniani`), static SSR HTML shells, JSON-LD `@graph` entities, dynamic D1 edge fallbacks, and automated sitemap synchronization. |
+| 🔒 **Hardened Session Governance** | 15-minute idle inactivity timeout, 24-hour absolute session ceiling, sliding activity refresh, probe-mode verification, CSRF defense-in-depth, and fail-closed Turnstile. |
+| 📱 **Fluid Mobile Typography** | CSS `clamp(2.5rem, 8vw, 4.25rem)` hero typography, natural multi-line wrapping in the Selected Work carousel, and zero horizontal viewport overflows. |
+| ☁️ **Deterministic Sync Pipeline** | Atomic D1 updates trigger a dedicated GitHub Actions workflow that regenerates static snapshots on `main` before firing the Cloudflare Pages deploy hook. |
 
 ---
 
-## ✦ Tech Stack
+## ✦ Technology Stack
 
-### Frontend
+### Frontend & Core Application
+- **Framework:** [React 19](https://react.dev/) + [React DOM 19](https://react.dev/)
+- **Language:** [TypeScript](https://www.typescriptlang.org/) (Strict Mode)
+- **Build Tool:** [Vite 8](https://vitejs.dev/) + [Rollup](https://rollupjs.org/)
+- **Routing:** [React Router 7](https://reactrouter.com/) (Browser router for public pages; Hash router for `/admin`)
+- **Styling:** [Tailwind CSS 4](https://tailwindcss.com/) + Custom cyber-dark design tokens
+- **Animations:** [Framer Motion 13](https://www.framer.com/motion/) + [GSAP 3](https://greensock.com/gsap/)
 
-<p>
-  <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=white" alt="React 19" />
-  <img src="https://img.shields.io/badge/TypeScript-strict-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript strict" />
-  <img src="https://img.shields.io/badge/Vite-8-646CFF?style=flat-square&logo=vite&logoColor=white" alt="Vite 8" />
-  <img src="https://img.shields.io/badge/React_Router-7-CA4245?style=flat-square&logo=reactrouter&logoColor=white" alt="React Router 7" />
-  <img src="https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white" alt="Tailwind CSS 4" />
-</p>
+### 3D & Graphics Engine (Isolated Chunk)
+- **Engine:** [Three.js r185](https://threejs.org/)
+- **React Integration:** [React Three Fiber 9](https://docs.pmnd.rs/react-three-fiber/) + [@react-three/drei 10](https://github.com/pmndrs/drei)
+- **Post-Processing:** [@react-three/postprocessing 3](https://github.com/pmndrs/react-postprocessing) + [postprocessing 6](https://github.com/vanruesc/postprocessing)
+- **Asset Decoders:** Draco and Meshopt compressed GLB assets
 
-### 3D & Motion
+### Cloudflare Serverless Platform & Edge
+- **Hosting & CDN:** [Cloudflare Pages](https://pages.cloudflare.com/)
+- **Serverless API:** [Cloudflare Pages Functions](https://developers.cloudflare.com/pages/functions/)
+- **Database:** [Cloudflare D1](https://developers.cloudflare.com/d1/) (Serverless SQL database over SQLite)
+- **Key-Value Store:** [Cloudflare KV](https://developers.cloudflare.com/kv/) (Rate limiting & deployment state machine)
+- **Object Storage:** [Cloudflare R2](https://developers.cloudflare.com/r2/) (`ali-faniani-portfolio-media` bucket)
+- **Bot Defense:** [Cloudflare Turnstile](https://developers.cloudflare.com/turnstile/) (Client challenge + Server verification)
 
-<p>
-  <img src="https://img.shields.io/badge/Three.js-r185-000000?style=flat-square&logo=threedotjs&logoColor=white" alt="Three.js r185" />
-  <img src="https://img.shields.io/badge/React_Three_Fiber-9-20232A?style=flat-square&logo=react&logoColor=white" alt="React Three Fiber 9" />
-  <img src="https://img.shields.io/badge/Drei-10-20232A?style=flat-square&logo=react&logoColor=white" alt="Drei 10" />
-  <img src="https://img.shields.io/badge/GSAP-3-88CE02?style=flat-square&logo=greensock&logoColor=111111" alt="GSAP 3" />
-  <img src="https://img.shields.io/badge/Framer_Motion-13-111111?style=flat-square&logo=framer&logoColor=white" alt="Framer Motion 13" />
-</p>
-
-### State & Platform
-
-<p>
-  <img src="https://img.shields.io/badge/Zustand-5-433D3D?style=flat-square&logo=zustand&logoColor=white" alt="Zustand 5" />
-  <img src="https://img.shields.io/badge/Zod-4-3C3C3D?style=flat-square&logoColor=white" alt="Zod 4" />
-  <img src="https://img.shields.io/badge/Cloudflare_Pages-F38020?style=flat-square&logo=cloudflarepages&logoColor=white" alt="Cloudflare Pages" />
-  <img src="https://img.shields.io/badge/Cloudflare_Functions-F38020?style=flat-square&logo=cloudflare&logoColor=white" alt="Cloudflare Pages Functions" />
-  <img src="https://img.shields.io/badge/Cloudflare_D1-F38020?style=flat-square&logo=cloudflare&logoColor=white" alt="Cloudflare D1" />
-  <img src="https://img.shields.io/badge/Cloudflare_KV-F38020?style=flat-square&logo=cloudflare&logoColor=white" alt="Cloudflare KV" />
-</p>
+### Administration, Schemas & Visualizations
+- **Data Schemas:** [Zod 4](https://zod.dev/) (Strict validation in build and server code; 0% shipped in public bundles)
+- **State Management:** [Zustand 5](https://github.com/pmndrs/zustand)
+- **Charts & Data Visualization:** [EvilCharts](https://github.com/Greenhawk5) (Custom cyberpunk SVG chart primitives) + [ECharts 6](https://echarts.apache.org/)
 
 ---
 
-## ✦ CMS (v2.0.0)
-
-A private, single-owner CMS — the Portfolio Control Center — is built into the site at `/admin`. It is deliberately unlisted: the only intentional entry point is a subtle key icon inside the site's Settings panel, plus the direct URL. It does not appear in navigation, the footer, the sitemap, robots.txt or any public metadata, and it is served with `X-Robots-Tag: noindex` and `Cache-Control: no-store`.
-
-The console is hash-routed (`#/overview`, `#/projects`, `#/profile`, `#/links`, `#/media`, `#/publishing`, `#/seo`, `#/activity`, `#/integrations`, `#/settings`) over a shared data provider that loads content, deploy state and the activity audit log in parallel. Overview surfaces content counts, unpublished-change attention items and deploy status from live state; Publishing offers a draft queue with per-record discard and honest `pending_sync` reporting; SEO Center checks the real `/robots.txt`, `/sitemap.xml` and `/_content_meta.json` artifacts; Activity renders the audit log with masked IPs and edge-country attribution. Unconfigured integrations render "Not connected" — the console never invents connectivity or analytics.
-
-### Content model
-
-Cloudflare D1 is the source of truth for three content kinds — **projects**, **profile sections** and **links** — each with `draft`, `published` and `archived` states:
-
-- **Drafts** (including edits to already-published content, stored as a draft overlay) never appear on the public site.
-- **Archived** content is excluded from the public snapshot and disappears from routes and the sitemap at the next successful build.
-- Hard deletion is only permitted for draft/archived records; published content must be archived first.
-- Media references use a build-generated **static media manifest** with stable `/media/...` URLs. There are no uploads and no R2 in v2.0.0.
-
-### Publish workflow
-
-Publishing is an explicit, atomic operation:
-
-```text
-Edit in /admin → validated draft in D1
-      → Publish (Zod + media-reference validation, atomic D1 batch)
-      → GitHub snapshot sync dispatched (repository_dispatch, non-fatal)
-      → GitHub Actions: D1 snapshot export → generated files → commit [CI Skip]
-      → Cloudflare Pages Deploy Hook (triggered by the workflow, after main is updated)
-      → Pages build: D1 snapshot export → validation → static build
-      → route HTML + sitemap + _content_meta.json → verification
-      → deployment
-```
-
-The public site is **fully static** — it never queries D1 at runtime. Deployments are asynchronous: the CMS reports a queued deployment honestly and never claims the site has updated until a build has actually completed. A failed build leaves the previous deployment live.
-
-### Repository snapshot synchronization
-
-The repository mirrors the published D1 state in two generated files — `src/data/generated/content.json` and `public/sitemap.xml`. After a successful publish, the endpoint dispatches a `repository_dispatch` event (secret: `GITHUB_SYNC_TOKEN`, a fine-grained personal access token limited to this repository with Contents: Read/Write). A GitHub Actions workflow then re-exports Production D1 with the same strict exporter the production build uses, regenerates both files, commits them only when they differ, and — only after the snapshot state is on main — triggers the Cloudflare Pages Deploy Hook (secret: `CLOUDFLARE_DEPLOY_HOOK_URL`). Publish itself never calls the deploy hook, so a Pages build can never start from a stale generated snapshot:
-
-- **Loop prevention:** the workflow triggers only on `repository_dispatch` / `workflow_dispatch` — never on push — and sync commits carry `[CI Skip]` so Pages skips them. The only dispatcher is the publish endpoint; builds cannot re-trigger the workflow.
-- **Idempotency:** the generators are deterministic per D1 state (`exportedAt` and `lastmod` derive from row timestamps), so unchanged content produces byte-identical files and no commit.
-- **Consistency:** the workflow always reads D1 at execution time (never a payload copy), runs one at a time (`concurrency` group), and therefore can never overwrite newer content with stale state.
-- **Failure behavior:** synchronization and deployment are secondary to production. Dispatch or workflow failure never blocks a publish, never rolls back D1, and never affects the live site. The workflow triggers the deploy hook only if every prior step succeeded; if the hook itself fails, the snapshot commit remains intact and the workflow can be re-run to retry the deployment.
-- `public/media-manifest.json` is generated **from repository media** (`docs/`), not from D1 — it is updated by committing media files, exactly as before. The sync never touches media files or dist artifacts.
-
-### Authentication
-
-Password-only login for the single owner (no usernames, no registration):
-
-- `ADMIN_PASSWORD` is stored only as a Cloudflare Pages secret.
-- Sessions are opaque 256-bit tokens; D1 stores only their SHA-256 hashes.
-- Session cookies are `HttpOnly`, `Secure`, `SameSite=Strict` with sliding 7-day expiry (30-day hard cap).
-- All admin mutations require a per-session CSRF token; login is protected by always-on Cloudflare Turnstile plus a layered rate limiter (in-memory burst cap + KV per-IP failed-attempt lockout).
-
----
-
-## ✦ Selected Projects
+## ✦ Selected Projects Showcase
 
 <table>
 <tr>
@@ -180,470 +127,360 @@ Password-only login for the single owner (no usernames, no registration):
 
 ---
 
-## ✦ Portfolio Gallery
+## ✦ Visual Gallery
 
-A visual overview of the portfolio interface and its interactive 3D environment.
-
-### General
+### General Experience
 
 <table>
 <tr>
 <td width="50%" align="center">
 <a href="docs/profile/home.webp"><img src="docs/profile/home.webp" alt="Portfolio home page" width="100%" /></a>
-<br /><sub><b>Home</b> · Main portfolio landing page</sub>
+<br /><sub><b>Home</b> · Dynamic selected work rotation & visitor analytics</sub>
 </td>
 <td width="50%" align="center">
 <a href="docs/profile/about.webp"><img src="docs/profile/about.webp" alt="About page" width="100%" /></a>
-<br /><sub><b>About</b> · Profile, skills and background</sub>
+<br /><sub><b>About</b> · Profile, skills, education, and certificates</sub>
 </td>
 </tr>
 <tr>
 <td width="50%" align="center">
 <a href="docs/profile/projects.webp"><img src="docs/profile/projects.webp" alt="Projects page" width="100%" /></a>
-<br /><sub><b>Projects</b> · Project index and showcase</sub>
+<br /><sub><b>Projects</b> · Filterable responsive project showcase</sub>
 </td>
 <td width="50%" align="center">
 <a href="docs/profile/contact.webp"><img src="docs/profile/contact.webp" alt="Contact page" width="100%" /></a>
-<br /><sub><b>Contact</b> · Contact experience</sub>
+<br /><sub><b>Contact</b> · Bot-protected contact experience</sub>
 </td>
 </tr>
 </table>
 
-### 3D Developer Room
+### Interactive 3D Room
 
 <table>
 <tr>
 <td width="33%" align="center">
 <a href="docs/profile/3D-Room%20(1).webp"><img src="docs/profile/3D-Room%20(1).webp" alt="3D developer room view 1" width="100%" /></a>
-<br /><sub><b>Room I</b></sub>
+<br /><sub><b>Room Overview</b> · Cinematic angle</sub>
 </td>
 <td width="33%" align="center">
 <a href="docs/profile/3D-Room%20(2).webp"><img src="docs/profile/3D-Room%20(2).webp" alt="3D developer room view 2" width="100%" /></a>
-<br /><sub><b>Room II</b></sub>
+<br /><sub><b>Workstation</b> · Interactive monitor</sub>
 </td>
 <td width="33%" align="center">
 <a href="docs/profile/3D-Room%20(3).webp"><img src="docs/profile/3D-Room%20(3).webp" alt="3D developer room view 3" width="100%" /></a>
-<br /><sub><b>Room III</b></sub>
+<br /><sub><b>Showcase Board</b> · Project slides</sub>
 </td>
 </tr>
 </table>
 
-> 🧊 **Explore the room live:** [`alifaniani.ir/room`](https://alifaniani.ir/room)
+> 🧊 **Experience the room live:** [`alifaniani.ir/room`](https://alifaniani.ir/room)
 
 ---
 
-## ✦ Architecture
+## ✦ System Architecture
 
 ```text
-                              ┌─────────────────────┐
-                              │       Browser       │
-                              └──────────┬──────────┘
-                                         │
-                                         ▼
-                              ┌─────────────────────┐
-                              │   Cloudflare Pages  │
-                              ├─────────────────────┤
-                              │ Route HTML shells   │
-                              │ React application   │
-                              │ Static assets       │
-                              └──────────┬──────────┘
-                                         │
-                       ┌─────────────────┼─────────────────┐
-                       ▼                 ▼                 ▼
-              ┌──────────────────┐ ┌──────────────┐ ┌────────────────┐
-              │  Lightweight `/` │ │  Lazy /room  │ │   /admin       │
-              │  SEO-first       │ │  Three.js/R3F│ │  (unlisted,    │
-              │  No WebGL        │ │  GLB assets  │ │  auth-gated)   │
-              │  Fast entry      │ │  Lazy scene  │ │  Lazy chunk    │
-              └────────┬─────────┘ └──────┬───────┘ └───────┬────────┘
-                       │                  │                  │
-                       └──────────────────┼──────────────────┘
-                                          ▼
-                              ┌─────────────────────────┐
-                              │     Pages Functions     │
-                              │ /api/contact (Turnstile)│
-                              │ /api/admin/* (auth+CSRF)│
-                              └──────────┬──────────────┘
-                                         ▼
-                    ┌────────────────────┴───────────────────┐
-                    ▼                                        ▼
-           Turnstile + Resend                     ┌─────────────────────┐
-           (contact)                              │   D1 (content,      │
-                                                  │   sessions, audit)  │
-                                                  │   KV (login limits) │
-                                                  └─────────────────────┘
+                               ┌────────────────────────────────┐
+                               │       Client Web Browser       │
+                               └───────────────┬────────────────┘
+                                               │
+                                               ▼
+                               ┌────────────────────────────────┐
+                               │   Cloudflare Global Edge CDN   │
+                               ├────────────────────────────────┤
+                               │ • Edge SSR Fallback Middleware │
+                               │ • Security Headers & CSP       │
+                               │ • Static HTML Shell Delivery   │
+                               └───────────────┬────────────────┘
+                                               │
+                        ┌──────────────────────┼──────────────────────┐
+                        ▼                      ▼                      ▼
+              ┌──────────────────┐   ┌──────────────────┐   ┌──────────────────┐
+              │  Fast Public Web │   │  Lazy 3D Engine  │   │  Private Admin   │
+              │  • SEO Shells    │   │  • /room route   │   │  • /admin route  │
+              │  • Zero WebGL    │   │  • Three.js/R3F  │   │  • Zero-Trust    │
+              │  • Pure HTML/CSS │   │  • Touch Orbit   │   │  • Hash-routed   │
+              └─────────┬────────┘   └─────────┬────────┘   └─────────┬────────┘
+                        │                      │                      │
+                        └──────────────────────┼──────────────────────┘
+                                               ▼
+                               ┌────────────────────────────────┐
+                               │    Pages Functions Edge API    │
+                               │  /api/contact  /api/analytics  │
+                               │  /api/admin/*  /api/projects   │
+                               └───────────────┬────────────────┘
+                                               │
+                    ┌──────────────────────────┼──────────────────────────┐
+                    ▼                          ▼                          ▼
+         ┌─────────────────────┐    ┌─────────────────────┐    ┌─────────────────────┐
+         │   Cloudflare D1     │    │   Cloudflare KV     │    │   Cloudflare R2     │
+         │ • Content Store     │    │ • Rate Limiting     │    │ • Media Storage     │
+         │ • Session Hashes    │    │ • deploy:state      │    │ • Magic-Byte MIME   │
+         │ • Audit Trail       │    │ • Brute Lockouts    │    │ • Reference Safety  │
+         │ • Analytics Events  │    └─────────────────────┘    └─────────────────────┘
+         └─────────────────────┘
 ```
 
-### Content data flow
+---
+
+## ✦ Interactive 3D Room & Responsive Controls
+
+The `/room` route is an interactive 3D digital developer workstation built with React Three Fiber.
+
+### Dynamic Environment & Performance
+- **Time-of-Day Atmosphere:** Continuous day/night interpolation synchronized with the visitor's local system time (with manual override in settings). Custom GLSL shaders render dynamic skies, stars, and atmospheric haze.
+- **Showcase Board Optimization:** Pre-renders 52 grid lines and gradients to offscreen canvases; canvas re-draws and GPU texture uploads (`texture.needsUpdate = true`) execute **strictly during active slide transitions** (0% GPU texture overhead during idle states; instantaneous 350ms slide navigation).
+- **Verified Visitor Sign:** Renders real, verified visitor counts onto a branded 3D board beneath the digital clock, fetched from `/api/analytics/stats`.
+
+### Mobile Touch & Camera Architecture
+- **Geometry-Based Object Framing:** Calculates bounding boxes (`box.getSize()`) in real time, adapting focal distance and vertical offset dynamically based on device aspect ratio (portrait vs. landscape).
+- **Touch Gesture Controls:** Single-finger orbit with momentum damping; two-finger pinch-to-zoom; vertical pitch clamping preventing camera flipping or floor penetration.
+- **Virtual Joystick Freecam:** On mobile touch devices, free-camera mode equips an ergonomic on-screen thumb joystick alongside touch-look gestures.
+- **Ergonomic Controls Drawer:** Distinguishes camera viewpoints (Overview, Workstation, Shelf, Freecam) from environmental controls for comfortable one-thumb navigation.
+
+---
+
+## ✦ Content Management & Selective Publishing Pipeline
+
+The Portfolio Control Center (`/admin`) delivers a production-grade content workflow decoupled from runtime databases.
 
 ```text
-D1 (source of truth)
-        │  build-time snapshot export (REST, read-only token)
-        ▼
-src/data/generated/content.json   ← validated with Zod schemas
-        │
-        ├── src/data facades (projects / profile / links)
-        ├── Projects index + detail pages
-        ├── 3D showcase board
-        ├── Sitemap generation
-        ├── Route metadata / HTML shells
-        └── _content_meta.json → Pages middleware routing
+ 1. CMS EDITING           2. ATOMIC PROMOTION         3. REPOSITORY SYNC
+┌──────────────────┐     ┌──────────────────────┐    ┌──────────────────────────┐
+│ Validate drafts  │ ──► │ Promote selected     │──► │ Dispatch GitHub Actions  │
+│ in Admin UI      │     │ records to D1        │    │ cms-snapshot-sync.yml    │
+└──────────────────┘     └──────────────────────┘    └─────────────┬────────────┘
+                                                                   │
+ 6. GLOBAL EDGE CDN       5. CLOUDFLARE BUILD         4. DETERMINISTIC EXPORT
+┌──────────────────┐     ┌──────────────────────┐    ┌──────────────────────────┐
+│ Serve immutable  │ ◄── │ Build static bundles │◄── │ Export D1 snapshot to    │
+│ static website   │     │ and route SSR shells │    │ content.json & sitemap   │
+└──────────────────┘     └──────────────────────┘    └──────────────────────────┘
 ```
 
-The public runtime consumes only the generated snapshot — there is no SSR and no runtime D1 access from public pages. Zod schemas live in build/API/admin code only and never ship to the public bundle.
+### Deterministic Publishing Guarantees
+1. **Draft Overlays:** Edits to published content remain isolated in D1 drafts until explicitly promoted.
+2. **Selective Publishing:** Administrators check only the records they wish to promote; unrelated drafts remain safely in progress.
+3. **Loop Prevention:** The sync workflow triggers exclusively on `repository_dispatch` / `workflow_dispatch` — never on standard git pushes. Sync commits carry `[CI Skip]` to prevent deployment loops.
+4. **Idempotency:** Generators produce byte-identical JSON and XML outputs per D1 timestamp. Unchanged data results in zero empty commits.
+5. **Ordered Deployment:** The snapshot-sync workflow triggers the Cloudflare Pages deploy hook **only after** the generated snapshot is committed to `main`. Builds never start from stale snapshots.
+6. **Edge Dynamic Fallback:** If a visitor requests a project published seconds ago before a Pages rebuild finishes, `functions/_middleware.js` dynamically renders an edge SSR shell from D1 (`X-Content-Source: d1-edge-shell`), ensuring zero 404s for legitimate content.
 
 ---
 
-## ✦ Interactive 3D Room
+## ✦ Admin Control Center Modules
 
-The `/room` route is the signature experience of the portfolio.
+The private administration suite (`/admin`) is accessible via key shortcut or direct URL (protected by `X-Robots-Tag: noindex, nofollow, noarchive` and `Cache-Control: no-store`):
 
-### Environment
-
-- Continuous day/night interpolation driven by the visitor's real clock.
-- Manual time-of-day simulation through the settings panel.
-- Custom GLSL sky material and interpolated atmosphere.
-- Dynamic sunlight, ambient lighting, stars, city lights and RGB lighting.
-
-### Interactive elements
-
-- Project showcase board linked to portfolio projects.
-- Monitor with canvas-rendered animated scenes.
-- Wall clock and other focusable room elements.
-- Interactive PC/RGB state.
-- Cinematic camera presets.
-- Free Camera mode with mouse look and WASD/Q/E movement.
-
-### Rendering
-
-- React Three Fiber + Three.js scene graph.
-- Bloom, vignette and ACES filmic tone mapping on high-quality settings.
-- Canvas textures for dynamic screens.
-- Dust particles and ambient effects.
-- Quality presets for different hardware levels.
-
-### Delivery
-
-The 3D scene is lazy-loaded and code-split from the landing page. Optimized assets and self-hosted decoders are delivered only when the room is entered.
+- **Overview (`#/overview`):** High-level operational telemetry, active draft counters, notification cards, and EvilCharts visual activity distributions.
+- **Projects (`#/projects`):** Full CRUD for portfolio projects, tech stacks, links, metrics, media associations, and homepage featured flags.
+- **Profile (`#/profile`):** Management of biography paragraphs, skill groups, timeline milestones, education, and certificates.
+- **Links (`#/links`):** Management of public social links, external profiles, and contact channels.
+- **Media Library (`#/media`):** R2 asset browser with category organization, binary MIME validation, dimension sniffing, direct URL copying, and reference integrity protection.
+- **Publishing (`#/publishing`):** Selective publishing interface with item-by-item selection, visual draft/published diffing, sync status tracking, and manual sync retry.
+- **SEO Center (`#/seo`):** Actionable audit dashboard with indexing posture indicators, canonical checks, diagnostic severity checklist, route inspection table, and one-click jump-to-remedy links.
+- **Activity Log (`#/activity`):** Audit trail over `auth_log` with default IP masking, per-session full IP reveal, authoritative edge country (`CF-IPCountry`), and 14-day activity pulse.
+- **Integrations (`#/integrations`):** Real-time status registry across 10 cloud services with observed evidence, failure consequences, and visual publishing architecture.
+- **Settings (`#/settings`):** 5-domain categorized settings (*Account & Session*, *Application & Build*, *Content & Publishing*, *Infrastructure & Bindings*, *Security & Secrets*), copyable version tokens (`v2.5.0`), and safe sign-out workflow.
 
 ---
 
-## ✦ SEO
+## ✦ Security Architecture
 
-SEO is treated as part of the application architecture.
+Security is implemented natively across all application layers:
 
-- **Route-specific HTML shells** provide correct initial metadata for every public route.
-- **Canonical URLs** are normalized to HTTPS, the apex domain, clean paths and no query strings.
-- **Sitemap generation** derives project URLs from the published content snapshot — no hand-maintained slug lists anywhere.
-- **Structured data** includes `Person`, `WebSite`, `ProfilePage`, `ItemList`, project `CreativeWork` and the `/room` `WebPage` schema where appropriate.
-- **Open Graph + Twitter metadata** are included for share previews.
-- **Crawler-friendly HTML** includes a static bootstrap shell with a real H1 and crawlable navigation.
-- **404 handling** returns real HTTP 404 responses with `X-Robots-Tag: noindex`.
-- URL normalization handles trailing slashes, letter case and `.html` variants.
-
----
-
-## ✦ Performance
-
-The portfolio intentionally separates content performance from 3D richness.
-
-- Landing page ships without Three.js, GLB assets or decoders.
-- Route-level code splitting isolates the 3D scene to `/room`.
-- GLB assets are optimized with Meshopt/Draco where applicable.
-- Textures are resized and converted to optimized WebP assets where appropriate.
-- Inter and JetBrains Mono are self-hosted.
-- Quality tiers adapt DPR, shadows, particles, effects and update rates.
-- The room loading veil is tied to actual asset readiness rather than fake progress.
-- Reduced-motion preferences disable unnecessary animation and parallax.
-
-> No formal benchmark suite is included. Performance should be evaluated against the production build with Lighthouse and browser DevTools.
+- **Single-Owner Authentication:** Password-only authentication with zero user registration surface. `ADMIN_PASSWORD` is an encrypted Cloudflare secret; comparison is crypto-grade timing-safe.
+- **Session Lifetime Governance:** Enforces a 15-minute idle inactivity timeout and a 24-hour absolute session ceiling. Expired sessions are rejected and purged opportunistically.
+- **Probe-Mode Protection:** Monitoring and health checks pass `isProbe: true` to prevent diagnostic polling from artificially extending session lifespans.
+- **CSRF Defense-in-Depth:** Every administrative mutation requires a timing-safe per-session `X-CSRF-Token` in addition to `SameSite=Strict` cookies.
+- **Bot Defense:** Cloudflare Turnstile verification is mandatory on login and contact endpoints (fail-closed).
+- **Layered Rate Limiting:** In-memory burst cap per Cloudflare isolate + KV-backed IP lockout counting Turnstile-passed password failures (5 attempts per 15 minutes).
+- **R2 Binary Magic-Byte Sniffing:** Strictly allows WebP, PNG, JPEG, and AVIF; SVG payloads, scripts, and executables are rejected at binary inspection.
+- **Zero-Trust Secrets Posture:** Sensitive credentials (`ADMIN_PASSWORD`, `TURNSTILE_SECRET`, `GITHUB_SYNC_TOKEN`, `RESEND_API_KEY`, `DEPLOY_HOOK_URL`) never touch client code or public bundles.
+- **Edge Security Headers:** Strict HSTS (`includeSubDomains`), restrictive Content Security Policy (CSP), `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `frame-ancestors 'none'`, and `Permissions-Policy`.
+- **Bundle Isolation Verified:** Automated build checks verify that no Zod runtime, admin markers, or server secret strings leak into public client bundles.
 
 ---
 
-## ✦ Accessibility
+## ✦ Database Architecture & Migrations
 
-Accessibility is built into both the document structure and the interactive experience:
+Cloudflare D1 is the single source of truth for dynamic portfolio content and audit trails.
 
-- Semantic headings and landmarks.
-- A single meaningful H1 per page state.
-- Real links and buttons for interactive controls.
-- `focus-visible` states.
-- Accessible labels for navigation and icon controls.
-- Reduced-motion support.
-- No-JS landing shell.
-- WebGL failure fallback with full navigation.
-- Descriptive alt text for content images.
+### Database Schema Overview
+- `content`: Stores `project`, `profile`, and `link` entities with versioning, draft overlays (`draft_data`, `draft_updated_at`), sort orders, and states (`draft`, `published`, `archived`).
+- `sessions`: Stores SHA-256 hashes of 256-bit session tokens, CSRF token hashes, creation timestamps, `last_used_at`, and expiration ceilings.
+- `auth_log`: Append-only security audit log (`ts`, `ip`, `country`, `ok`, `note`).
+- `media_assets`: Metadata registry for R2 objects (`id`, `r2_key`, `url`, `mime_type`, `bytes`, `width`, `height`, `category`, `associated_key`, `state`).
+- `page_view_events`: First-party analytics events recording salted daily session hashes, route paths, referrers, device types, and bot flags.
+- `analytics_daily` & `project_analytics_daily`: Aggregated daily traffic summaries.
+- `admin_notifications`: System alerts and action items with state tracking (`active`, `acknowledged`, `resolved`, `expired`).
 
-The project does not claim formal WCAG certification.
-
----
-
-## ✦ Security
-
-Implemented security measures include:
-
-- HSTS.
-- Content Security Policy.
-- `X-Content-Type-Options: nosniff`.
-- `X-Frame-Options: DENY`.
-- `frame-ancestors 'none'`.
-- `Referrer-Policy`.
-- Restrictive `Permissions-Policy`.
-- Cloudflare Turnstile client + server verification (contact + admin login).
-- Per-IP contact endpoint rate limiting and layered admin-login rate limiting.
-- Admin session auth with HttpOnly/Secure/SameSite=Strict cookies and CSRF protection on every mutation.
-- `GITHUB_SYNC_TOKEN` is server-side only (used solely to dispatch the snapshot-sync workflow); the sync workflow itself uses the repository's built-in `GITHUB_TOKEN` with `contents: write`.
-- Zod validation of all content writes; only published content ever reaches the public snapshot.
-- Bundle isolation: Zod runtime and server-only code never ship in public chunks (build-verified).
-- Input validation and HTML escaping before email delivery.
-- Separation between public `VITE_*` values and server-only secrets.
-- Production secrets stored through Cloudflare Pages rather than source control.
-
-See [`SECURITY.md`](SECURITY.md) for responsible vulnerability reporting.
+### Applied Migrations
+1. `0001_init.sql` — Initial schema (`content`, `sessions`, `auth_log`).
+2. `0002_add_draft_columns.sql` — Support for non-destructive draft overlays.
+3. `0003_auth_log_country.sql` — Edge geolocation capture via `CF-IPCountry`.
+4. `0004_auth_log_indexing.sql` — Performance index on `auth_log(ts DESC)`.
+5. `0005_media_assets.sql` — Cloudflare R2 media asset table and reference indices.
+6. `0006_analytics_and_notifications.sql` — Tables for visitor tracking and admin notifications.
 
 ---
 
-## ✦ Routes
+## ✦ Installation & Local Development
 
-| Route | Purpose |
+### Prerequisites
+- [Node.js](https://nodejs.org/) (v20 or v22 recommended)
+- [npm](https://www.npmjs.com/) (v10+)
+- [Cloudflare Wrangler](https://developers.cloudflare.com/workers/wrangler/) (optional, for local Workers/Pages simulation)
+
+### Setup Instructions
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/Greenhawk5/AliFaniani-Portfolio.git
+   cd AliFaniani-Portfolio
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm ci
+   ```
+
+3. **Configure local environment:**
+   Copy the example environment file:
+   ```bash
+   cp .env.example .env
+   ```
+   For local Cloudflare Pages simulation (`wrangler pages dev`), create a `.dev.vars` file in the root directory (never committed):
+   ```ini
+   ADMIN_PASSWORD=your-local-password
+   TURNSTILE_SECRET=1x0000000000000000000000000000000AA
+   VITE_TURNSTILE_SITE_KEY=1x0000000000000000000000000000000AA
+   ```
+
+4. **Start Vite development server:**
+   ```bash
+   npm run dev
+   ```
+
+5. **Run Cloudflare-compatible local runtime (with Functions & D1):**
+   ```bash
+   npm run build
+   npx wrangler pages dev dist
+   ```
+
+---
+
+## ✦ Available npm Scripts
+
+| Command | Description |
 |---|---|
-| `/` | Lightweight landing page |
-| `/about` | Profile, skills, education and certificates |
-| `/projects` | Project index |
-| `/projects/{slug}` | Individual project pages (derived from published content) |
-| `/contact` | Contact form |
-| `/room` | Interactive 3D developer room |
-| `/admin` | Private CMS (unlisted; noindex + no-store) |
-| Unknown routes | Real `404` + `X-Robots-Tag: noindex` |
+| `npm run dev` | Starts Vite local development server with HMR. |
+| `npm run build` | Executes orchestrated production build (version → manifest → D1 snapshot → validation → sitemap → tsc → vite → media copy → route HTML → verification). |
+| `npm run preview` | Previews the compiled `dist/` directory locally. |
+| `npm run typecheck` | Validates client application TypeScript (`tsc -b`). |
+| `npm run check:functions` | Validates Cloudflare Pages Functions TypeScript (`tsc --noEmit -p tsconfig.functions.json`). |
+| `npm run lint` | Runs ESLint across `src/` and `functions/`. |
+| `npm run format` | Formats code with Prettier. |
+| `npm test` | Runs complete Vitest test suite. |
+| `npm run test:ci` | Runs CI test suite (excludes external credential-dependent tests). |
+| `npm run verify:build` | Validates build isolation, route manifests, sitemap coverage, and secret leakage. |
+| `npm run sitemap` | Regenerates `sitemap.xml` from the current content snapshot. |
+| `npm run media` | Generates the static media manifest from `docs/` repository assets. |
+| `npm run media:migrate` | Migrates legacy repository media to Cloudflare R2 bucket. |
+| `npm run snapshot:local` | Exports a published snapshot from a local D1 instance. |
+| `npm run deploy` | Compiles application and deploys `dist/` directly via Wrangler. |
 
 ---
 
-## ✦ Project Structure
+## ✦ Testing & Quality Assurance
+
+The repository includes comprehensive automated test coverage with **247 passing tests** across 21 test suites:
+
+- **Unit & Schema Validation:** Zod schemas, profile facades, and project store selectors.
+- **Admin Authentication & Sessions:** Timing-safe comparisons, 15-minute idle timeout, 24-hour ceiling, keepalive renewal, CSRF token validation, and IP masking.
+- **System Health Diagnostics (`tests/admin-system-health.test.ts`):** Validates D1 latency reporting, KV/R2 binding detection, zero-trust boolean secrets posture, and probe-mode session protection.
+- **Publishing & Snapshot Pipeline:** Draft overlay promotion, selective publishing, sync dispatch retry, and atomic error handling.
+- **Analytics & Tracking:** Bot detection, device classification, daily session hash rotation, and public stats caching.
+- **Media Management:** Magic-byte MIME detection, dimension sniffing, and deletion reference protection.
+- **3D Room & Responsive Layout:** Camera viewport framing calculations, pitch clamping, and fluid typography scaling.
+- **Build Output Verification:** Scans every compiled chunk for forbidden needles, server secrets, and Zod dependencies.
+
+Run the test suite locally:
+```bash
+npm run test:ci
+```
+
+---
+
+## ✦ Project Directory Structure
 
 ```text
 AliFaniani-Portfolio/
+├── .github/
+│   └── workflows/
+│       ├── ci.yml                 # PR & push verification workflow
+│       └── cms-snapshot-sync.yml  # D1 snapshot sync & deploy hook trigger
+├── docs/                          # Original documentation & image assets
+│   ├── certificates/              # Certificate scans
+│   ├── implementation/            # Engineering decision records & logs
+│   ├── profile/                   # Showcase visual assets
+│   └── project/                   # Project banners & screenshots
+├── functions/                     # Cloudflare Pages Functions (Edge API)
+│   ├── _middleware.js             # Edge SSR shell fallback & header guard
+│   ├── api/                       # API endpoints
+│   │   ├── admin/                 # Private admin API (health, publish, media, etc.)
+│   │   ├── analytics/             # Privacy-preserving analytics (track, stats)
+│   │   ├── contact.ts             # Contact form submission endpoint
+│   │   └── projects/              # Project discovery endpoint
+│   └── lib/                       # Edge libraries (auth, sessions, D1 store, etc.)
+├── migrations/                    # Cloudflare D1 schema migrations
+├── public/                        # Static public assets, fonts, icons, decoders
+├── scripts/                       # Build scripts, exporters, and verification tooling
 ├── src/
-│   ├── admin/           # /admin CMS application (lazy-loaded, isolated chunk)
-│   ├── app/             # Router, providers and site configuration
-│   ├── components/
-│   │   ├── home/        # Landing-page components
-│   │   ├── layout/      # Navigation, footer and settings
-│   │   ├── room/        # 3D room overlay / loading UI
-│   │   ├── three/       # Room scene components
-│   │   └── ui/          # Reusable UI components
-│   ├── data/            # Generated content facades + route metadata
-│   │   └── generated/   # content.json snapshot (build input)
-│   ├── hooks/           # Metadata, JSON-LD and utility hooks
-│   ├── lib/             # Zod content schemas (canonical validation source)
-│   ├── pages/           # Route-level pages
-│   ├── stores/          # Zustand stores
-│   ├── styles/          # Global styles and fonts
-│   └── three/           # 3D engine, shaders and environment logic
-├── functions/
-│   ├── api/             # /api/contact + /api/admin/* endpoints
-│   └── lib/             # Session auth, CSRF, rate limiting, publish, D1 store
-├── migrations/           # D1 schema migrations only
-├── seeds/                # Content seed files (explicit, never auto-applied)
-├── public/               # Fonts, icons, GLB/decoder, OG assets, _routes.json
-├── docs/                 # Portfolio, project and certificate assets
-├── scripts/              # Build orchestration, snapshot export, SEO tooling
-├── tests/                # Vitest suite (unit + credential-dependent SEO E2E)
-├── .github/              # CI workflow + Dependabot
-├── LICENSE
-├── NOTICE.md
-├── SECURITY.md
-├── CHANGELOG.md
-├── package.json
-└── README.md
+│   ├── admin/                     # Portfolio Control Center application
+│   │   ├── views/                 # Admin views (Overview, Publishing, SEO, etc.)
+│   │   ├── ui/                    # Cyberpunk form controls and EvilCharts
+│   │   └── systemApi.ts           # System health diagnostics client API
+│   ├── app/                       # App router, providers, and global config
+│   ├── components/                # Reusable UI components & 3D scene elements
+│   ├── data/                      # Route metadata & content facades
+│   │   └── generated/             # Canonical content.json snapshot
+│   ├── hooks/                     # Custom React hooks (analytics, meta, media)
+│   ├── pages/                     # Route components (Home, About, Projects, Room, etc.)
+│   ├── stores/                    # Zustand stores
+│   ├── three/                     # Three.js scene graph, shaders, and camera rig
+│   └── version.ts                 # Authoritative version constant (generated)
+├── tests/                         # Vitest automated test suite (21 test files)
+├── CHANGELOG.md                   # Chronological release changelog
+├── LICENSE                        # Proprietary license agreement
+├── NOTICE.md                      # Third-party asset attributions (CC BY 4.0)
+├── package.json                   # Project manifest (v2.5.0)
+├── README.md                      # Comprehensive project documentation
+├── SECURITY.md                    # Vulnerability reporting & security model
+└── wrangler.toml                  # Cloudflare Pages & D1/KV/R2 configuration
 ```
 
 ---
 
-## ✦ Getting Started
+## ✦ License & Attribution
 
-### Requirements
-
-- Node.js 18+
-- npm
-
-### Installation
-
-```bash
-git clone https://github.com/Greenhawk5/AliFaniani-Portfolio.git
-cd AliFaniani-Portfolio
-npm install
-```
-
-### Development
-
-```bash
-npm run dev
-```
-
-### Production build
-
-```bash
-npm run build
-```
-
-### Production preview
-
-```bash
-npm run preview
-```
-
-### Cloudflare-compatible local runtime
-
-```bash
-npx wrangler pages dev dist
-```
-
----
-
-## ✦ Environment Variables & Secrets
-
-Create a local `.env` from `.env.example` when needed. Secrets never live in source control or `VITE_*` variables.
-
-| Variable | Scope | Purpose |
-|---|---|---|
-| `VITE_SITE_URL` | Client | Canonical production URL |
-| `VITE_TURNSTILE_SITE_KEY` | Client | Public Cloudflare Turnstile site key |
-| `TURNSTILE_SECRET` | Server secret | Turnstile server verification (contact + admin login) |
-| `RESEND_API_KEY` | Server secret | Contact-form email delivery |
-| `EMAIL_FROM` / `EMAIL_TO` | Server secret | Contact email routing |
-| `SITE_URL` | Server | URL shown in contact emails (optional) |
-| `ADMIN_PASSWORD` | Server secret | Single-owner CMS credential |
-| `DEPLOY_HOOK_URL` | Server secret | Cloudflare Pages Deploy Hook (publish trigger) |
-| `CLOUDFLARE_ACCOUNT_ID` | Build env (Production) | D1 snapshot export target account |
-| `D1_DATABASE_ID` | Build env (Production) | D1 snapshot export target database |
-| `CLOUDFLARE_D1_READ_TOKEN` | Build env secret (Production) | Read-only D1 REST token for snapshot export |
-| `GITHUB_SYNC_TOKEN` | Server secret (Production) | Fine-grained PAT (this repository only, Contents: Read/Write) for the post-publish `repository_dispatch` |
-| `CLOUDFLARE_DEPLOY_HOOK_URL` | GitHub Actions secret | The same value as the Cloudflare `DEPLOY_HOOK_URL` — lets the snapshot-sync workflow trigger the Pages build after the snapshot is on main |
-| `CMS_SNAPSHOT_MODE` | Build env (Production) | Set to `strict` in production — build fails if the D1 snapshot cannot be exported/validated |
-
-**Local development** needs none of the production credentials: builds use the committed content snapshot (fallback with a warning), and `wrangler pages dev` reads secrets from `.dev.vars` (gitignored).
-
-**Production** requires the strict snapshot mode above so a failed D1 export always fails the build — the previous successful deployment stays live.
-
----
-
-## ✦ Development Commands
-
-| Command | Purpose |
-|---|---|
-| `npm run dev` | Start the Vite development server |
-| `npm run build` | Orchestrated build: version → media manifest → D1 snapshot → validation → sitemap → tsc → vite → media copy → route HTML → content meta → verification |
-| `npm run preview` | Preview the production build |
-| `npx wrangler pages dev dist` | Run the Cloudflare-compatible local runtime (with local D1/KV) |
-| `npm test` | Full test suite (unit + credential-dependent SEO E2E) |
-| `npm run test:ci` | Credential-free test subset (excludes SEO E2E) |
-| `npm run lint` | Run ESLint |
-| `npm run format` | Run Prettier |
-| `npm run typecheck` | Run TypeScript checks |
-| `npm run check:functions` | Check Pages Functions TypeScript |
-| `npm run sitemap` | Regenerate the sitemap from the snapshot |
-| `npm run snapshot:local` | Export a snapshot from the local D1 |
-| `npm run media` | Regenerate the media manifest |
-| `npm run verify:build` | Re-run build-output verification |
-| `npm run deploy` | Build and deploy to Cloudflare Pages |
-
----
-
-## ✦ Validation
-
-The repository ships a Vitest test suite plus build-time verification.
-
-- **Unit/static tests** (`npm run test:ci`): content schema validation, D1 store behavior, admin API (auth boundary, CSRF, CRUD, publish atomicity, draft overlays, archive/delete rules), snapshot export modes, sitemap/content-meta generation, bundle isolation, session security.
-- **SEO E2E** (`npm test` — requires local admin credentials in `.dev.vars`): full lifecycle against local D1 — draft isolation, publish visibility, archive → 404, sitemap/route-HTML/content-meta integrity, security headers, Room isolation. Excluded from CI because it drives real child processes with credentials.
-- **Build verification** (`scripts/verify-build.mjs`): route/`_routes.json` presence, content-meta ↔ snapshot consistency, media completeness, bundle isolation (no Zod runtime, no secret markers in public chunks), sitemap coverage.
-- **Runtime checks**: `scripts/verify-route-html.mjs` and `scripts/verify-headers.mjs` against a running `wrangler pages dev` server.
-
-No Lighthouse benchmark suite is included; performance should be evaluated against the production build with browser tooling.
-
----
-
-## ✦ Deployment
-
-The production site is deployed to **Cloudflare Pages** (Wrangler or Git integration).
-
-```bash
-npm run deploy
-```
-
-Production secrets are configured through Cloudflare Pages (never in source control):
-
-```bash
-wrangler pages secret put ADMIN_PASSWORD
-wrangler pages secret put DEPLOY_HOOK_URL
-wrangler pages secret put TURNSTILE_SECRET
-wrangler pages secret put RESEND_API_KEY
-wrangler pages secret put EMAIL_FROM
-wrangler pages secret put EMAIL_TO
-```
-
-Production build environment variables (set in the Pages dashboard, Production environment): `CLOUDFLARE_ACCOUNT_ID`, `D1_DATABASE_ID`, `CLOUDFLARE_D1_READ_TOKEN` (read-only), and `CMS_SNAPSHOT_MODE=strict`.
-
-After cutover, production builds export published content from D1 and validate it before building — a failed snapshot/validation/build never replaces the live site. CMS publishes trigger the configured Deploy Hook; deployments are asynchronous and the admin UI reports queue/failure states honestly.
-
----
-
-## ✦ Content Management
-
-Portfolio content is managed through the private `/admin` console rather than source edits:
-
-1. Sign in (password + Turnstile).
-2. Create or edit projects, profile sections and links — saved as drafts (edits to published content are stored as draft overlays).
-3. Publish: all validated drafts are promoted to D1 atomically and the Deploy Hook queues a fresh production build.
-4. The static public site regenerates from the new snapshot — routes, route HTML, sitemap and metadata all derive from published content automatically.
-
-Media (banners, screenshots, avatars) references a generated static manifest; adding new images is a git commit followed by a build. Uploads/R2 are intentionally out of scope for v2.0.0.
-
----
-
-## ✦ Repository Documentation
-
-| File | Purpose |
-|---|---|
-| [`CHANGELOG.md`](CHANGELOG.md) | Version history and release notes |
-| [`LICENSE`](LICENSE) | Proprietary license for original project work |
-| [`NOTICE.md`](NOTICE.md) | Third-party asset attribution and licensing notes |
-| [`SECURITY.md`](SECURITY.md) | Responsible vulnerability reporting |
-| [`.github/dependabot.yml`](.github/dependabot.yml) | Automated npm dependency update configuration |
-
-Third-party assets are not relicensed by this repository. See [`NOTICE.md`](NOTICE.md) for attribution and applicable terms.
-
----
-
-## ✦ License
-
-The original source code, visual design and project materials in this repository are **proprietary** — Copyright © 2026 Ali Faniani. All rights reserved.
-
-The repository is publicly viewable for inspection, learning and inspiration. Viewing the code does **not** grant permission to reproduce, redistribute, republish, modify, sublicense, sell or create derivative works from the original project without prior written permission.
-
-Third-party assets remain under their respective licenses and terms.
-
-See [`LICENSE`](LICENSE) and [`NOTICE.md`](NOTICE.md).
+- **Original Source Code & Design:** Copyright © 2026 Ali Faniani. All rights reserved. The original code and design are **proprietary**. Public visibility on GitHub is for inspection, code review, and learning only.
+- **Third-Party 3D Assets:** 3D models used in the `/room` experience are licensed under Creative Commons Attribution ([CC BY 4.0](http://creativecommons.org/licenses/by/4.0/)). Full creator credits and source links are preserved in [`NOTICE.md`](NOTICE.md).
 
 ---
 
 ## ✦ Author
 
-**Ali Faniani** — Software Developer
+**Ali Faniani** — Software Developer  
+*Specializing in AI, Backend Engineering, Modern Web Technologies, and Automation.*
 
-<p>
-  <a href="https://alifaniani.ir">Website</a>
-  &nbsp;·&nbsp;
-  <a href="https://github.com/Greenhawk5">GitHub</a>
-  &nbsp;·&nbsp;
-  <a href="https://www.linkedin.com/in/ali-faniani">LinkedIn</a>
-  &nbsp;·&nbsp;
-  <a href="https://huggingface.co/Greenhawk5">Hugging Face</a>
-</p>
+- 🌐 **Website:** [alifaniani.ir](https://alifaniani.ir)
+- 💻 **GitHub:** [@Greenhawk5](https://github.com/Greenhawk5)
+- 💼 **LinkedIn:** [in/ali-faniani](https://www.linkedin.com/in/ali-faniani)
+- 🤗 **Hugging Face:** [@Greenhawk5](https://huggingface.co/Greenhawk5)
 
 ---
 
 <div align="center">
-
-<sub>Built with React, TypeScript, Three.js and Cloudflare Pages.</sub>
-
+<sub>Built with React 19, TypeScript, Three.js, and Cloudflare Pages.</sub>
 </div>

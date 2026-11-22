@@ -27,20 +27,26 @@ Only the latest version deployed to production (`main` branch) is supported.
   send email, consume quotas, or attempt logins. Validate against a local
   runtime instead (`npx wrangler pages dev dist` with a local `.dev.vars`).
 
-## Security model (v2.0.0)
+## Security model (v2.5.0)
 
-### Authentication
+### Authentication & Session Lifecycle
 
 - Single-owner, password-only admin login. No usernames, registration, or
   password reset flows.
-- `ADMIN_PASSWORD` exists only as a Cloudflare Pages secret — never in source
-  control, D1, or client code.
-- Comparison is timing-safe. Sessions are opaque 256-bit random tokens; D1
-  stores only their SHA-256 hashes, so a database leak cannot be replayed as
-  a session.
-- Sessions expire after 7 days (sliding refresh, 30-day hard cap); expired
-  sessions are rejected and purged opportunistically.
-- Logout deletes the server-side session record and clears cookies.
+- `ADMIN_PASSWORD` exists only as an encrypted Cloudflare Pages secret — never in
+  source control, D1, or client code.
+- Comparison is timing-safe using crypto-grade constant-time buffers.
+- Sessions are opaque 256-bit random tokens; D1 stores only their SHA-256 hashes,
+  so a database compromise cannot be replayed as a valid session.
+- **Strict Inactivity & Ceiling Policy**: Sessions enforce a 15-minute idle
+  inactivity timeout and a 24-hour absolute session ceiling. Expired sessions
+  are rejected immediately and purged opportunistically from D1.
+- **Session Probe Mode**: Diagnostic monitoring and system health checks use
+  `isProbe: true` during session verification, ensuring health polling never
+  artificially postpones idle session expiration.
+- In-flight session expiration warning modal displays a live 2-minute countdown
+  with an explicit keepalive renewal endpoint (`POST /api/admin/session`).
+- Logout permanently deletes the server-side session record and clears cookies.
 
 ### Cookies
 
@@ -67,7 +73,36 @@ Only the latest version deployed to production (`main` branch) is supported.
 
 ### Audit logging
 
-- Login, failed-login, logout, content and publish/deploy events are recorded
+- Login, failed-login, logout, content, media, and publish/deploy events are
+  recorded in a D1 `auth_log` table. Credentials, session tokens, CSRF tokens
+  and secret values are never logged. IP addresses are masked by default in the
+  admin UI with authoritative edge country attribution (`CF-IPCountry`).
+
+### R2 Media Storage Security
+
+- Uploads undergo strict binary magic-byte inspection (WebP, PNG, JPEG, AVIF only).
+  SVG files, scripts, and executable binaries are strictly rejected.
+- Dimension sniffing extracts width and height at binary level.
+- Upload failure triggers automatic R2 object purging (atomic compensation).
+- Pre-deletion checks verify media is not referenced in published or draft content
+  before allowing removal, preventing broken asset links in production.
+
+### Privacy-Preserving Analytics
+
+- Visitor analytics use daily rotating salted SHA-256 session hashes
+  (`sha256Hex(ip::ua::date::salt)`). Raw IP addresses and user agents are
+  never stored or queried.
+- Automated regex filters discard bots, web crawlers, and headless agents
+  from public metrics.
+
+### Zero-Trust Secrets Architecture
+
+- `ADMIN_PASSWORD`, `TURNSTILE_SECRET`, `GITHUB_SYNC_TOKEN`, `RESEND_API_KEY`,
+  and `DEPLOY_HOOK_URL` reside exclusively in Cloudflare Pages Secrets.
+- Automated build verification ensures that no secret names or values ever
+  leak into public client bundles.
+- The system health endpoint exposes strictly boolean configuration indicators
+  (`true`/`false`) and never outputs secret values or keys.
   in a D1 `auth_log` table. Credentials, session tokens, CSRF tokens and
   secret values are never logged.
 

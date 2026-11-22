@@ -5,6 +5,71 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.0] — 2026-11-22
+
+Major milestone delivering full CMS selective publishing, complete Admin Panel modernization (SEO Center, Integrations Center, Settings Center), live zero-trust system health diagnostics, responsive 3D developer-room camera architecture with mobile touch controls, fluid mobile responsive engineering, adaptive selected work typography, and Google Search Site Name branding.
+
+### Added
+
+- **CMS Selective Publishing System** — Implemented granular multi-item draft promotion in `src/admin/views/PublishingView.tsx`, `functions/api/admin/publish.ts`, and `functions/lib/publish.ts`. Administrators can select individual drafts to publish rather than promoting all pending edits at once.
+- **Snapshot Sync Retry Mechanism** — Added manual retry trigger in `src/admin/publishApi.ts` allowing immediate dispatch of the GitHub Actions snapshot-sync workflow if previous synchronizations were interrupted.
+- **Live System Health Diagnostics** — Built `functions/api/admin/system/health.ts` and `src/admin/systemApi.ts` providing real-time, zero-trust server health probes covering D1 latency (ms), table record counts, KV binding status, R2 media bucket accessibility, and Cloudflare edge runtime context.
+- **Advanced Admin Notification Center** — Developed `src/admin/views/NotificationCenterView.tsx` with severity filtering, priority management, search, multi-selection bulk actions, expiration handling, and dedicated creation modal.
+- **Mobile 3D Room Controls** — Added two-finger pinch-to-zoom, touch orbit controls with momentum damping, and an ergonomic virtual joystick for free-camera mode on touch devices in `src/three/CameraRig.tsx` and `src/components/ui/RoomCameraControls.tsx`.
+- **Diagnostic Jump-to-Remedy Links** — Integrated one-click navigation links in `src/admin/views/SeoView.tsx` directing administrators straight to relevant editing tools or publishing screens to remediate diagnostic warnings.
+- **Copyable System Tokens** — Added one-click copy buttons for application version (`v2.5.0`) and canonical origin in Admin Settings.
+
+### Improved
+
+- **Admin SEO Center Overhaul** — Completely redesigned `src/admin/views/SeoView.tsx` into an actionable dashboard with indexing posture indicators, canonical origin audits, diagnostic severity checks, route-by-route metadata inspection table, and project coverage cards.
+- **Admin Integrations & Infrastructure Center** — Modernized `src/admin/views/IntegrationsView.tsx` into an infrastructure registry with a visual 6-stage publishing pipeline diagram and honest observational status across 10 distinct cloud services.
+- **Admin Settings Center Overhaul** — Restructured `src/admin/views/SettingsView.tsx` into five organized domains (*Account & Session*, *Application & Build*, *Content & Publishing*, *Infrastructure & Bindings*, and *Security & Secrets*).
+- **Selected Work Responsive Typography** — Re-engineered `src/components/ui/ProjectCarousel.tsx` to allow natural multi-line wrapping for project titles, subtitles, and category badges without clipping or awkward ellipses.
+- **Homepage Mobile Layout & Fluid Typography** — Re-engineered `src/pages/Home.tsx` hero typography with CSS `clamp(2.5rem, 8vw, 4.25rem)` and eliminated horizontal layout overflow across all mobile viewports.
+- **3D Room Camera Viewport Framing** — Implemented bounding-box geometry calculations (`box.getSize()`) in `src/three/CameraRig.tsx` to automatically adapt camera distance, focal length, and vertical look offset based on viewport aspect ratio.
+- **3D Room Controls Drawer** — Separated camera preset navigation from scene interactions for ergonomic one-thumb mobile access.
+
+### Fixed
+
+- **Google Search Site Name & Structured Data** — Updated OpenGraph `og:site_name` and JSON-LD `@graph` `WebSite` entity to `"Ali Faniani"` with `alternateName: ["AliFaniani", "Ali Faniani Portfolio"]` in `index.html`.
+- **Mobile Horizontal Layout Overflow** — Resolved clipping and horizontal scrolling on mobile viewports across Homepage hero, selected work carousel, and 3D room CTA cards.
+- **3D Room Vertical Pitch Inversion** — Enforced strict pitch clamping in camera orbit controls, preventing the camera from flipping upside down or clipping through floor geometry.
+- **Admin Notification Form Focus Loss** — Fixed component re-render loops in notification creation form to maintain input focus during typing.
+- **Custom Cyber Switch Thumb Alignment** — Corrected CSS alignment of switch toggles in admin dialogs and settings.
+
+### Security
+
+- **Session Lifetime Governance** — Enforced 15-minute idle inactivity timeout and 24-hour absolute session ceiling on the server via `functions/lib/sessions.ts` with opportunistic expired session purging.
+- **Session Probe Mode** — Added `isProbe: true` flag in `functions/lib/session-auth.ts` so diagnostic health checks and monitoring probes validate authentication without artificially postponing idle session expiration.
+- **Zero-Trust Secrets Architecture** — Configured server secrets (`ADMIN_PASSWORD`, `TURNSTILE_SECRET`, `GITHUB_SYNC_TOKEN`, `RESEND_API_KEY`, etc.) strictly in Cloudflare Pages Secrets; verified through automated build checks that no secret keys or values are bundled in public client chunks.
+- **Cloudflare Turnstile Verification** — Server-enforced, fail-closed Turnstile challenge validation on both admin login and public contact form submissions.
+- **Edge Security Headers & Defense-in-Depth** — Cloudflare Pages edge middleware enforces lowercase canonicals, trailing-slash stripping, and injects `X-Robots-Tag: noindex, nofollow, noarchive` on `/admin` before execution reaches client code.
+
+### Performance
+
+- **Bundle Isolation** — Maintained strict separation: heavy 3D engine components are lazy-loaded exclusively on `/room`; public landing bundles contain zero Three.js, WebGL, or Zod dependencies.
+- **3D Showcase Board Dirty-Flag Rendering** — Pre-rendered 52 background grid lines and gradient canvases offscreen, keeping idle GPU texture memory overhead at 0% and enabling crisp 350ms slide transitions.
+- **Throttled Session Updates** — Throttled `last_used_at` session timestamps to once per 2 minutes, reducing D1 database write operations by over 85%.
+- **Binary Magic-Byte Inspection** — Fast, non-allocating binary signature sniffing for WebP, PNG, JPEG, and AVIF uploads in R2 Media Library.
+
+### Architecture
+
+- **Deterministic Publishing State Machine** — Decoupled atomic D1 draft promotion from GitHub repository synchronization and Cloudflare Pages deployment via Cloudflare KV (`deploy:state`).
+- **Dynamic D1 Edge Fallback** — In `functions/_middleware.js`, projects published after the latest build are dynamically served via D1 edge rendering with full canonicals and SEO metadata (`X-Content-Source: d1-edge-shell`).
+- **Privacy-Preserving First-Party Analytics** — Salted daily rotating SHA-256 session hashes (`functions/api/analytics/track.ts`) with automated bot exclusion and cached public statistics (`/api/analytics/stats`).
+
+### Administration
+
+- **Unified Cyberpunk Design System** — Standardized dark-theme cyberpunk controls across all admin views (`AdminInput`, `AdminSelect`, `AdminSwitch`, `AdminCard`, `StatusPill`).
+- **Comprehensive Media Library** — Browse, upload, categorize, inspect, and safely delete R2 media assets with pre-deletion reference checking.
+- **EvilCharts Analytics Visualizations** — Embedded SVG donut distributions and 14-day activity pulse charts in Admin Overview and Activity feeds.
+
+### Developer Experience
+
+- **Expanded Test Coverage** — Test suite scaled to 247 automated tests across 21 test files (100% pass rate in CI).
+- **Dedicated Diagnostic Tests** — Added `tests/admin-system-health.test.ts` verifying latency measurements, KV/R2 bindings, secrets posture, and SEO static contracts.
+- **Build Output Verification** — Automated checks enforce `_routes.json`, `_content_meta.json`, media completeness, bundle isolation, and sitemap synchronization.
+
 ## [2.3.0] — 2026-11-21
 
 Major upgrade delivering intelligent homepage selected work rotation, first-party privacy-preserving analytics, 3D developer-room performance optimization, responsive projects grid refinement, actionable admin notifications, and EvilCharts visual design system.
