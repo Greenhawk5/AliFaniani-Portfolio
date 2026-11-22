@@ -29,7 +29,9 @@ import { cn } from '@/lib/cn'
 interface Attention {
   id: string
   notifId?: string
-  state?: 'active' | 'acknowledged'
+  state?: string
+  isPinned?: boolean
+  isUnread?: boolean
   tone: 'danger' | 'warning' | 'info'
   title: string
   description: string
@@ -61,63 +63,60 @@ export function OverviewView({ onNavigate: navigate }: { onNavigate: (view: Admi
     }
   }, [])
 
+  const unreadCount = useMemo(() => {
+    return (data.notifications ?? []).filter(
+      (n) => !n.readAt && n.state !== 'archived' && n.state !== 'dismissed' && n.state !== 'resolved' && n.state !== 'deleted'
+    ).length
+  }, [data.notifications])
+
   const attention = useMemo<Attention[]>(() => {
     const issues: Attention[] = []
 
-    // 1. First priority: Real actionable notifications from D1 admin_notifications table
+    // Actionable notifications from D1 admin_notifications table
     if (data.notifications) {
-      for (const n of data.notifications) {
-        if (n.state === 'resolved' || n.state === 'expired' || n.state === 'dismissed') continue
+      const activeNotifications = data.notifications.filter((n) => {
+        if (n.state === 'resolved' || n.state === 'expired' || n.state === 'dismissed' || n.state === 'archived' || n.state === 'deleted') {
+          return false
+        }
+        return !n.readAt || n.isPinned
+      })
+
+      // Sort: pinned first, then newest
+      activeNotifications.sort((a, b) => {
+        if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1
+        return b.createdAt.localeCompare(a.createdAt)
+      })
+
+      // Limit to top 4 for a compact preview
+      for (const n of activeNotifications.slice(0, 4)) {
         const tone: 'danger' | 'warning' | 'info' =
-          n.severity === 'critical' ? 'danger' : n.severity === 'warning' ? 'warning' : 'info'
+          n.priority === 'critical' || n.severity === 'critical'
+            ? 'danger'
+            : n.priority === 'important' || n.severity === 'warning'
+              ? 'warning'
+              : 'info'
+
+        let action: { label: string; view: AdminView } | undefined = undefined
+        if (n.linkUrl?.includes('publishing') || n.type === 'deploy' || n.type === 'content') {
+          action = { label: 'Publishing', view: 'publishing' }
+        } else if (n.linkUrl?.includes('activity') || n.type === 'security') {
+          action = { label: 'Activity', view: 'activity' }
+        }
+
         issues.push({
           id: n.id,
           notifId: n.id,
           state: n.state,
+          isPinned: n.isPinned,
+          isUnread: !n.readAt,
           tone,
           title: n.title,
           description: n.message,
+          action,
         })
       }
     }
 
-    if (counts.edited > 0) {
-      issues.push({
-        id: 'unpublished',
-        tone: 'warning',
-        title: `${counts.edited} unpublished change${counts.edited === 1 ? '' : 's'}`,
-        description: 'Edits exist in D1 that the live website does not show yet.',
-        action: { label: 'Review publishing', view: 'publishing' },
-      })
-    }
-    if (data.deploy?.status === 'sync_dispatch_failed' && data.deploy?.lastError !== 'not_configured') {
-      issues.push({
-        id: 'sync',
-        tone: 'danger',
-        title: 'Snapshot sync dispatch failed',
-        description: 'Published content has not reached the website — the sync workflow must be retried.',
-        action: { label: 'Open publishing', view: 'publishing' },
-      })
-    }
-    if (data.deploy?.status === 'queued' || data.deploy?.status === 'pending_sync') {
-      issues.push({
-        id: 'building',
-        tone: 'info',
-        title: 'Deployment in progress',
-        description: 'A build is queued or syncing — the site updates when it completes.',
-        action: { label: 'Check publishing', view: 'publishing' },
-      })
-    }
-    if ((data.activity?.summary.failedAccess ?? 0) > 0) {
-      const n = data.activity!.summary.failedAccess
-      issues.push({
-        id: 'access',
-        tone: 'warning',
-        title: `${n} failed sign-in attempt${n === 1 ? '' : 's'} recently`,
-        description: 'Review the audit trail to confirm these are your own mistakes.',
-        action: { label: 'Open activity', view: 'activity' },
-      })
-    }
     if (data.itemsError) {
       issues.push({
         id: 'content-error',
@@ -126,8 +125,9 @@ export function OverviewView({ onNavigate: navigate }: { onNavigate: (view: Admi
         description: data.itemsError,
       })
     }
+
     return issues
-  }, [data.notifications, counts.edited, data.deploy, data.activity, data.itemsError])
+  }, [data.notifications, data.itemsError])
 
   return (
     <div className="space-y-5">
@@ -166,9 +166,23 @@ export function OverviewView({ onNavigate: navigate }: { onNavigate: (view: Admi
 
       {/* Needs attention */}
       <section aria-labelledby="attention-heading">
-        <h2 id="attention-heading" className="mb-2.5 text-sm font-semibold text-frost">
-          Needs attention
-        </h2>
+        <div className="mb-2.5 flex items-center justify-between">
+          <h2 id="attention-heading" className="text-sm font-semibold text-frost">
+            Needs attention
+          </h2>
+          <button
+            onClick={() => navigate('notifications')}
+            className="flex items-center gap-1.5 font-mono text-xs text-accent hover:underline cursor-pointer"
+          >
+            <span>Notification Center</span>
+            {unreadCount > 0 && (
+              <span className="rounded-full bg-accent/20 px-1.5 py-0.2 font-mono text-[10px] font-bold text-accent">
+                {unreadCount}
+              </span>
+            )}
+            <span>&rarr;</span>
+          </button>
+        </div>
         {attention.length === 0 ? (
           <AdminCard className="flex items-center gap-3 px-4 py-3.5">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
@@ -176,7 +190,7 @@ export function OverviewView({ onNavigate: navigate }: { onNavigate: (view: Admi
             </span>
             <div>
               <p className="text-sm font-medium text-frost">All clear</p>
-              <p className="text-xs text-mist">No unpublished changes, failed syncs, or recent sign-in failures.</p>
+              <p className="text-xs text-mist">No unread alerts, unpublished changes, failed syncs, or recent sign-in failures.</p>
             </div>
           </AdminCard>
         ) : (
@@ -195,6 +209,11 @@ export function OverviewView({ onNavigate: navigate }: { onNavigate: (view: Admi
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-medium text-frost">{issue.title}</p>
+                    {issue.isPinned && (
+                      <span className="rounded bg-accent/15 px-1.5 py-0.5 font-mono text-[9px] font-semibold text-accent">
+                        Pinned
+                      </span>
+                    )}
                     {issue.state === 'acknowledged' && (
                       <span className="rounded border border-edge-2 bg-panel-2 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-mist">
                         Acknowledged
@@ -204,22 +223,18 @@ export function OverviewView({ onNavigate: navigate }: { onNavigate: (view: Admi
                   <p className="text-xs text-mist">{issue.description}</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                  {issue.notifId && issue.state === 'active' && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => void data.acknowledgeNotification(issue.notifId!)}
-                    >
-                      Acknowledge
+                  {issue.action && (
+                    <Button variant="outline" size="sm" onClick={() => navigate(issue.action!.view)}>
+                      {issue.action.label}
                     </Button>
                   )}
-                  {issue.notifId && (
+                  {issue.notifId && issue.isUnread && (
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => void data.resolveNotification(issue.notifId!)}
+                      onClick={() => void data.markNotificationRead(issue.notifId!, true)}
                     >
-                      Resolve
+                      Mark read
                     </Button>
                   )}
                   {issue.notifId && (
@@ -228,14 +243,9 @@ export function OverviewView({ onNavigate: navigate }: { onNavigate: (view: Admi
                       size="sm"
                       className="text-mist hover:text-danger hover:border-danger/30"
                       onClick={() => void data.dismissNotification(issue.notifId!)}
-                      title="Dismiss notification"
+                      title="Dismiss notification from overview"
                     >
                       Dismiss
-                    </Button>
-                  )}
-                  {issue.action && (
-                    <Button variant="outline" size="sm" onClick={() => navigate(issue.action!.view)}>
-                      {issue.action.label}
                     </Button>
                   )}
                 </div>

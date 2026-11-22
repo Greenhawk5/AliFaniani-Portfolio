@@ -30,6 +30,13 @@ import {
   acknowledgeNotification as ackApi,
   resolveNotification as resApi,
   dismissNotification as disApi,
+  markNotificationRead as readApi,
+  pinNotification as pinApi,
+  archiveNotification as arcApi,
+  deleteNotification as delApi,
+  markAllNotificationsRead as markAllApi,
+  clearArchivedNotifications as clearArcApi,
+  createCustomNotification as createApi,
   type AdminNotification,
 } from './notificationsApi'
 import type { SessionState } from './authApi'
@@ -50,6 +57,20 @@ export interface AdminData {
   acknowledgeNotification: (id: string) => Promise<boolean>
   resolveNotification: (id: string) => Promise<boolean>
   dismissNotification: (id: string) => Promise<boolean>
+  markNotificationRead: (id: string, read?: boolean) => Promise<boolean>
+  pinNotification: (id: string, isPinned?: boolean) => Promise<boolean>
+  archiveNotification: (id: string, archive?: boolean) => Promise<boolean>
+  deleteNotification: (id: string) => Promise<boolean>
+  markAllNotificationsRead: () => Promise<boolean>
+  clearArchivedNotifications: () => Promise<boolean>
+  createCustomNotification: (data: {
+    title: string
+    message: string
+    type?: string
+    priority?: string
+    linkUrl?: string
+    isPinned?: boolean
+  }) => Promise<boolean>
   refreshAll: () => Promise<void>
 }
 
@@ -217,6 +238,140 @@ export function AdminDataProvider({
     [guard]
   )
 
+  const markNotificationRead = useCallback(
+    async (id: string, read = true): Promise<boolean> => {
+      try {
+        const ok = await readApi(id, read)
+        if (ok) {
+          setNotifications((prev) =>
+            prev
+              ? prev.map((n) => (n.id === id ? { ...n, readAt: read ? new Date().toISOString() : null } : n))
+              : null
+          )
+        }
+        return ok
+      } catch (e) {
+        guard(e, setNotificationsError)
+        return false
+      }
+    },
+    [guard]
+  )
+
+  const pinNotification = useCallback(
+    async (id: string, isPinned = true): Promise<boolean> => {
+      try {
+        const ok = await pinApi(id, isPinned)
+        if (ok) {
+          setNotifications((prev) =>
+            prev
+              ? prev.map((n) => (n.id === id ? { ...n, isPinned } : n))
+              : null
+          )
+        }
+        return ok
+      } catch (e) {
+        guard(e, setNotificationsError)
+        return false
+      }
+    },
+    [guard]
+  )
+
+  const archiveNotification = useCallback(
+    async (id: string, archive = true): Promise<boolean> => {
+      try {
+        const ok = await arcApi(id, archive)
+        if (ok) {
+          setNotifications((prev) =>
+            prev
+              ? prev.map((n) =>
+                  n.id === id
+                    ? { ...n, state: archive ? ('archived' as const) : ('active' as const), archivedAt: archive ? new Date().toISOString() : null }
+                    : n
+                )
+              : null
+          )
+        }
+        return ok
+      } catch (e) {
+        guard(e, setNotificationsError)
+        return false
+      }
+    },
+    [guard]
+  )
+
+  const deleteNotification = useCallback(
+    async (id: string): Promise<boolean> => {
+      try {
+        const ok = await delApi(id)
+        if (ok) {
+          setNotifications((prev) => (prev ? prev.filter((n) => n.id !== id) : null))
+        }
+        return ok
+      } catch (e) {
+        guard(e, setNotificationsError)
+        return false
+      }
+    },
+    [guard]
+  )
+
+  const markAllNotificationsRead = useCallback(async (): Promise<boolean> => {
+    try {
+      const ok = await markAllApi()
+      if (ok) {
+        const now = new Date().toISOString()
+        setNotifications((prev) =>
+          prev ? prev.map((n) => ({ ...n, readAt: n.readAt || now })) : null
+        )
+      }
+      return ok
+    } catch (e) {
+      guard(e, setNotificationsError)
+      return false
+    }
+  }, [guard])
+
+  const clearArchivedNotifications = useCallback(async (): Promise<boolean> => {
+    try {
+      const ok = await clearArcApi()
+      if (ok) {
+        setNotifications((prev) =>
+          prev ? prev.filter((n) => n.state !== 'archived' && n.state !== 'dismissed') : null
+        )
+      }
+      return ok
+    } catch (e) {
+      guard(e, setNotificationsError)
+      return false
+    }
+  }, [guard])
+
+  const createCustomNotification = useCallback(
+    async (data: {
+      title: string
+      message: string
+      type?: string
+      priority?: string
+      linkUrl?: string
+      isPinned?: boolean
+    }): Promise<boolean> => {
+      try {
+        const res = await createApi(data)
+        if (res.ok) {
+          await refreshNotifications()
+        }
+        return res.ok
+      } catch (e) {
+        guard(e, setNotificationsError)
+        return false
+      }
+    },
+    [guard, refreshNotifications]
+  )
+
   const refreshAll = useCallback(async () => {
     await Promise.allSettled([
       refreshContent(),
@@ -259,6 +414,13 @@ export function AdminDataProvider({
       acknowledgeNotification,
       resolveNotification,
       dismissNotification,
+      markNotificationRead,
+      pinNotification,
+      archiveNotification,
+      deleteNotification,
+      markAllNotificationsRead,
+      clearArchivedNotifications,
+      createCustomNotification,
       refreshAll,
     }),
     [
@@ -277,6 +439,13 @@ export function AdminDataProvider({
       acknowledgeNotification,
       resolveNotification,
       dismissNotification,
+      markNotificationRead,
+      pinNotification,
+      archiveNotification,
+      deleteNotification,
+      markAllNotificationsRead,
+      clearArchivedNotifications,
+      createCustomNotification,
       refreshAll,
     ]
   )

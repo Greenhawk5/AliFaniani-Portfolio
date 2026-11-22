@@ -252,6 +252,7 @@ export interface TooltipProps {
   roundness?: TooltipRoundness; // border-radius of the tooltip
   cursor?: boolean; // whether the vertical cursor line follows the pointer
   position?: TooltipPosition; // "variable" follows both axes (default); "fixed" pins the tooltip near the top and tracks the pointer's X
+  labelColor?: string; // custom color for the tooltip header/date
 }
 
 /** Presence enables the hover tooltip. Renders nothing. */
@@ -307,6 +308,7 @@ type TooltipSlot = {
   roundness: TooltipRoundness;
   cursor: boolean;
   position: TooltipPosition;
+  labelColor?: string;
 };
 type LegendSlot = {
   present: boolean;
@@ -410,6 +412,7 @@ function collectConfig(children: ReactNode): CollectedConfig {
         roundness: props.roundness ?? "lg",
         cursor: props.cursor ?? true,
         position: props.position ?? "variable",
+        labelColor: props.labelColor,
       };
     } else if (type === Legend) {
       const props = child.props as LegendProps;
@@ -956,6 +959,7 @@ function createTooltipFormatter(ctx: OptionBuildContext) {
       body,
       roundness: tooltipSlot.roundness,
       variant: tooltipSlot.variant,
+      labelColor: tooltipSlot.labelColor,
     });
   };
 }

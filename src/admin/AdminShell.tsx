@@ -23,6 +23,7 @@ import {
   ActivityIcon,
   PlugIcon,
   PanelLeftIcon,
+  BellIcon,
 } from './ui/icons'
 import { GearIcon } from '@/components/ui/icons'
 import { NAV_GROUPS, type AdminView } from './routes'
@@ -34,6 +35,7 @@ import type { SessionState } from './authApi'
 
 const VIEW_ICONS: Record<AdminView, (props: { className?: string }) => ReactNode> = {
   overview: LayoutIcon,
+  notifications: BellIcon,
   projects: FolderIcon,
   profile: UserIcon,
   links: LinkIcon,
@@ -100,6 +102,7 @@ export function AdminShell({
   const expiryLabel = formatExpiry(effectiveExpiresAt)
   const data = useAdminData()
   const activeAlertsCount = (data.notifications ?? []).filter((n) => n.state === 'active').length
+  const unreadCount = (data.notifications ?? []).filter((n) => !n.readAt && n.state !== 'archived' && n.state !== 'deleted').length
 
   const nav = (
     <nav aria-label="Admin sections" className="flex-1 space-y-5 overflow-y-auto px-3 py-4">
@@ -139,6 +142,17 @@ export function AdminShell({
                         title={`${activeAlertsCount} active alert${activeAlertsCount === 1 ? '' : 's'}`}
                       >
                         {activeAlertsCount}
+                      </span>
+                    )}
+                    {item.view === 'notifications' && unreadCount > 0 && (
+                      <span
+                        className={cn(
+                          'flex h-4 min-w-[16px] items-center justify-center rounded-full bg-accent px-1 font-mono text-[9px] font-bold text-void',
+                          collapsed ? 'absolute right-2 top-2' : 'ml-auto'
+                        )}
+                        title={`${unreadCount} unread notification${unreadCount === 1 ? '' : 's'}`}
+                      >
+                        {unreadCount}
                       </span>
                     )}
                   </button>
@@ -253,6 +267,24 @@ export function AdminShell({
             <span className="hidden sm:inline">View site</span>
             <ExternalLinkIcon className="h-3.5 w-3.5 sm:ml-1.5" />
           </Button>
+          <button
+            onClick={() => onNavigate('notifications')}
+            className={cn(
+              'relative cursor-pointer rounded-lg p-2 transition-colors',
+              view === 'notifications'
+                ? 'bg-accent/15 text-accent'
+                : 'text-mist hover:bg-panel-2 hover:text-frost'
+            )}
+            title="Notification Center"
+            aria-label={`Notification Center (${unreadCount} unread)`}
+          >
+            <BellIcon className="h-4.5 w-4.5" />
+            {unreadCount > 0 && (
+              <span className="absolute 1.5 -top-0.5 -right-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-accent px-1 font-mono text-[9px] font-bold text-void shadow-sm animate-pulse">
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            )}
+          </button>
           <Button variant="ghost" size="sm" onClick={onLogout}>
             Log out
           </Button>

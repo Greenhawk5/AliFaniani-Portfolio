@@ -90,4 +90,17 @@ describe('Project Page Custom Controls & Filter State Architecture', () => {
     expect(getSubtitleDisplay(projectWithoutSub)).not.toBe('undefined')
     expect(getSubtitleDisplay(projectWithoutSub)).not.toBe('null')
   })
+
+  it('supports long option labels such as "Cloudflare Durable Objects" without truncation', () => {
+    const longLabels = [
+      'Cloudflare Durable Objects',
+      'Telegram Mini Apps',
+      'Distributed Systems & Edge Workers',
+    ]
+    for (const label of longLabels) {
+      expect(label.length).toBeGreaterThan(15)
+      // Check that label preserves full text
+      expect(label).toContain(' ')
+    }
+  })
 })

@@ -156,6 +156,7 @@ export interface AreaTrendChartProps {
   ariaLabel: string
   color?: string
   className?: string
+  tooltipHeaderColor?: string
 }
 
 /**
@@ -168,6 +169,7 @@ export function AreaTrendChart({
   ariaLabel,
   color = '#37d5ff',
   className,
+  tooltipHeaderColor,
 }: AreaTrendChartProps) {
   const chartConfig = useMemo(() => {
     return {
@@ -206,7 +208,7 @@ export function AreaTrendChart({
       >
         <EChartsAreaChart.Grid />
         <EChartsAreaChart.XAxis dataKey="label" />
-        <EChartsAreaChart.Tooltip />
+        <EChartsAreaChart.Tooltip labelColor={tooltipHeaderColor} />
         <EChartsAreaChart.Area dataKey="value" variant="gradient" isClickable>
           <EChartsAreaChart.Dot variant="border" />
           <EChartsAreaChart.ActiveDot variant="colored-border" />
