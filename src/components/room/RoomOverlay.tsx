@@ -159,14 +159,14 @@ export function RoomOverlay() {
         {cameraMode === 'free' && (
           <>
             {isTouch && (
-              <VirtualJoystick className="absolute bottom-[max(1.5rem,env(safe-area-inset-bottom))] left-[max(1.25rem,env(safe-area-inset-left))]" />
+              <VirtualJoystick className="absolute bottom-[max(1.25rem,env(safe-area-inset-bottom))] left-[max(1rem,env(safe-area-inset-left))]" />
             )}
             <motion.div
               key="freecam-bar"
-              initial={{ opacity: 0, y: 16 }}
+              initial={{ opacity: 0, y: -12 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 16 }}
-              className="pointer-events-auto absolute bottom-[max(1.25rem,env(safe-area-inset-bottom))] right-[max(1.25rem,env(safe-area-inset-right))] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 flex items-center gap-2.5 rounded-full border border-edge-2 bg-panel/85 py-1.5 pr-1.5 pl-4 backdrop-blur-md shadow-2xl"
+              exit={{ opacity: 0, y: -12 }}
+              className="pointer-events-auto absolute top-[max(4.75rem,calc(env(safe-area-inset-top)+3.5rem))] left-[max(1rem,env(safe-area-inset-left))] sm:top-auto sm:bottom-[max(1.5rem,env(safe-area-inset-bottom))] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 flex items-center gap-2.5 rounded-full border border-edge-2 bg-panel/85 py-1.5 pr-1.5 pl-4 backdrop-blur-md shadow-2xl"
             >
               <p className="text-xs font-mono text-accent whitespace-nowrap">Free Cam</p>
               <button

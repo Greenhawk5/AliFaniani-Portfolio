@@ -1,4 +1,4 @@
-﻿import { Suspense } from 'react'
+import { Suspense } from 'react'
 import { ErrorBoundary as RBErrorBoundary } from 'react-error-boundary'
 import { Link } from 'react-router-dom'
 import { useDocumentMeta } from '@/hooks/useDocumentMeta'
@@ -98,7 +98,7 @@ export default function Room() {
   })
 
   return (
-    <div className="relative h-dvh w-full overflow-hidden">
+    <div className="relative h-dvh w-full overflow-hidden touch-none select-none overscroll-none">
       <RBErrorBoundary FallbackComponent={RoomErrorFallback} onReset={() => window.location.reload()}>
         <Suspense fallback={null}>
           <Scene />

@@ -133,8 +133,16 @@ export function FreeCamRig() {
     setFocus(null)
     setHoveredLabel(null)
 
+    el.style.touchAction = 'none'
+
     const onPointerDown = (e: PointerEvent) => {
       if (e.button !== 0 || s.dragging) return
+      // Dedicated control separation: on touch devices, the left 45% of the screen
+      // is reserved for the virtual movement joystick and elevation controls.
+      if (e.pointerType === 'touch' && e.clientX < window.innerWidth * 0.45) {
+        return
+      }
+      if (e.cancelable) e.preventDefault()
       s.dragging = true
       s.lastX = e.clientX
       s.lastY = e.clientY
@@ -157,8 +165,9 @@ export function FreeCamRig() {
       s.lastY = e.clientY
       s.dragDistance += Math.hypot(dx, dy)
       s.yawTarget -= dx * LOOK_SENSITIVITY
+      // Natural vertical pitch: dragging downward (+dy) rotates view upward (+pitch)
       s.pitchTarget = THREE.MathUtils.clamp(
-        s.pitchTarget - dy * LOOK_SENSITIVITY,
+        s.pitchTarget + dy * LOOK_SENSITIVITY,
         -PITCH_LIMIT,
         PITCH_LIMIT
       )
