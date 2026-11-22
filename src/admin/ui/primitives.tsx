@@ -233,15 +233,41 @@ export function AdminModal({
   wide?: boolean
 }) {
   const ref = useRef<HTMLDivElement>(null)
+  const onCloseRef = useRef(onClose)
+  useEffect(() => {
+    onCloseRef.current = onClose
+  })
+
+  // Escape key handler: only attaches/detaches on `open` transitions.
+  // Uses onCloseRef so keystrokes / parent re-renders never tear down or restart listeners.
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape') onCloseRef.current()
     }
     window.addEventListener('keydown', onKey)
-    ref.current?.querySelector<HTMLElement>('input, textarea, select, button')?.focus()
     return () => window.removeEventListener('keydown', onKey)
-  }, [open, onClose])
+  }, [open])
+
+  // Focus management: when opening the modal, set focus to the first interactive field inside the modal body.
+  // CRITICAL FOCUS FIX: Only runs when `open` transitions to true (never on keystrokes/re-renders while open).
+  // Also only focuses if activeElement is not already inside the dialog.
+  useEffect(() => {
+    if (!open) return
+    const frame = requestAnimationFrame(() => {
+      if (ref.current && !ref.current.contains(document.activeElement)) {
+        const bodyEl = ref.current.querySelector<HTMLElement>('[data-modal-body]')
+        const target =
+          bodyEl?.querySelector<HTMLElement>(
+            'input:not([disabled]):not([type="hidden"]), textarea:not([disabled]), select:not([disabled]), [role="combobox"]:not([disabled])'
+          ) ??
+          bodyEl?.querySelector<HTMLElement>('button:not([disabled]), [tabindex="0"]') ??
+          ref.current.querySelector<HTMLElement>('button')
+        target?.focus()
+      }
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [open])
 
   if (!open) return null
   return (
@@ -257,9 +283,10 @@ export function AdminModal({
           wide ? 'sm:max-w-2xl' : 'sm:max-w-lg'
         )}
       >
-        <div className="sticky top-0 flex items-center justify-between gap-3 border-b border-edge bg-panel px-5 py-3.5">
+        <div className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-edge bg-panel px-5 py-3.5">
           <h3 className="text-sm font-semibold text-frost">{title}</h3>
           <button
+            type="button"
             onClick={onClose}
             aria-label="Close dialog"
             className="relative rounded-lg p-1.5 text-mist transition-colors hover:bg-panel-2 hover:text-frost cursor-pointer before:absolute before:-inset-2 before:content-['']"
@@ -267,7 +294,7 @@ export function AdminModal({
             <CloseIcon className="h-4.5 w-4.5" />
           </button>
         </div>
-        <div className="p-5">{children}</div>
+        <div className="p-5" data-modal-body>{children}</div>
       </div>
     </div>
   )

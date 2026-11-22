@@ -13,6 +13,8 @@ export interface AdminSelectProps<T extends string | number = string> {
   label?: string
   ariaLabel?: string
   className?: string
+  triggerClassName?: string
+  labelClassName?: string
   disabled?: boolean
 }
 
@@ -20,7 +22,7 @@ export interface AdminSelectProps<T extends string | number = string> {
  * Accessible custom dark dropdown replacing native HTML `<select>`.
  *
  * Implements ARIA listbox pattern with full keyboard navigation:
- * Enter/Space to toggle, Up/Down to navigate options, Escape to close.
+ * Enter/Space to toggle, Up/Down to navigate options, Escape to close dropdown (isolated from modal).
  */
 export function AdminSelect<T extends string | number = string>({
   value,
@@ -29,12 +31,15 @@ export function AdminSelect<T extends string | number = string>({
   label,
   ariaLabel,
   className,
+  triggerClassName,
+  labelClassName,
   disabled = false,
 }: AdminSelectProps<T>) {
   const [isOpen, setIsOpen] = useState(false)
   const [navIndex, setNavIndex] = useState<number | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const listboxId = useId()
+  const labelId = useId()
 
   const selectedIndex = options.findIndex((o) => o.value === value)
   const focusedIndex = navIndex !== null ? navIndex : selectedIndex >= 0 ? selectedIndex : 0
@@ -68,6 +73,13 @@ export function AdminSelect<T extends string | number = string>({
     switch (e.key) {
       case 'Escape':
         e.preventDefault()
+        e.stopPropagation()
+        // Prevent event from bubbling to window so enclosing AdminModal remains open
+        e.nativeEvent?.stopImmediatePropagation?.()
+        setIsOpen(false)
+        setNavIndex(null)
+        break
+      case 'Tab':
         setIsOpen(false)
         setNavIndex(null)
         break
@@ -92,11 +104,20 @@ export function AdminSelect<T extends string | number = string>({
   }
 
   return (
-    <div ref={containerRef} className={cn('relative inline-block text-left', className)}>
+    <div
+      ref={containerRef}
+      className={cn('relative inline-block text-left', isOpen && 'z-30', className)}
+    >
       {label && (
-        <span className="mb-1 block font-mono text-[10px] tracking-wider text-mist uppercase">
+        <label
+          id={labelId}
+          className={cn(
+            'mb-1 block font-mono text-xs font-medium text-mist uppercase tracking-wider',
+            labelClassName
+          )}
+        >
           {label}
-        </span>
+        </label>
       )}
       <button
         type="button"
@@ -104,20 +125,22 @@ export function AdminSelect<T extends string | number = string>({
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         aria-controls={listboxId}
-        aria-label={ariaLabel || label}
+        aria-labelledby={label ? labelId : undefined}
+        aria-label={ariaLabel || (!label ? String(value) : undefined)}
         disabled={disabled}
         onClick={() => !disabled && setIsOpen((prev) => !prev)}
         onKeyDown={handleKeyDown}
         className={cn(
-          'flex h-8 w-full items-center justify-between gap-2 rounded border border-edge-2 bg-panel px-2.5 font-mono text-xs text-frost transition-all duration-150 hover:border-accent/40 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent',
-          disabled && 'cursor-not-allowed opacity-50'
+          'flex h-9 w-full items-center justify-between gap-2 rounded-xl border border-edge-2 bg-panel-2/90 px-3 py-2 font-mono text-xs text-frost transition-all duration-150 hover:border-accent/40 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/50',
+          disabled && 'cursor-not-allowed opacity-50',
+          triggerClassName
         )}
       >
         <span className="truncate">{selectedOption?.label ?? String(value)}</span>
         <svg
           aria-hidden="true"
           className={cn(
-            'h-3.5 w-3.5 text-mist/70 transition-transform duration-200',
+            'h-3.5 w-3.5 shrink-0 text-mist/70 transition-transform duration-200',
             isOpen && 'rotate-180 text-accent'
           )}
           viewBox="0 0 16 16"
@@ -134,7 +157,7 @@ export function AdminSelect<T extends string | number = string>({
           id={listboxId}
           role="listbox"
           tabIndex={-1}
-          className="absolute z-50 mt-1 max-h-56 w-full min-w-[8rem] overflow-auto rounded-md border border-edge-2 bg-panel-2 py-1 shadow-2xl backdrop-blur-md focus:outline-none"
+          className="absolute z-50 mt-1 max-h-56 w-full min-w-[8rem] overflow-auto rounded-xl border border-edge-2 bg-panel-2 py-1 shadow-2xl backdrop-blur-md focus:outline-none"
         >
           {options.map((opt, i) => {
             const isSelected = opt.value === value
@@ -147,16 +170,17 @@ export function AdminSelect<T extends string | number = string>({
                 onClick={() => {
                   onChange(opt.value)
                   setIsOpen(false)
+                  setNavIndex(null)
                 }}
                 className={cn(
-                  'flex cursor-pointer items-center justify-between px-3 py-1.5 font-mono text-xs transition-colors',
+                  'flex cursor-pointer items-center justify-between px-3 py-2 font-mono text-xs transition-colors',
                   isSelected ? 'bg-accent/15 text-accent font-semibold' : 'text-frost/85 hover:bg-white/5',
                   isFocused && !isSelected && 'bg-white/10'
                 )}
               >
-                <span>{opt.label}</span>
+                <span className="truncate">{opt.label}</span>
                 {isSelected && (
-                  <span className="font-mono text-accent">✓</span>
+                  <span className="shrink-0 font-mono text-accent">✓</span>
                 )}
               </li>
             )
@@ -169,13 +193,23 @@ export function AdminSelect<T extends string | number = string>({
 
 export interface AdminInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string
+  labelClassName?: string
   error?: string
+  hint?: string
 }
 
 /**
  * Standardized cyberpunk admin input with accessible labels and borders.
  */
-export function AdminInput({ label, error, className, id, ...props }: AdminInputProps) {
+export function AdminInput({
+  label,
+  labelClassName,
+  error,
+  hint,
+  className,
+  id,
+  ...props
+}: AdminInputProps) {
   const generatedId = useId()
   const inputId = id || generatedId
 
@@ -184,7 +218,10 @@ export function AdminInput({ label, error, className, id, ...props }: AdminInput
       {label && (
         <label
           htmlFor={inputId}
-          className="mb-1 block font-mono text-[10px] tracking-wider text-mist uppercase"
+          className={cn(
+            'mb-1 block font-mono text-xs font-medium text-mist uppercase tracking-wider',
+            labelClassName
+          )}
         >
           {label}
         </label>
@@ -192,14 +229,143 @@ export function AdminInput({ label, error, className, id, ...props }: AdminInput
       <input
         id={inputId}
         className={cn(
-          'w-full rounded border border-edge-2 bg-panel px-3 py-1.5 font-mono text-xs text-frost transition-colors placeholder:text-mist/40 hover:border-edge focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent disabled:opacity-50',
+          'w-full rounded-xl border border-edge-2 bg-panel-2/90 px-3 py-2 font-mono text-xs text-frost transition-colors placeholder:text-mist/50 hover:border-edge focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/50 disabled:opacity-50',
           error && 'border-rose-500 focus:border-rose-500 focus:ring-rose-500',
           className
         )}
         {...props}
       />
       {error && <p className="mt-1 font-mono text-[10px] text-rose-400">{error}</p>}
+      {hint && !error && <p className="mt-1 font-mono text-[10px] text-mist/60">{hint}</p>}
     </div>
+  )
+}
+
+export interface AdminTextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+  label?: string
+  labelClassName?: string
+  error?: string
+  hint?: string
+}
+
+/**
+ * Standardized cyberpunk admin textarea matching AdminInput typography and tokens.
+ */
+export function AdminTextarea({
+  label,
+  labelClassName,
+  error,
+  hint,
+  className,
+  id,
+  ...props
+}: AdminTextareaProps) {
+  const generatedId = useId()
+  const inputId = id || generatedId
+
+  return (
+    <div className="w-full">
+      {label && (
+        <label
+          htmlFor={inputId}
+          className={cn(
+            'mb-1 block font-mono text-xs font-medium text-mist uppercase tracking-wider',
+            labelClassName
+          )}
+        >
+          {label}
+        </label>
+      )}
+      <textarea
+        id={inputId}
+        className={cn(
+          'w-full rounded-xl border border-edge-2 bg-panel-2/90 px-3 py-2 font-mono text-xs text-frost transition-colors placeholder:text-mist/50 hover:border-edge focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/50 disabled:opacity-50',
+          error && 'border-rose-500 focus:border-rose-500 focus:ring-rose-500',
+          className
+        )}
+        {...props}
+      />
+      {error && <p className="mt-1 font-mono text-[10px] text-rose-400">{error}</p>}
+      {hint && !error && <p className="mt-1 font-mono text-[10px] text-mist/60">{hint}</p>}
+    </div>
+  )
+}
+
+export interface AdminCheckboxProps
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type' | 'onChange'> {
+  label: string
+  description?: string
+  checked: boolean
+  onChange: (checked: boolean) => void
+}
+
+/**
+ * Accessible cyberpunk styled checkbox matching admin design tokens.
+ */
+export function AdminCheckbox({
+  label,
+  description,
+  checked,
+  onChange,
+  disabled = false,
+  className,
+  id,
+  ...props
+}: AdminCheckboxProps) {
+  const generatedId = useId()
+  const inputId = id || generatedId
+
+  return (
+    <label
+      htmlFor={inputId}
+      className={cn(
+        'group flex items-start gap-2.5 cursor-pointer select-none',
+        disabled && 'cursor-not-allowed opacity-50',
+        className
+      )}
+    >
+      <div className="relative flex items-center pt-0.5">
+        <input
+          id={inputId}
+          type="checkbox"
+          checked={checked}
+          disabled={disabled}
+          onChange={(e) => onChange(e.target.checked)}
+          className="peer sr-only"
+          {...props}
+        />
+        <div
+          className={cn(
+            'flex h-4 w-4 items-center justify-center rounded border transition-colors duration-150',
+            checked
+              ? 'border-accent bg-accent text-void'
+              : 'border-edge-2 bg-panel-2 group-hover:border-accent/40',
+            'peer-focus-visible:ring-2 peer-focus-visible:ring-accent peer-focus-visible:ring-offset-1 peer-focus-visible:ring-offset-panel'
+          )}
+        >
+          {checked && (
+            <svg
+              className="h-3 w-3 stroke-void"
+              viewBox="0 0 16 16"
+              fill="none"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="3.5 8.5 6.5 11.5 12.5 4.5" />
+            </svg>
+          )}
+        </div>
+      </div>
+      <div>
+        <span className="block font-mono text-xs text-frost group-hover:text-white transition-colors">
+          {label}
+        </span>
+        {description && (
+          <span className="block font-mono text-[11px] text-mist">{description}</span>
+        )}
+      </div>
+    </label>
   )
 }
 
