@@ -410,7 +410,7 @@ export function AdminSwitch({
         disabled={disabled}
         onClick={() => !disabled && onChange(!checked)}
         className={cn(
-          'relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border transition-all duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 focus-visible:ring-offset-panel',
+          'relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer items-center rounded-full border transition-all duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 focus-visible:ring-offset-panel',
           checked
             ? 'border-accent/80 bg-accent shadow-[0_0_8px_rgba(57,255,139,0.25)]'
             : 'border-edge-2 bg-void shadow-inner hover:border-mist/50'

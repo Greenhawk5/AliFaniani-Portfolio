@@ -40,7 +40,7 @@ export default function Scene() {
 
   return (
     <Canvas
-      className="absolute inset-0"
+      className="absolute inset-0 touch-none select-none overscroll-none"
       shadows={quality === 'performance' ? false : { type: THREE.PCFShadowMap }}
       dpr={quality === 'high' ? [1, 2] : quality === 'medium' ? [1, 1.5] : [0.75, 1]}
       camera={{ fov: 42, near: 0.1, far: 80, position: [14.5, 9, 15] }}

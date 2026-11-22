@@ -31,6 +31,7 @@ export function CameraRig() {
   const introTween = useRef<gsap.core.Tween | null>(null)
   const focusTween = useRef<gsap.core.Tween | null>(null)
   const lookTween = useRef<gsap.core.Tween | null>(null)
+  const fovTween = useRef<gsap.core.Tween | null>(null)
   const firstFocusRun = useRef(true)
 
   // Touch orbit state for default camera exploration
@@ -77,20 +78,37 @@ export function CameraRig() {
     (instant = false) => {
       if (cameraMode === 'free') return
       const aspect = size.width / Math.max(size.height, 1)
-      const { cameraPos, targetPos } = calculateResponsiveFraming(focus, aspect)
+      const { cameraPos, targetPos, fov: targetFov } = calculateResponsiveFraming(focus, aspect)
+      const persp = camera as THREE.PerspectiveCamera
 
       introTween.current?.kill()
       focusTween.current?.kill()
       lookTween.current?.kill()
+      fovTween.current?.kill()
 
       if (instant || motionMode === 'reduced') {
         anchor.current.copy(cameraPos)
         look.current.copy(targetPos)
+        persp.fov = targetFov
+        persp.updateProjectionMatrix()
         useUiStore.getState().setIsCameraMoving(false)
         return
       }
 
-      const duration = 1.35
+      // Capture the exact visible camera position and viewing direction before starting the tween.
+      // This guarantees zero initial snap or sudden jump when initiating a transition.
+      anchor.current.copy(camera.position)
+      camera.getWorldDirection(_dir)
+      const currentDist = camera.position.distanceTo(targetPos)
+      look.current.copy(camera.position).addScaledVector(_dir, Math.max(currentDist, 1.0))
+
+      // Reset orbit and parallax offsets so flight path is clean and continuous
+      orbitState.current.orbitYaw = 0
+      orbitState.current.orbitPitch = 0
+      orbitState.current.orbitDistMult = 1.0
+      offset.current.set(0, 0)
+
+      const duration = 1.55
       const setIsCameraMoving = useUiStore.getState().setIsCameraMoving
 
       focusTween.current = gsap.to(anchor.current, {
@@ -98,7 +116,7 @@ export function CameraRig() {
         y: cameraPos.y,
         z: cameraPos.z,
         duration,
-        ease: 'power3.inOut',
+        ease: 'power2.inOut',
         overwrite: 'auto',
         onStart: () => setIsCameraMoving(true),
         onComplete: () => setIsCameraMoving(false),
@@ -109,11 +127,24 @@ export function CameraRig() {
         y: targetPos.y,
         z: targetPos.z,
         duration,
-        ease: 'power3.inOut',
+        ease: 'power2.inOut',
         overwrite: 'auto',
       })
+
+      // Smoothly tween FOV over the exact same cinematic duration to eliminate FOV popping
+      const fovState = { val: persp.fov }
+      fovTween.current = gsap.to(fovState, {
+        val: targetFov,
+        duration,
+        ease: 'power2.inOut',
+        overwrite: 'auto',
+        onUpdate: () => {
+          persp.fov = fovState.val
+          persp.updateProjectionMatrix()
+        },
+      })
     },
-    [focus, cameraMode, size.width, size.height, motionMode]
+    [focus, cameraMode, size.width, size.height, motionMode, camera]
   )
 
   useEffect(() => {
@@ -141,10 +172,12 @@ export function CameraRig() {
   useEffect(() => {
     const el = gl.domElement
     const s = orbitState.current
+    el.style.touchAction = 'none'
 
     const onPointerDown = (e: PointerEvent) => {
       // Only enable touch orbit on Default camera mode when not actively focused on an object
       if (cameraMode !== 'default') return
+      if (e.cancelable) e.preventDefault()
       s.activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
 
       if (s.activePointers.size === 1 && !focus) {
@@ -191,15 +224,16 @@ export function CameraRig() {
         s.dragDistance += Math.hypot(dx, dy)
 
         // Orbit around room center: yaw + pitch
+        // Dragging downward (+dy) tilts camera view upward (orbit angle lowers camera relative to target)
         s.orbitYaw = THREE.MathUtils.clamp(
           s.orbitYaw - dx * ORBIT_SENSITIVITY,
-          -0.45,
+          -0.6,
           0.85
         )
         s.orbitPitch = THREE.MathUtils.clamp(
           s.orbitPitch - dy * ORBIT_SENSITIVITY * 0.7,
-          -0.25,
-          0.35
+          -0.35,
+          0.45
         )
       }
     }
@@ -256,25 +290,27 @@ export function CameraRig() {
   useFrame((_, dt) => {
     if (cameraMode === 'free') return
 
+    const isMoving = useUiStore.getState().isCameraMoving
     const aspect = size.width / Math.max(size.height, 1)
     const { fov } = calculateResponsiveFraming(focus, aspect)
     const persp = camera as THREE.PerspectiveCamera
 
-    if (Math.abs(persp.fov - fov) > 0.01) {
+    // Only sync FOV when camera is at rest (fovTween smoothly animates FOV during flight)
+    if (!isMoving && Math.abs(persp.fov - fov) > 0.05) {
       persp.fov = fov
       persp.updateProjectionMatrix()
     }
 
-    // Parallax logic: subtle mouse tilt on desktop
-    const parallax = motionMode === 'full' && !isTouch && !focus
+    // Parallax logic: subtle mouse tilt on desktop only when at rest in room overview
+    const parallax = motionMode === 'full' && !isTouch && !focus && !isMoving
     const targetX = parallax ? pointer.x * 0.42 : 0
     const targetY = parallax ? -pointer.y * 0.2 : 0
     const k = 1 - Math.exp(-dt * 3.5)
     offset.current.x += (targetX - offset.current.x) * k
     offset.current.y += (targetY - offset.current.y) * k
 
-    if (!focus) {
-      // Room Overview: Combine base anchor with user touch orbit rotation & distance
+    if (!focus && !isMoving) {
+      // Room Overview at rest: Combine base anchor with user touch orbit rotation & distance
       const s = orbitState.current
       const lookTarget = look.current
 
@@ -293,10 +329,11 @@ export function CameraRig() {
       camera.position.set(camX, camY, camZ)
       camera.lookAt(lookTarget)
     } else {
-      // Focused on specific object: position is driven by responsive geometry framing + subtle drift
+      // Focused on specific object OR in active cinematic transition:
+      // Position and line of sight are driven directly and smoothly by GSAP interpolation
       camera.position.set(
-        anchor.current.x + offset.current.x * 0.15,
-        anchor.current.y + offset.current.y * 0.1,
+        anchor.current.x,
+        anchor.current.y,
         anchor.current.z
       )
       camera.lookAt(look.current)

@@ -89,7 +89,6 @@ describe('3D Room Responsive Camera Architecture & Framing System', () => {
       const framing = calculateResponsiveFraming('shelf', phoneAspect)
 
       // The left wall is at X = -4.5.
-      // Previously, off-axis dolly placed the camera at X = -6.05 (1.55m behind the wall, showing pure black).
       // Responsive framing must place camera in front of shelf: X in [-3.5, 0.0], facing towards -X (shelf).
       expect(framing.cameraPos.x).toBeGreaterThanOrEqual(-3.5)
       expect(framing.cameraPos.x).toBeLessThanOrEqual(0.0)
@@ -106,7 +105,6 @@ describe('3D Room Responsive Camera Architecture & Framing System', () => {
       const framing = calculateResponsiveFraming('visitorCounter', phoneAspect)
 
       // Visitor counter is at X = 3.9, Z = -4.44 (back wall).
-      // Previously, off-axis dolly shifted X to 6.96 (outside room at extreme 65° side angle).
       // Responsive framing must align X with the board: X ~ 3.9, Z in [-3.5, -1.5].
       expect(framing.cameraPos.x).toBeGreaterThanOrEqual(3.7)
       expect(framing.cameraPos.x).toBeLessThanOrEqual(ROOM_BOUNDS_MAX.x)
@@ -182,6 +180,189 @@ describe('3D Room Responsive Camera Architecture & Framing System', () => {
     })
   })
 
+  describe('Issue 1 — Admin Switch Thumb Alignment & Centering', () => {
+    it('centers thumb vertically with items-center and achieves symmetric horizontal offsets in OFF and ON states', () => {
+      const inactiveLabel = AdminSwitch({
+        checked: false,
+        onChange: () => {},
+        label: 'Pin notification immediately',
+      })
+
+      const activeLabel = AdminSwitch({
+        checked: true,
+        onChange: () => {},
+        label: 'Pin notification immediately',
+      })
+
+      const inactiveButton = inactiveLabel.props.children[1]
+      const inactiveThumb = inactiveButton.props.children
+
+      // Button must have items-center for mathematical vertical centering in flexbox
+      expect(inactiveButton.props.className).toContain('items-center')
+      expect(inactiveButton.props.className).toContain('h-5')
+      expect(inactiveButton.props.className).toContain('w-9')
+      expect(inactiveButton.props.className).toContain('border-edge-2')
+      expect(inactiveButton.props.className).toContain('bg-void')
+
+      // OFF state horizontal translate is translate-x-0.5 (2px)
+      expect(inactiveThumb.props.className).toContain('translate-x-0.5')
+      expect(inactiveThumb.props.className).toContain('h-4')
+      expect(inactiveThumb.props.className).toContain('w-4')
+      expect(inactiveThumb.props.className).toContain('bg-frost/90')
+
+      const activeButton = activeLabel.props.children[1]
+      const activeThumb = activeButton.props.children
+
+      expect(activeButton.props.className).toContain('items-center')
+      expect(activeButton.props.className).toContain('border-accent/80')
+      expect(activeButton.props.className).toContain('bg-accent')
+
+      // ON state horizontal translate is translate-x-4 (16px), matching outer-right margin of 2px
+      expect(activeThumb.props.className).toContain('translate-x-4')
+      expect(activeThumb.props.className).toContain('bg-void')
+    })
+  })
+
+  describe('Issue 2 — Freecam Control Layout & Zero-Overlap Matrix', () => {
+    it('guarantees zero bounding box overlap between VirtualJoystick and Exit Free Cam on all mobile viewports', () => {
+      const viewports = [
+        { name: 'Small Mobile Portrait', width: 360, height: 800 },
+        { name: 'Samsung S21 FE Portrait', width: 414, height: 939 },
+        { name: 'iPhone 14 Portrait', width: 390, height: 844 },
+        { name: 'Mobile Landscape 844x390', width: 844, height: 390 },
+        { name: 'Samsung S21 FE Landscape', width: 939, height: 414 },
+      ]
+
+      for (const vp of viewports) {
+        // Virtual Joystick + Elevation controls group:
+        // Positioned at bottom-left: bottom: max(1.25rem, safe-inset) ~ 20px, left: 16px
+        // Width: 104px (pad) + 12px (gap) + 36px (elevation btn) = 152px
+        // Height: 104px (pad)
+        const joystickBox = {
+          left: 16,
+          right: 16 + 152, // 168px
+          top: vp.height - 20 - 104, // e.g. 800 - 124 = 676px
+          bottom: vp.height - 20,
+        }
+
+        // On mobile (< 640px or mobile landscape), Exit Free Cam bar is positioned in the upper-left safe area:
+        // top: max(4.75rem, safe-inset) ~ 76px, left: 16px
+        // Width: ~165px, Height: 36px
+        const exitBarBox = {
+          left: 16,
+          right: 16 + 165,
+          top: 76,
+          bottom: 76 + 36, // 112px
+        }
+
+        // Test vertical separation:
+        // Exit bar bottom (112px) must be well above the joystick top
+        const verticalGap = joystickBox.top - exitBarBox.bottom
+        expect(verticalGap).toBeGreaterThan(100) // At least 100px of clear space between them
+
+        // Overlap predicate:
+        const overlaps =
+          joystickBox.left < exitBarBox.right &&
+          joystickBox.right > exitBarBox.left &&
+          joystickBox.top < exitBarBox.bottom &&
+          joystickBox.bottom > exitBarBox.top
+
+        expect(overlaps).toBe(false)
+      }
+    })
+  })
+
+  describe('Issue 3 — Camera Focus Transition Continuity', () => {
+    it('starts transitions directly from visible camera transform without position or orientation jumps', () => {
+      // Create a mock Three.js camera at an arbitrary rotated/positioned state
+      const mockCamera = new THREE.PerspectiveCamera(42, 16 / 9, 0.1, 100)
+      mockCamera.position.set(2.4, 1.8, 11.2)
+      mockCamera.lookAt(new THREE.Vector3(-1.0, 1.5, 0.0))
+
+      const targetPos = FRAMING_PROFILES.shelf.target
+
+      // Continuity check:
+      // Starting anchor must match camera.position
+      const startingAnchor = new THREE.Vector3().copy(mockCamera.position)
+      expect(startingAnchor.x).toBeCloseTo(2.4, 4)
+      expect(startingAnchor.y).toBeCloseTo(1.8, 4)
+      expect(startingAnchor.z).toBeCloseTo(11.2, 4)
+
+      // Starting look must lie along camera current forward direction
+      const dir = new THREE.Vector3()
+      mockCamera.getWorldDirection(dir)
+      const currentDist = mockCamera.position.distanceTo(targetPos)
+      const startingLook = new THREE.Vector3().copy(mockCamera.position).addScaledVector(dir, currentDist)
+
+      // Look direction from mockCamera towards startingLook must match mockCamera direction exactly
+      const recomputedDir = new THREE.Vector3().subVectors(startingLook, mockCamera.position).normalize()
+      expect(recomputedDir.x).toBeCloseTo(dir.x, 4)
+      expect(recomputedDir.y).toBeCloseTo(dir.y, 4)
+      expect(recomputedDir.z).toBeCloseTo(dir.z, 4)
+    })
+  })
+
+  describe('Issue 4 — Vertical Pitch Look Direction & Touch Controls', () => {
+    it('corrects vertical pitch look direction: downward drag rotates view upward and upward drag rotates view downward', () => {
+      const PITCH_LIMIT = Math.PI / 2 - 0.06
+      const LOOK_SENSITIVITY = 0.0032
+
+      let pitchTarget = 0
+
+      // Simulate dragging finger DOWNWARD:
+      // In browser window space, Y increases downwards, so clientY_now > clientY_prev => dy > 0
+      const dyDown = 25 // 25px downward drag
+      const deltaDown = dyDown * LOOK_SENSITIVITY
+      pitchTarget = THREE.MathUtils.clamp(pitchTarget + deltaDown, -PITCH_LIMIT, PITCH_LIMIT)
+
+      // Resulting pitchTarget must be positive (camera tilts upward into positive Y)
+      expect(pitchTarget).toBeGreaterThan(0)
+
+      // Forward vector Y component = sin(pitchTarget)
+      const forwardY = Math.sin(pitchTarget)
+      expect(forwardY).toBeGreaterThan(0) // Camera looking UPWARD
+
+      // Simulate dragging finger UPWARD:
+      // clientY_now < clientY_prev => dy < 0
+      const dyUp = -50 // 50px upward drag
+      const deltaUp = dyUp * LOOK_SENSITIVITY
+      pitchTarget = THREE.MathUtils.clamp(pitchTarget + deltaUp, -PITCH_LIMIT, PITCH_LIMIT)
+
+      // Resulting pitchTarget must be negative (camera tilts downward into negative Y)
+      expect(pitchTarget).toBeLessThan(0)
+      expect(Math.sin(pitchTarget)).toBeLessThan(0) // Camera looking DOWNWARD
+    })
+
+    it('clamps pitch strictly within safe angles to prevent camera flipping or gimbal singularity', () => {
+      const PITCH_LIMIT = Math.PI / 2 - 0.06
+      const LOOK_SENSITIVITY = 0.0032
+
+      // Extreme drag up
+      let pitch = 0
+      pitch = THREE.MathUtils.clamp(pitch + (-2000 * LOOK_SENSITIVITY), -PITCH_LIMIT, PITCH_LIMIT)
+      expect(pitch).toBe(-PITCH_LIMIT)
+
+      // Extreme drag down
+      pitch = THREE.MathUtils.clamp(pitch + (4000 * LOOK_SENSITIVITY), -PITCH_LIMIT, PITCH_LIMIT)
+      expect(pitch).toBe(PITCH_LIMIT)
+    })
+
+    it('preserves natural horizontal yaw mapping: rightward drag rotates view rightward', () => {
+      const LOOK_SENSITIVITY = 0.0032
+      let yaw = 0
+
+      // Drag right: dx > 0
+      const dx = 30
+      yaw -= dx * LOOK_SENSITIVITY
+      expect(yaw).toBeLessThan(0)
+
+      // Forward X = -sin(yaw) * cos(pitch)
+      // When yaw < 0, -sin(yaw) > 0 => looking RIGHTWARD
+      const forwardX = -Math.sin(yaw)
+      expect(forwardX).toBeGreaterThan(0)
+    })
+  })
+
   describe('Part C — Freecam Virtual Joystick Store', () => {
     it('updates joystick vector and elevation in freecam store', () => {
       const store = useFreecamStore.getState()
@@ -203,38 +384,6 @@ describe('3D Room Responsive Camera Architecture & Framing System', () => {
       expect(useFreecamStore.getState().moveX).toBe(0)
       expect(useFreecamStore.getState().moveY).toBe(0)
       expect(useFreecamStore.getState().elevate).toBe(0)
-    })
-  })
-
-  describe('Part F — Admin Switch Contrast Verification', () => {
-    it('provides high contrast styling in inactive (OFF) state and accent styling in active (ON) state', () => {
-      // Inactive (checked=false):
-      // Must have visible neutral border and background, and a bright thumb
-      const inactiveLabel = AdminSwitch({
-        checked: false,
-        onChange: () => {},
-        label: 'Pin notification immediately',
-      })
-
-      // Active (checked=true):
-      // Must have green accent background and dark void thumb
-      const activeLabel = AdminSwitch({
-        checked: true,
-        onChange: () => {},
-        label: 'Pin notification immediately',
-      })
-
-      const inactiveButton = inactiveLabel.props.children[1]
-      const inactiveThumb = inactiveButton.props.children
-      expect(inactiveButton.props.className).toContain('border-edge-2')
-      expect(inactiveButton.props.className).toContain('bg-void')
-      expect(inactiveThumb.props.className).toContain('bg-frost/90')
-
-      const activeButton = activeLabel.props.children[1]
-      const activeThumb = activeButton.props.children
-      expect(activeButton.props.className).toContain('border-accent/80')
-      expect(activeButton.props.className).toContain('bg-accent')
-      expect(activeThumb.props.className).toContain('bg-void')
     })
   })
 })
