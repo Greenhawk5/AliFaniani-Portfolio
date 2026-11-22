@@ -126,6 +126,22 @@ export class FakeD1Database {
       const count = contentRows.filter((r) => r.kind === 'project' && r.state === 'published').length
       return { count } as Row
     }
+    if (/SELECT COUNT\(\*\) as count FROM content WHERE state = 'draft'/.test(sql)) {
+      const contentRows = this.tables.content ?? []
+      const count = contentRows.filter((r) => r.state === 'draft' || r.has_draft === 1).length
+      return { count } as Row
+    }
+    if (/SELECT COUNT\(\*\) as count, MAX\(created_at\) as last_failed FROM auth_log/i.test(sql)) {
+      const authRows = this.tables.auth_log ?? []
+      const failed = authRows.filter((r) => String(r.note ?? '').includes('failed'))
+      return { count: failed.length, last_failed: failed[failed.length - 1]?.ts ?? null } as Row
+    }
+    if (/SELECT id.*FROM admin_notifications WHERE source_key = \?/i.test(sql)) {
+      const notifRows = this.tables.admin_notifications ?? []
+      const sourceKey = params[0]
+      const found = notifRows.find((r) => r.source_key === sourceKey)
+      return (found ?? null) as Row | null
+    }
     if (/SELECT id FROM admin_notifications WHERE type = \? AND title = \? AND state = 'active'/.test(sql) || /SELECT id FROM admin_notifications WHERE type = \? AND title = \? AND state IN \('active', 'acknowledged'\)/.test(sql)) {
       const notifRows = this.tables.admin_notifications ?? []
       const [type, title] = params
@@ -264,8 +280,33 @@ export class FakeD1Database {
     }
     if (sql.includes('FROM admin_notifications')) {
       let notifs = [...(this.tables.admin_notifications ?? [])]
-      if (/WHERE state = \?/.test(sql) && params[0]) {
+      if (/state = \?/.test(sql) && params.length > 0) {
         notifs = notifs.filter((n) => n.state === params[0])
+      } else {
+        if (/state NOT IN \('archived', 'deleted'\)/i.test(sql) || /state != 'deleted'/i.test(sql)) {
+          notifs = notifs.filter((n) => n.state !== 'deleted')
+          if (/state NOT IN \('archived', 'deleted'\)/i.test(sql)) {
+            notifs = notifs.filter((n) => n.state !== 'archived')
+          }
+        }
+        if (/read_at IS NULL/i.test(sql)) {
+          notifs = notifs.filter((n) => !n.read_at)
+        }
+        if (/is_pinned = 1/i.test(sql)) {
+          notifs = notifs.filter((n) => n.is_pinned === 1)
+        }
+        if (/state = 'archived'/i.test(sql)) {
+          notifs = notifs.filter((n) => n.state === 'archived')
+        }
+        if (/type IN \('system', 'content', 'sync', 'deploy'\)/i.test(sql)) {
+          notifs = notifs.filter((n) => ['system', 'content', 'sync', 'deploy'].includes(n.type))
+        }
+        if (/type = 'security'/i.test(sql)) {
+          notifs = notifs.filter((n) => n.type === 'security')
+        }
+        if (/type = 'custom'/i.test(sql)) {
+          notifs = notifs.filter((n) => n.type === 'custom')
+        }
       }
       return notifs.sort((a, b) => String(b.created_at ?? '').localeCompare(String(a.created_at ?? '')))
     }
@@ -420,21 +461,108 @@ export class FakeD1Database {
         targetRows.push({ date, project_slug, views: 1, unique_visitors: Number(unique_visitors || 0) })
       }
     } else if (/INSERT INTO admin_notifications/.test(sql)) {
-      const [id, type, severity, title, message, metadata, created_at, expires_at] = params
       const targetRows = (this.tables.admin_notifications ??= [])
-      targetRows.push({
-        id,
-        type,
-        severity,
-        title,
-        message,
-        metadata,
-        state: 'active',
-        created_at,
-        expires_at,
-        acknowledged_at: null,
-        resolved_at: null,
-      })
+      if (params.length >= 12) {
+        const [id, type, severity, title, message, metadata, created_at, expires_at, is_pinned, link_url, source_key, priority] = params
+        targetRows.push({
+          id,
+          type,
+          severity,
+          title,
+          message,
+          metadata,
+          state: 'active',
+          created_at,
+          expires_at,
+          is_pinned: is_pinned ?? 0,
+          link_url: link_url ?? null,
+          source_key: source_key ?? null,
+          priority: priority ?? 'normal',
+          acknowledged_at: null,
+          resolved_at: null,
+          read_at: null,
+          archived_at: null,
+        })
+      } else {
+        const [id, type, severity, title, message, metadata, created_at, expires_at] = params
+        targetRows.push({
+          id,
+          type,
+          severity,
+          title,
+          message,
+          metadata,
+          state: 'active',
+          created_at,
+          expires_at,
+          acknowledged_at: null,
+          resolved_at: null,
+          read_at: null,
+          archived_at: null,
+        })
+      }
+    } else if (/UPDATE admin_notifications\s+SET read_at = \? WHERE id = \?/.test(sql)) {
+      const [readAt, id] = params
+      const targetRows = (this.tables.admin_notifications ??= [])
+      const row = targetRows.find((r) => r.id === id)
+      if (row) {
+        row.read_at = readAt
+        return { success: true, meta: { changes: 1 } }
+      }
+      return { success: true, meta: { changes: 0 } }
+    } else if (/UPDATE admin_notifications\s+SET is_pinned = \? WHERE id = \?/.test(sql)) {
+      const [isPinned, id] = params
+      const targetRows = (this.tables.admin_notifications ??= [])
+      const row = targetRows.find((r) => r.id === id)
+      if (row) {
+        row.is_pinned = isPinned
+        return { success: true, meta: { changes: 1 } }
+      }
+      return { success: true, meta: { changes: 0 } }
+    } else if (/UPDATE admin_notifications\s+SET state = \?,\s*archived_at = \? WHERE id = \?/.test(sql)) {
+      const [state, archivedAt, id] = params
+      const targetRows = (this.tables.admin_notifications ??= [])
+      const row = targetRows.find((r) => r.id === id)
+      if (row) {
+        row.state = state
+        row.archived_at = archivedAt
+        return { success: true, meta: { changes: 1 } }
+      }
+      return { success: true, meta: { changes: 0 } }
+    } else if (/UPDATE admin_notifications\s+SET read_at = \? WHERE read_at IS NULL/.test(sql)) {
+      const [now] = params
+      const targetRows = (this.tables.admin_notifications ??= [])
+      let changes = 0
+      for (const row of targetRows) {
+        if (!row.read_at && row.state !== 'deleted') {
+          row.read_at = now
+          changes++
+        }
+      }
+      return { success: true, meta: { changes } }
+    } else if (/DELETE FROM admin_notifications WHERE id = \?/.test(sql)) {
+      const [id] = params
+      const targetRows = (this.tables.admin_notifications ??= [])
+      const before = targetRows.length
+      this.tables.admin_notifications = targetRows.filter((r) => r.id !== id)
+      return { success: true, meta: { changes: before - this.tables.admin_notifications.length } }
+    } else if (/DELETE FROM admin_notifications WHERE state IN/i.test(sql)) {
+      const targetRows = (this.tables.admin_notifications ??= [])
+      const before = targetRows.length
+      this.tables.admin_notifications = targetRows.filter((r) => !['archived', 'dismissed', 'deleted'].includes(r.state))
+      return { success: true, meta: { changes: before - this.tables.admin_notifications.length } }
+    } else if (/UPDATE admin_notifications\s+SET title =/i.test(sql)) {
+      const targetRows = (this.tables.admin_notifications ??= [])
+      const id = params[params.length - 1]
+      const row = targetRows.find((r) => r.id === id)
+      if (row) {
+        row.title = params[0]
+        row.message = params[1]
+        row.metadata = params[2]
+        row.severity = params[3]
+        return { success: true, meta: { changes: 1 } }
+      }
+      return { success: true, meta: { changes: 0 } }
     } else if (/UPDATE admin_notifications\s+SET state = 'expired'/.test(sql)) {
       const [nowIso] = params
       const targetRows = (this.tables.admin_notifications ??= [])
@@ -457,8 +585,21 @@ export class FakeD1Database {
       }
       return { success: true, meta: { changes: 0 } }
     } else if (/UPDATE admin_notifications\s+SET state = 'resolved'/.test(sql)) {
-      const [now, id] = params
       const targetRows = (this.tables.admin_notifications ??= [])
+      if (/source_key = '([^']+)'/i.test(sql)) {
+        const match = /source_key = '([^']+)'/i.exec(sql)
+        const sKey = match ? match[1] : null
+        let changes = 0
+        for (const row of targetRows) {
+          if (row.source_key === sKey && (row.state === 'active' || row.state === 'acknowledged')) {
+            row.state = 'resolved'
+            row.resolved_at = params[0]
+            changes++
+          }
+        }
+        return { success: true, meta: { changes } }
+      }
+      const [now, id] = params
       const row = targetRows.find((r) => r.id === id)
       if (row && (row.state === 'active' || row.state === 'acknowledged')) {
         row.state = 'resolved'

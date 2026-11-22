@@ -214,3 +214,40 @@ export function XIcon({ className }: IconProps) {
     </svg>
   )
 }
+
+export function BellIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+      <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+    </svg>
+  )
+}
+
+export function PinIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <line x1="12" y1="17" x2="12" y2="22" />
+      <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a1 1 0 0 0 0-2H8a1 1 0 0 0 0 2h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z" />
+    </svg>
+  )
+}
+
+export function CheckCheckIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M18 6 7 17l-5-5" />
+      <path d="m22 10-7.5 7.5L13 16" />
+    </svg>
+  )
+}
+
+export function ShieldAlertIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
+      <path d="M12 8v4" />
+      <path d="M12 16h.01" />
+    </svg>
+  )
+}

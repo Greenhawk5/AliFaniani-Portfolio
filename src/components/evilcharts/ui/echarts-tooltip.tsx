@@ -79,14 +79,18 @@ export function tooltipShell({
   body,
   roundness,
   variant,
+  labelColor,
 }: {
   label: string;
   body: string;
   roundness: TooltipRoundness;
   variant: TooltipVariant;
+  labelColor?: string;
 }): string {
+  const colorStyle = labelColor ? `style="color: ${escapeTooltipHtml(labelColor)}"` : ''
+  const colorClass = labelColor ? '' : 'text-[#39ff8b]'
   return `<div class="grid min-w-32 items-start gap-2 border border-[#2a3149] bg-[#0b0e17] px-3 py-2 text-xs shadow-2xl ${roundnessClass[roundness]} ${tooltipVariantClass[variant]}">
-      <div class="font-mono text-[11px] font-semibold uppercase tracking-wider text-[#39ff8b]">${escapeTooltipHtml(label)}</div>
+      <div class="font-mono text-[11px] font-semibold uppercase tracking-wider ${colorClass}" ${colorStyle}>${escapeTooltipHtml(label)}</div>
       <div class="grid gap-1.5">${body}</div>
     </div>`;
 }

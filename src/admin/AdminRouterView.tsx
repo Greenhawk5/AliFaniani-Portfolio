@@ -5,6 +5,7 @@
 
 import type { AdminView } from './routes'
 import { OverviewView } from './views/OverviewView'
+import { NotificationCenterView } from './views/NotificationCenterView'
 import { ProjectsView } from './views/ProjectsView'
 import { ProfileView } from './views/ProfileView'
 import { LinksView } from './views/LinksView'
@@ -28,6 +29,8 @@ export function AdminRouterView({
   switch (view) {
     case 'overview':
       return <OverviewView onNavigate={navigate} />
+    case 'notifications':
+      return <NotificationCenterView navigate={navigate} />
     case 'projects':
       return <ProjectsView param={param} navigate={navigate} />
     case 'profile':

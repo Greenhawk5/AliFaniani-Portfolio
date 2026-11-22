@@ -35,11 +35,26 @@ export function Select({
 
   const [isOpen, setIsOpen] = useState(false)
   const [focusedIndex, setFocusedIndex] = useState(-1)
+  const [alignRight, setAlignRight] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
   const selectedOption = options.find((opt) => opt.value === value)
 
+  const updateAlignment = () => {
+    if (containerRef.current && typeof window !== 'undefined') {
+      const rect = containerRef.current.getBoundingClientRect()
+      const spaceRight = window.innerWidth - rect.left
+      // If opening left-aligned would risk overflowing viewport edge, align right
+      if (spaceRight < 260 && rect.right > 200) {
+        setAlignRight(true)
+      } else {
+        setAlignRight(false)
+      }
+    }
+  }
+
   const openMenu = () => {
+    updateAlignment()
     const idx = options.findIndex((opt) => opt.value === value)
     setFocusedIndex(idx >= 0 ? idx : 0)
     setIsOpen(true)
@@ -50,7 +65,7 @@ export function Select({
     setFocusedIndex(-1)
   }
 
-  // Close when clicking outside
+  // Close when clicking outside & handle viewport resize
   useEffect(() => {
     if (!isOpen) return
 
@@ -60,11 +75,17 @@ export function Select({
       }
     }
 
+    const handleResize = () => {
+      updateAlignment()
+    }
+
     document.addEventListener('mousedown', handlePointerDown)
     document.addEventListener('touchstart', handlePointerDown)
+    window.addEventListener('resize', handleResize)
     return () => {
       document.removeEventListener('mousedown', handlePointerDown)
       document.removeEventListener('touchstart', handlePointerDown)
+      window.removeEventListener('resize', handleResize)
     }
   }, [isOpen])
 
@@ -169,7 +190,8 @@ export function Select({
           tabIndex={-1}
           aria-label={ariaLabel}
           className={cn(
-            'absolute left-0 top-full z-40 mt-1.5 max-h-60 w-full min-w-[10.5rem] overflow-auto rounded-xl border border-edge-2 bg-panel-2/95 py-1.5 shadow-2xl backdrop-blur-md focus:outline-none',
+            'absolute top-full z-40 mt-1.5 max-h-60 min-w-full w-max max-w-[calc(100vw-2rem)] sm:max-w-md overflow-y-auto overflow-x-hidden rounded-xl border border-edge-2 bg-panel-2/95 py-1.5 shadow-2xl backdrop-blur-md focus:outline-none',
+            alignRight ? 'right-0' : 'left-0',
             menuClassName
           )}
         >
@@ -186,16 +208,16 @@ export function Select({
                   closeMenu()
                 }}
                 className={cn(
-                  'flex cursor-pointer items-center justify-between px-3 py-2 font-mono text-xs transition-colors',
+                  'flex cursor-pointer items-center justify-between gap-3 px-3 py-2 font-mono text-xs transition-colors',
                   isSelected
                     ? 'bg-accent/15 text-accent font-semibold'
                     : 'text-frost/85 hover:bg-white/5 hover:text-frost',
                   isFocused && !isSelected && 'bg-white/10 text-frost'
                 )}
               >
-                <span className="truncate">{opt.label}</span>
+                <span className="whitespace-normal break-words sm:whitespace-nowrap">{opt.label}</span>
                 {isSelected && (
-                  <span className="font-mono text-xs text-accent" aria-hidden="true">
+                  <span className="shrink-0 font-mono text-xs text-accent" aria-hidden="true">
                     ✓
                   </span>
                 )}

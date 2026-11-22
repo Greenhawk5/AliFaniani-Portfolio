@@ -9,6 +9,7 @@ import { useCallback, useEffect, useState } from 'react'
 
 export type AdminView =
   | 'overview'
+  | 'notifications'
   | 'projects'
   | 'profile'
   | 'links'
@@ -21,6 +22,7 @@ export type AdminView =
 
 export const VIEWS: AdminView[] = [
   'overview',
+  'notifications',
   'projects',
   'profile',
   'links',
@@ -72,7 +74,10 @@ export interface NavGroup {
 export const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Overview',
-    items: [{ view: 'overview', label: 'Dashboard', hint: 'Portfolio status at a glance' }],
+    items: [
+      { view: 'overview', label: 'Dashboard', hint: 'Portfolio status at a glance' },
+      { view: 'notifications', label: 'Notifications', hint: 'Alerts, updates and announcements' },
+    ],
   },
   {
     label: 'Content',
