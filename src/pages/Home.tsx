@@ -13,7 +13,6 @@ const focusRing =
 
 const PRIMARY_LINKS = [
   { label: 'About', to: '/about' },
-  { label: 'Projects', to: '/projects' },
   { label: 'Contact', to: '/contact' },
 ] as const
 
@@ -156,18 +155,15 @@ export default function Home() {
 
             {/* Selected work — Intelligent interactive carousel */}
             <div className="animate-fade-up mt-8 max-w-xl" style={{ animationDelay: '320ms' }}>
-              <div className="mb-2 flex items-center justify-between">
+              <div className="mb-2">
                 <p className="font-mono text-[10px] tracking-[0.3em] text-mist/60 uppercase">
                   Selected work
                 </p>
-                <Link
-                  to="/projects"
-                  className="font-mono text-[10px] tracking-wider text-accent/80 hover:text-accent hover:underline"
-                >
-                  View all ({stats?.activeProjects ?? 6}) →
-                </Link>
               </div>
-              <ProjectCarousel projects={carouselItems} />
+              <ProjectCarousel
+                projects={carouselItems}
+                totalProjects={stats?.activeProjects ?? projectList.length}
+              />
             </div>
           </section>
 

@@ -6,12 +6,14 @@ import { cn } from '@/lib/cn'
 
 interface ProjectCarouselProps {
   projects: Project[]
+  totalProjects?: number
   className?: string
   autoRotateInterval?: number
 }
 
 export function ProjectCarousel({
   projects,
+  totalProjects,
   className,
   autoRotateInterval = 5000,
 }: ProjectCarouselProps) {
@@ -152,21 +154,31 @@ export function ProjectCarousel({
         aria-live="polite"
         className="my-5 transition-all duration-300"
       >
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <div className="flex items-baseline justify-between gap-2">
           <Link
             to={`/projects/${current.slug}`}
-            className="group/link inline-flex items-center gap-2 focus:outline-none focus-visible:underline"
+            className="group/link min-w-0 inline-flex items-center gap-2 focus:outline-none focus-visible:underline"
           >
-            <h3 className="text-xl font-bold tracking-tight text-frost transition-colors group-hover/link:text-accent sm:text-2xl">
+            <h3 className="truncate text-xl font-bold tracking-tight text-frost transition-colors group-hover/link:text-accent sm:text-2xl">
               {current.title}
             </h3>
-            <ArrowRightIcon className="h-4 w-4 text-accent transition-transform duration-200 group-hover/link:translate-x-1" />
+            <ArrowRightIcon className="h-4 w-4 shrink-0 text-accent transition-transform duration-200 group-hover/link:translate-x-1" />
           </Link>
-          <span className="font-mono text-xs text-mist/60">{current.year}</span>
+          <span className="shrink-0 font-mono text-xs text-mist/60">{current.year}</span>
+        </div>
+
+        {/* Dedicated fixed-height, single-line description to prevent layout shift */}
+        <div className="mt-1.5 flex h-5 items-center overflow-hidden">
+          <p
+            className="w-full truncate font-mono text-xs text-mist/80"
+            title={current.shortDescription}
+          >
+            {current.shortDescription}
+          </p>
         </div>
       </div>
 
-      {/* Bottom navigation dots */}
+      {/* Bottom navigation dots and View All action */}
       <div className="mt-5 flex items-center justify-between border-t border-edge/60 pt-3">
         <div className="flex items-center gap-1.5">
           {items.map((project, idx) => (
@@ -187,10 +199,10 @@ export function ProjectCarousel({
         </div>
 
         <Link
-          to={`/projects/${current.slug}`}
+          to="/projects"
           className="inline-flex items-center gap-1.5 font-mono text-xs font-semibold text-accent transition-colors hover:text-accent/80"
         >
-          View Case Study <ArrowRightIcon className="h-3 w-3" />
+          View all {totalProjects ? `(${totalProjects}) ` : ''}<ArrowRightIcon className="h-3 w-3" />
         </Link>
       </div>
     </div>

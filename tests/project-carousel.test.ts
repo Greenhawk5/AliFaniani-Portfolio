@@ -59,4 +59,13 @@ describe('Intelligent Selected Work Ranking', () => {
     expect(result).toHaveLength(5)
     expect(result.map((p) => p.slug)).toEqual(['proj-0', 'proj-1', 'proj-2', 'proj-3', 'proj-4'])
   })
+
+  it('preserves shortDescription on all ranked projects for single-line display', () => {
+    const result = computeFeaturedProjects(sampleProjects, [])
+    for (const project of result) {
+      expect(project.shortDescription).toBeDefined()
+      expect(typeof project.shortDescription).toBe('string')
+      expect(project.shortDescription.length).toBeGreaterThan(0)
+    }
+  })
 })
