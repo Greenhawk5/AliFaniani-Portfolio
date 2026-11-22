@@ -80,7 +80,7 @@ export default function Home() {
       <div aria-hidden="true" className="landing-grid pointer-events-none absolute inset-0" />
       <div aria-hidden="true" className="landing-glow pointer-events-none absolute inset-0" />
 
-      <div className="relative mx-auto flex w-full max-w-6xl flex-1 flex-col px-5 md:px-8">
+      <div className="relative mx-auto flex w-full max-w-6xl flex-1 flex-col px-4 sm:px-6 md:px-8">
         {/* Top meta row */}
         <header className="flex items-center justify-between pt-6 animate-fade-up">
           <div className="flex items-center gap-2.5">
@@ -110,22 +110,22 @@ export default function Home() {
         </header>
 
         {/* Main composition: identity left, CTA right */}
-        <main className="grid flex-1 content-center gap-12 py-12 lg:grid-cols-[1.2fr_1fr] lg:gap-16">
-          <section aria-label="Introduction">
+        <main className="grid flex-1 content-center gap-10 sm:gap-12 py-8 sm:py-12 lg:grid-cols-[1.2fr_1fr] lg:gap-16">
+          <section aria-label="Introduction" className="min-w-0">
             <p className="animate-fade-up font-mono text-[11px] tracking-[0.3em] text-accent uppercase">
               AI · Backend · Web · Automation
             </p>
             <h1
-              className="animate-fade-up mt-5 text-5xl leading-[1.05] font-semibold tracking-tight text-frost sm:text-6xl xl:text-7xl"
+              className="animate-fade-up mt-5 text-4xl leading-[1.05] font-semibold tracking-tight text-frost sm:text-6xl xl:text-7xl"
               style={{ animationDelay: '80ms' }}
             >
               <span className="block">{SITE.name}</span>
-              <span className="text-glow mt-2 block text-3xl text-accent sm:text-4xl xl:text-5xl">
+              <span className="text-glow mt-2 block text-2xl text-accent sm:text-4xl xl:text-5xl">
                 Software Developer
               </span>
             </h1>
             <p
-              className="animate-fade-up mt-6 max-w-xl text-base leading-relaxed text-mist md:text-lg"
+              className="animate-fade-up mt-6 max-w-xl text-sm leading-relaxed text-mist sm:text-base md:text-lg"
               style={{ animationDelay: '160ms' }}
             >
               Computer science graduate building practical software systems across
@@ -154,7 +154,7 @@ export default function Home() {
             </nav>
 
             {/* Selected work — Intelligent interactive carousel */}
-            <div className="animate-fade-up mt-8 max-w-xl" style={{ animationDelay: '320ms' }}>
+            <div className="animate-fade-up mt-8 w-full max-w-xl" style={{ animationDelay: '320ms' }}>
               <div className="mb-2">
                 <p className="font-mono text-[10px] tracking-[0.3em] text-mist/60 uppercase">
                   Selected work
@@ -170,13 +170,13 @@ export default function Home() {
           {/* Interactive 3D room experience CTA */}
           <section
             aria-label="Interactive experience"
-            className="animate-fade-up flex items-center lg:justify-end"
+            className="animate-fade-up min-w-0 flex items-center lg:justify-end"
             style={{ animationDelay: '300ms' }}
           >
             <Link
               to="/room"
               aria-label="Enter the 3D developer room experience"
-              className={`group relative flex w-full max-w-md flex-col items-start gap-5 overflow-hidden rounded-2xl border border-edge-2 bg-gradient-to-b from-panel/90 via-panel/75 to-panel-2/80 p-6 backdrop-blur-md transition-all duration-300 hover:border-accent/50 hover:shadow-[0_0_40px_-10px_rgba(57,255,139,0.25)] focus-visible:scale-[1.01] ${focusRing}`}
+              className={`group relative flex w-full max-w-md flex-col items-start gap-4 sm:gap-5 overflow-hidden rounded-2xl border border-edge-2 bg-gradient-to-b from-panel/90 via-panel/75 to-panel-2/80 p-5 sm:p-6 backdrop-blur-md transition-all duration-300 hover:border-accent/50 hover:shadow-[0_0_40px_-10px_rgba(57,255,139,0.25)] focus-visible:scale-[1.01] ${focusRing}`}
             >
               {/* Subtle ambient light pool in card */}
               <div
@@ -185,31 +185,31 @@ export default function Home() {
               />
 
               {/* Status pill badge */}
-              <div className="flex items-center gap-2 rounded-full border border-accent/25 bg-accent/10 px-3 py-1 font-mono text-[10px] tracking-wider text-accent uppercase">
+              <div className="flex shrink-0 items-center gap-2 rounded-full border border-accent/25 bg-accent/10 px-2.5 py-1 sm:px-3 font-mono text-[10px] tracking-wider text-accent uppercase">
                 <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
                 Interactive 3D Scene
               </div>
 
               {/* Horizontal animated icon track without layout shifts */}
-              <div className="relative h-16 w-full sm:h-20" aria-hidden="true">
+              <div className="relative h-14 w-full sm:h-20 overflow-hidden" aria-hidden="true">
                 <div className="absolute top-0 animate-cta-glide motion-reduce:animate-none">
-                  <GooExperienceIcon className="h-16 w-16 text-accent drop-shadow-[0_0_12px_rgba(57,255,139,0.35)] transition-all duration-300 group-hover:scale-105 group-hover:drop-shadow-[0_0_24px_rgba(57,255,139,0.6)] sm:h-20 sm:w-20" />
+                  <GooExperienceIcon className="h-14 w-14 text-accent drop-shadow-[0_0_12px_rgba(57,255,139,0.35)] transition-all duration-300 group-hover:scale-105 group-hover:drop-shadow-[0_0_24px_rgba(57,255,139,0.6)] sm:h-20 sm:w-20" />
                 </div>
               </div>
 
-              <div>
-                <span className="font-mono text-2xl font-semibold tracking-wide text-frost transition-colors duration-300 group-hover:text-accent sm:text-3xl">
+              <div className="w-full">
+                <span className="block font-mono text-xl sm:text-2xl lg:text-3xl font-semibold tracking-wide text-frost transition-colors duration-300 group-hover:text-accent">
                   Enter the 3D Room
                 </span>
-                <p className="mt-2 text-sm leading-relaxed text-mist">
+                <p className="mt-2 text-xs leading-relaxed text-mist sm:text-sm">
                   Explore my interactive 3D developer workspace — project showcase,
                   retro-futuristic desk, and live synchronized day/night cycle.
                 </p>
               </div>
 
-              <div className="flex items-center gap-2 border-t border-edge/60 pt-3 font-mono text-[11px] text-accent/90">
+              <div className="flex w-full items-center justify-between border-t border-edge/60 pt-3 font-mono text-[11px] text-accent/90">
                 <span>Launch Experience</span>
-                <span aria-hidden="true">→</span>
+                <span aria-hidden="true" className="transition-transform duration-200 group-hover:translate-x-1">→</span>
               </div>
             </Link>
           </section>
