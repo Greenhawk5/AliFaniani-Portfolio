@@ -21,6 +21,11 @@ import { listContent, validatePayload, ValidationError } from './content-store'
 export { ValidationError }
 import type { ContentKind, ContentRecord } from './content-store'
 
+export interface SelectedTarget {
+  kind: ContentKind
+  key: string
+}
+
 export interface PublishTarget {
   kind: ContentKind
   key: string
@@ -33,11 +38,36 @@ export interface PublishPlan {
 
 /** Rows that publish will touch: records with a draft overlay (edits to
  * published content) AND draft-only records (never published — `data` is
- * their working copy). Both shapes promote in the same atomic batch. */
-export function selectPublishTargets(records: ContentRecord[]): PublishTarget[] {
-  return records
-    .filter((r) => r.draftData !== null || r.state === 'draft')
-    .map((record) => ({ kind: record.kind, key: record.key, record }))
+ * their working copy). Both shapes promote in the same atomic batch.
+ * If selectedTargets is provided, only matching eligible records are selected. */
+export function selectPublishTargets(
+  records: ContentRecord[],
+  selectedTargets?: SelectedTarget[]
+): PublishTarget[] {
+  const eligible = records.filter((r) => r.draftData !== null || r.state === 'draft')
+  if (!selectedTargets) {
+    return eligible.map((record) => ({ kind: record.kind, key: record.key, record }))
+  }
+
+  const eligibleMap = new Map<string, ContentRecord>()
+  for (const record of eligible) {
+    eligibleMap.set(`${record.kind}:${record.key}`, record)
+  }
+
+  const results: PublishTarget[] = []
+  const seen = new Set<string>()
+
+  for (const { kind, key } of selectedTargets) {
+    const id = `${kind}:${key}`
+    if (seen.has(id)) continue
+    seen.add(id)
+    const record = eligibleMap.get(id)
+    if (record) {
+      results.push({ kind, key, record })
+    }
+  }
+
+  return results
 }
 
 /**
@@ -128,10 +158,19 @@ export function buildPublishStatements(
 export async function preparePublish(
   db: D1Database,
   mediaManifest: Record<string, unknown>,
+  selectedTargets?: SelectedTarget[],
   nowIso = new Date().toISOString()
 ): Promise<{ plan: PublishPlan; statements: unknown[] }> {
   const records = await listContent(db)
-  const plan = { targets: selectPublishTargets(records) }
+  const targets = selectPublishTargets(records, selectedTargets)
+
+  if (selectedTargets && selectedTargets.length > 0 && targets.length === 0) {
+    throw new ValidationError('None of the selected items have unpublished changes.', [
+      { path: 'targets', message: 'No eligible drafts found for the selected targets.' },
+    ])
+  }
+
+  const plan = { targets }
   if (plan.targets.length === 0) {
     return { plan, statements: [] }
   }

@@ -93,8 +93,19 @@ const REPO_OWNER = 'Greenhawk5'
 const REPO_NAME = 'AliFaniani-Portfolio'
 const EVENT_TYPE = 'cms-snapshot-sync'
 
+export interface WorkflowRunInfo {
+  id: number
+  status: 'queued' | 'in_progress' | 'completed'
+  conclusion: 'success' | 'failure' | 'cancelled' | 'timed_out' | null
+  headSha: string
+  htmlUrl: string
+  createdAt: string
+  updatedAt: string
+}
+
 export async function dispatchSnapshotSync(
-  token: string | undefined
+  token: string | undefined,
+  clientPayload?: Record<string, unknown>
 ): Promise<DispatchResult> {
   if (!token) return { ok: false, category: 'not_configured' }
   try {
@@ -111,7 +122,10 @@ export async function dispatchSnapshotSync(
           // and Workers' fetch does not attach a default one.
           'User-Agent': 'alifaniani-portfolio-cms-sync',
         },
-        body: JSON.stringify({ event_type: EVENT_TYPE }),
+        body: JSON.stringify({
+          event_type: EVENT_TYPE,
+          client_payload: clientPayload ?? {},
+        }),
       }
     )
     if (response.status === 204) return { ok: true, category: 'ok', status: 204 }
@@ -123,5 +137,50 @@ export async function dispatchSnapshotSync(
     }
   } catch {
     return { ok: false, category: 'network_error' }
+  }
+}
+
+/** Queries GitHub Actions API for the latest status of the cms-snapshot-sync workflow. */
+export async function getLatestSnapshotWorkflowRun(
+  token?: string
+): Promise<WorkflowRunInfo | null> {
+  try {
+    const headers: Record<string, string> = {
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+      'User-Agent': 'alifaniani-portfolio-cms-sync',
+    }
+    if (token) {
+      headers.Authorization = `Bearer ${token}`
+    }
+    const response = await fetch(
+      `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/cms-snapshot-sync.yml/runs?per_page=1`,
+      { headers }
+    )
+    if (!response.ok) return null
+    const data = (await response.json()) as {
+      workflow_runs?: Array<{
+        id: number
+        status: 'queued' | 'in_progress' | 'completed'
+        conclusion: 'success' | 'failure' | 'cancelled' | 'timed_out' | null
+        head_sha?: string
+        html_url?: string
+        created_at?: string
+        updated_at?: string
+      }>
+    }
+    const run = data.workflow_runs?.[0]
+    if (!run) return null
+    return {
+      id: run.id,
+      status: run.status,
+      conclusion: run.conclusion,
+      headSha: run.head_sha ?? '',
+      htmlUrl: run.html_url ?? '',
+      createdAt: run.created_at ?? '',
+      updatedAt: run.updated_at ?? '',
+    }
+  } catch {
+    return null
   }
 }

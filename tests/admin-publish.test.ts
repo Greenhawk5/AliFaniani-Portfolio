@@ -17,6 +17,7 @@ import {
 } from './helpers'
 import { onRequestPost as loginHandler } from '../functions/api/admin/login'
 import { onRequestPost as publishHandler } from '../functions/api/admin/publish'
+import { onRequestGet as deployStateHandler } from '../functions/api/admin/deploy-state'
 import { onRequestPost as createHandler } from '../functions/api/admin/content'
 import { onRequestPut as putHandler } from '../functions/api/admin/content/[kind]/[key]'
 import { onRequestPost as archiveHandler } from '../functions/api/admin/content/[kind]/[key]'
@@ -93,8 +94,8 @@ async function loginCtx(ip = '203.0.113.90') {
   return { cookies, csrf }
 }
 
-function publishRequest(cookies: string, csrf: string, ip = '203.0.113.90') {
-  return postJson('/api/admin/publish', {}, { Cookie: cookies, 'X-CSRF-Token': csrf }, ip)
+function publishRequest(cookies: string, csrf: string, ip = '203.0.113.90', body: Record<string, unknown> = {}) {
+  return postJson('/api/admin/publish', body, { Cookie: cookies, 'X-CSRF-Token': csrf }, ip)
 }
 
 /** Creates a real draft overlay through the content API (integration path). */
@@ -725,5 +726,247 @@ describe('Phase 6A: draft-only record publish', () => {
     // exporter SELECTs state='published' — the promoted row now qualifies
     const published = db.tables.content!.filter((r) => r.state === 'published').map((r) => r.key)
     expect(published).toContain('future')
+  })
+})
+
+/* ----------------------- selective publishing (v2.4) ----------------------- */
+
+describe('Selective Publishing Engine', () => {
+  it('SP1: publishes ONLY selected record; unselected draft remains untouched in D1', async () => {
+    seedPublished('proj-selected', {}, { ...PROJECT, slug: 'proj-selected', title: 'Selected Title' })
+    seedPublished('proj-unselected', {}, { ...PROJECT, slug: 'proj-unselected', title: 'Untouched Draft' })
+
+    interceptFetch((url) =>
+      url.includes('/dispatches')
+        ? new Response(null, { status: 204 })
+        : turnstileHandler(true)(url)
+    )
+    const { cookies, csrf } = await loginCtx()
+
+    const response = await publishHandler(
+      makeContext(
+        publishRequest(cookies, csrf, '203.0.113.90', {
+          targets: [{ kind: 'project', key: 'proj-selected' }],
+        }),
+        env
+      )
+    )
+
+    expect(response.status).toBe(200)
+    const body = (await response.json()) as {
+      ok: boolean
+      operationId: string
+      published: { projects: number }
+      targets: Array<{ kind: string; key: string }>
+    }
+    expect(body.ok).toBe(true)
+    expect(body.published.projects).toBe(1)
+    expect(body.operationId).toMatch(/^pub_/)
+    expect(body.targets).toEqual([{ kind: 'project', key: 'proj-selected', changeType: 'updated' }])
+
+    // Selected row: promoted, draft_data cleared
+    const selectedRow = db.tables.content!.find((r) => r.key === 'proj-selected')!
+    expect(JSON.parse(selectedRow.data as string).title).toBe('Selected Title')
+    expect(selectedRow.draft_data).toBeNull()
+
+    // Unselected row: untouched! Still has original draft_data
+    const unselectedRow = db.tables.content!.find((r) => r.key === 'proj-unselected')!
+    expect(JSON.parse(unselectedRow.data as string).title).toBe('Test Project')
+    expect(JSON.parse(unselectedRow.draft_data as string).title).toBe('Untouched Draft')
+    expect(unselectedRow.draft_updated_at).toBe('2026-09-11T00:00:00.000Z')
+  })
+
+  it('SP2: unselected draft with validation error does NOT block selected valid draft', async () => {
+    // proj-valid has valid draft
+    seedPublished('proj-valid', {}, { ...PROJECT, slug: 'proj-valid', title: 'Valid Title' })
+    // proj-invalid has broken media reference that would fail validation
+    seedPublished('proj-invalid', {}, { ...PROJECT, slug: 'proj-invalid', banner: '/media/missing/nonexistent.webp' })
+
+    interceptFetch((url) =>
+      url.includes('/dispatches')
+        ? new Response(null, { status: 204 })
+        : turnstileHandler(true)(url)
+    )
+    const { cookies, csrf } = await loginCtx()
+
+    // Publish ONLY the valid project
+    const response = await publishHandler(
+      makeContext(
+        publishRequest(cookies, csrf, '203.0.113.90', {
+          targets: [{ kind: 'project', key: 'proj-valid' }],
+        }),
+        env
+      )
+    )
+
+    expect(response.status).toBe(200)
+    const validRow = db.tables.content!.find((r) => r.key === 'proj-valid')!
+    expect(JSON.parse(validRow.data as string).title).toBe('Valid Title')
+    expect(validRow.draft_data).toBeNull()
+
+    // Invalid row was completely skipped by validation and batch write
+    const invalidRow = db.tables.content!.find((r) => r.key === 'proj-invalid')!
+    expect(invalidRow.draft_data).not.toBeNull()
+  })
+
+  it('SP3: empty targets array returns 400 Bad Request', async () => {
+    seedPublished('proj-1', {}, { ...PROJECT, slug: 'proj-1', title: 'P1' })
+    const { cookies, csrf } = await loginCtx()
+
+    const response = await publishHandler(
+      makeContext(
+        publishRequest(cookies, csrf, '203.0.113.90', {
+          targets: [],
+        }),
+        env
+      )
+    )
+
+    expect(response.status).toBe(400)
+    const body = (await response.json()) as { error: string }
+    expect(body.error).toContain('At least one item must be selected')
+  })
+
+  it('SP4: selective publishing of certificates section with R2 media reference', async () => {
+    // Profile certificates section with R2 image URL
+    db.tables.content ??= []
+    db.tables.content.push({
+      id: 'profile-section:certificates',
+      kind: 'profile-section',
+      key: 'certificates',
+      data: JSON.stringify({ items: [] }),
+      sort_order: 10,
+      state: 'published',
+      version: 1,
+      created_at: '2026-01-01T00:00:00.000Z',
+      updated_at: '2026-01-01T00:00:00.000Z',
+      published_at: '2026-01-01T00:00:00.000Z',
+      draft_data: JSON.stringify({
+        items: [
+          {
+            title: 'Cloudflare Certified Architect',
+            provider: 'Cloudflare',
+            date: '2026-11-20',
+            image: 'https://media.alifaniani.ir/certificates/cloudflare-cert.webp',
+            href: 'https://verify.cloudflare.com/cert123',
+          },
+        ],
+      }),
+      draft_updated_at: '2026-11-22T10:00:00.000Z',
+      draft_sort_order: null,
+    })
+
+    // Another draft that will remain unselected
+    seedPublished('proj-unselected', {}, { ...PROJECT, slug: 'proj-unselected', title: 'Other' })
+
+    interceptFetch((url) =>
+      url.includes('/dispatches')
+        ? new Response(null, { status: 204 })
+        : turnstileHandler(true)(url)
+    )
+    const { cookies, csrf } = await loginCtx()
+
+    const response = await publishHandler(
+      makeContext(
+        publishRequest(cookies, csrf, '203.0.113.90', {
+          targets: [{ kind: 'profile-section', key: 'certificates' }],
+        }),
+        env
+      )
+    )
+
+    expect(response.status).toBe(200)
+    const body = (await response.json()) as { published: { profileSections: number; projects: number } }
+    expect(body.published.profileSections).toBe(1)
+    expect(body.published.projects).toBe(0)
+
+    const certRow = db.tables.content!.find((r) => r.key === 'certificates')!
+    const certData = JSON.parse(certRow.data as string)
+    expect(certData.items.length).toBe(1)
+    expect(certData.items[0].title).toBe('Cloudflare Certified Architect')
+    expect(certRow.draft_data).toBeNull()
+
+    const unselectedRow = db.tables.content!.find((r) => r.key === 'proj-unselected')!
+    expect(unselectedRow.draft_data).not.toBeNull()
+  })
+
+  it('SP5: action="retry_sync" re-dispatches GitHub sync without modifying D1 records', async () => {
+    seedPublished('live-proj')
+    let dispatchCalled = false
+    interceptFetch((url) => {
+      if (url.includes('/dispatches')) {
+        dispatchCalled = true
+        return new Response(null, { status: 204 })
+      }
+      return turnstileHandler(true)(url)
+    })
+    const { cookies, csrf } = await loginCtx()
+
+    const response = await publishHandler(
+      makeContext(
+        publishRequest(cookies, csrf, '203.0.113.90', {
+          action: 'retry_sync',
+        }),
+        env
+      )
+    )
+
+    expect(response.status).toBe(200)
+    expect(dispatchCalled).toBe(true)
+    const body = (await response.json()) as { ok: boolean; sync: { status: string } }
+    expect(body.ok).toBe(true)
+    expect(body.sync.status).toBe('dispatched')
+  })
+
+  it('SP6: deploy-state endpoint updates state from GitHub Actions workflow runs', async () => {
+    // Seed deploy state in KV as pending_sync
+    await kv.put(
+      'deploy:state',
+      JSON.stringify({
+        status: 'pending_sync',
+        requestedAt: new Date().toISOString(),
+        operationId: 'pub_test_123',
+      })
+    )
+
+    // Intercept GitHub Actions workflow runs API
+    interceptFetch((url) => {
+      if (url.includes('/actions/workflows/cms-snapshot-sync.yml/runs')) {
+        return new Response(
+          JSON.stringify({
+            workflow_runs: [
+              {
+                id: 99887766,
+                status: 'completed',
+                conclusion: 'success',
+                head_sha: 'commit_sha_1234567890',
+                html_url: 'https://github.com/Greenhawk5/AliFaniani-Portfolio/actions/runs/99887766',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              },
+            ],
+          }),
+          { status: 200 }
+        )
+      }
+      return turnstileHandler(true)(url)
+    })
+
+    const { cookies } = await loginCtx()
+    const getReq = new Request('https://x/api/admin/deploy-state', {
+      headers: { Cookie: cookies },
+    })
+
+    const response = await deployStateHandler(makeContext(getReq, env))
+    expect(response.status).toBe(200)
+    const state = (await response.json()) as {
+      status: string
+      commitSha?: string
+      workflowRunUrl?: string
+    }
+
+    expect(state.status).toBe('deployment_queued')
+    expect(state.commitSha).toBe('commit_sha_1234567890')
+    expect(state.workflowRunUrl).toContain('99887766')
   })
 })

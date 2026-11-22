@@ -21,12 +21,38 @@
 
 export const DEPLOY_STATE_KEY = 'deploy:state'
 
-export type TriggerStatus = 'pending_sync' | 'sync_dispatch_failed' | 'queued' | 'trigger_failed'
+export type TriggerStatus =
+  | 'idle'
+  | 'database_published'
+  | 'snapshot_generating'
+  | 'github_syncing'
+  | 'deployment_queued'
+  | 'deployed'
+  | 'failed'
+  | 'pending_sync'
+  | 'sync_dispatch_failed'
+  | 'queued'
+  | 'trigger_failed'
+
+export interface DeployStateTarget {
+  kind: string
+  key: string
+  changeType?: 'new' | 'updated' | 'archived'
+}
 
 export interface DeployState {
   status: TriggerStatus
   requestedAt: string
+  completedAt?: string
+  operationId?: string
+  targets?: DeployStateTarget[]
+  targetCount?: number
+  targetSummary?: string
+  commitSha?: string
   lastError?: string
+  currentStep?: number
+  stepMessage?: string
+  workflowRunUrl?: string
 }
 
 export async function recordDeployState(kv: KVNamespace, state: DeployState): Promise<void> {

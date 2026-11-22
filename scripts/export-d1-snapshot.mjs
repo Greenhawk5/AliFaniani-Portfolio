@@ -34,7 +34,7 @@ const OUTPUT = resolve(root, 'src/data/generated/content.json')
 const MEDIA_MANIFEST = resolve(root, 'public/media-manifest.json')
 
 const accountId = process.env.CLOUDFLARE_ACCOUNT_ID
-const databaseId = process.env.D1_DATABASE_ID
+const databaseId = process.env.D1_DATABASE_ID || process.env.CLOUDFLARE_D1_DATABASE_ID
 const token = process.env.CLOUDFLARE_D1_READ_TOKEN
 
 const hasD1Env = Boolean(accountId && databaseId && token)
@@ -113,7 +113,8 @@ async function fetchPublishedRows() {
   )
   console.log(`snapshot: D1 REST request started (${response.status} from edge)`)
   if (!response.ok) {
-    throw new Error(`D1 REST query returned HTTP ${response.status}`)
+    const errorBody = await response.text().catch(() => '')
+    throw new Error(`D1 REST query returned HTTP ${response.status}: ${errorBody.slice(0, 300)}`)
   }
   const payload = await response.json()
   if (payload.success !== true || !Array.isArray(payload.result)) {

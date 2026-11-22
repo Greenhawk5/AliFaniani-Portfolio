@@ -59,7 +59,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci || npm install
 
       # No media-manifest regeneration here: the manifest is generated from
       # repository media (docs/), which this workflow never changes. The
@@ -68,7 +68,8 @@ jobs:
       - name: Export published D1 snapshot (strict)
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          D1_DATABASE_ID: ${{ secrets.D1_DATABASE_ID }}
+          D1_DATABASE_ID: ${{ secrets.D1_DATABASE_ID || secrets.CLOUDFLARE_D1_DATABASE_ID }}
+          CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID || secrets.D1_DATABASE_ID }}
           CLOUDFLARE_D1_READ_TOKEN: ${{ secrets.CLOUDFLARE_D1_READ_TOKEN }}
         run: node scripts/export-d1-snapshot.mjs
 
@@ -92,7 +93,12 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "chore: sync generated CMS snapshot from production D1 [CI Skip]"
+          OP_ID="${{ github.event.client_payload.operation_id }}"
+          if [ -n "$OP_ID" ]; then
+            git commit -m "chore: sync generated CMS snapshot from production D1 ($OP_ID) [CI Skip]"
+          else
+            git commit -m "chore: sync generated CMS snapshot from production D1 [CI Skip]"
+          fi
           git push
 
       # Runs only if every step above succeeded (snapshot on main, or main

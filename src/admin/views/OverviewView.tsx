@@ -437,26 +437,37 @@ export function DeployStatusLine({
       </div>
     )
   }
-  if (status === 'pending_sync') {
+  if (status === 'pending_sync' || status === 'github_syncing' || status === 'snapshot_generating') {
     return (
       <div className="flex items-start gap-2.5">
         <StatusDot tone="info" />
         <div>
-          <p className="text-sm text-frost">Snapshot sync dispatched</p>
+          <p className="text-sm text-frost">Snapshot sync in progress</p>
           <p className="text-xs text-mist">
-            {relativeTime(requestedAt)} — the site updates after the GitHub workflow's build completes.
+            {relativeTime(requestedAt)} — GitHub workflow is syncing snapshot and queuing build.
           </p>
         </div>
       </div>
     )
   }
-  if (status === 'queued') {
+  if (status === 'queued' || status === 'deployment_queued') {
     return (
       <div className="flex items-start gap-2.5">
         <StatusDot tone="info" />
         <div>
           <p className="text-sm text-frost">Deployment queued</p>
-          <p className="text-xs text-mist">{relativeTime(requestedAt)} — check the Cloudflare Pages dashboard.</p>
+          <p className="text-xs text-mist">{relativeTime(requestedAt)} — Cloudflare Pages build queued.</p>
+        </div>
+      </div>
+    )
+  }
+  if (status === 'deployed') {
+    return (
+      <div className="flex items-start gap-2.5">
+        <StatusDot tone="ok" />
+        <div>
+          <p className="text-sm text-frost">Live site up to date</p>
+          <p className="text-xs text-mist">{relativeTime(requestedAt)} — published and deployed.</p>
         </div>
       </div>
     )
