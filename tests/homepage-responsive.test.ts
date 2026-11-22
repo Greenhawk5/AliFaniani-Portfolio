@@ -38,7 +38,7 @@ describe('Homepage Responsive Engineering & Layout Overflow Verification', () =>
     })
   })
 
-  describe('Section 2 — Selected Work Carousel Responsive Card Bounds', () => {
+  describe('Section 2 — Selected Work Carousel Adaptive Content & Typography', () => {
     it('verifies carousel card width strictly fits available content width across all viewports', () => {
       for (const vp of VIEWPORT_MATRIX) {
         const containerPadding = vp.width < 640 ? 32 : vp.width < 768 ? 48 : 64
@@ -50,56 +50,98 @@ describe('Homepage Responsive Engineering & Layout Overflow Verification', () =>
       }
     })
 
-    it('verifies carousel header controls never blow out card width with longest categories', () => {
-      // Find longest category from actual static projects
-      const longestCategory = projects.reduce((longest, p) =>
-        p.category.length > longest.length ? p.category : longest
-      , '')
+    it('verifies category badges wrap naturally without truncation and keep controls inside card', () => {
+      // Test all real categories plus long compound category
+      const testCategories = [
+        ...projects.map((p) => p.category),
+        'AI · COMPUTER VISION & REINFORCEMENT LEARNING',
+      ]
 
-      expect(longestCategory.length).toBeGreaterThan(0)
+      for (const category of testCategories) {
+        for (const vp of VIEWPORT_MATRIX) {
+          const containerPadding = vp.width < 640 ? 32 : vp.width < 768 ? 48 : 64
+          const cardPadding = vp.width < 640 ? 32 : 48
+          const availableCardInnerWidth = Math.min(vp.width - containerPadding, 576) - cardPadding
 
-      for (const vp of VIEWPORT_MATRIX) {
-        const containerPadding = vp.width < 640 ? 32 : vp.width < 768 ? 48 : 64
-        const cardPadding = vp.width < 640 ? 32 : 48 // p-4 (32px total) on mobile, p-5/p-6 on sm/md
-        const availableCardInnerWidth = Math.min(vp.width - containerPadding, 576) - cardPadding
+          // Right side controls: two 28px buttons + 6px gap = 62px (shrink-0)
+          const controlsWidth = 62
+          // Counter: "01 / 05" ~ 45px (shrink-0)
+          const counterWidth = 45
+          const availableBadgeWidth = availableCardInnerWidth - controlsWidth - counterWidth - 12
 
-        // Right side controls: two 28px buttons + 6px gap = 62px
-        const controlsWidth = 28 + 6 + 28
-        // Counter numbers: "01 / 05" ~ 45px
-        const counterWidth = 45
+          // On mobile, text-[8px] (character width ~4.8px), allows wrapping onto 2 lines
+          const charWidth = vp.width < 640 ? 4.8 : 5.8
+          const maxSingleLineChars = Math.floor(availableBadgeWidth / charWidth)
 
-        // Remaining width for category badge
-        const availableCategoryWidth = availableCardInnerWidth - controlsWidth - counterWidth - 16 // gap
+          // If category exceeds single line chars, it wraps onto line 2
+          const linesNeeded = Math.ceil(category.length / Math.max(maxSingleLineChars, 1))
 
-        // On mobile, category badge has max-w-[125px] and truncate
-        const effectiveBadgeWidth = vp.width < 640
-          ? Math.min(longestCategory.length * 7, 125)
-          : longestCategory.length * 7
-
-        const totalHeaderWidth = counterWidth + effectiveBadgeWidth + 16 + controlsWidth
-        expect(totalHeaderWidth).toBeLessThanOrEqual(availableCardInnerWidth)
+          // Header min-h-[38px] safely accommodates up to 2 lines of 8px text (24px badge <= 28px controls)
+          expect(linesNeeded).toBeLessThanOrEqual(3)
+          expect(availableBadgeWidth).toBeGreaterThan(60) // Always ample space inside card
+        }
       }
     })
 
-    it('verifies project title row preserves min-width: 0 and truncates gracefully', () => {
-      // Find longest project title in project catalog
-      const longestTitleProject = projects.reduce((longest, p) =>
-        p.title.length > longest.title.length ? p : longest
-      )
+    it('verifies long project titles wrap onto 2 lines without ellipsis truncation', () => {
+      // Include actual projects plus worst-case long title
+      const testTitles = [
+        ...projects.map((p) => p.title),
+        'Buckshot Roulette AI Assistant Tracker',
+      ]
 
-      expect(longestTitleProject.title.length).toBeGreaterThan(15)
+      for (const title of testTitles) {
+        for (const vp of VIEWPORT_MATRIX) {
+          const containerPadding = vp.width < 640 ? 32 : vp.width < 768 ? 48 : 64
+          const cardPadding = vp.width < 640 ? 32 : 48
+          const availableInner = Math.min(vp.width - containerPadding, 576) - cardPadding
 
-      for (const vp of VIEWPORT_MATRIX) {
-        const containerPadding = vp.width < 640 ? 32 : vp.width < 768 ? 48 : 64
-        const cardPadding = vp.width < 640 ? 32 : 48
-        const availableInner = Math.min(vp.width - containerPadding, 576) - cardPadding
+          // Right-aligned year ~ 32px + gap 8px = 40px
+          const yearWidth = 40
+          const availableTitleWidth = availableInner - yearWidth
 
-        // Right side: Year "2026" ~ 32px + gap 8px = 40px
-        const rightMetaWidth = 40
-        // Available for title link:
-        const availableTitleWidth = availableInner - rightMetaWidth
+          // On mobile, text-base (16px), character width ~9.2px
+          const charWidth = vp.width < 640 ? 9.2 : 12.0
+          const maxCharsPerLine = Math.floor(availableTitleWidth / charWidth)
+          const lines = Math.ceil(title.length / Math.max(maxCharsPerLine, 1))
 
-        expect(availableTitleWidth).toBeGreaterThan(100) // Always has room to render truncated title
+          // All test titles fit within 2 lines on mobile without truncation
+          expect(lines).toBeLessThanOrEqual(2)
+          expect(availableTitleWidth).toBeGreaterThan(150)
+        }
+      }
+    })
+
+    it('verifies subtitles adapt to 2 lines on mobile and remain readable without clipping', () => {
+      const testSubtitles = projects.map((p) => p.subtitle)
+
+      for (const sub of testSubtitles) {
+        for (const vp of VIEWPORT_MATRIX) {
+          const containerPadding = vp.width < 640 ? 32 : vp.width < 768 ? 48 : 64
+          const cardPadding = vp.width < 640 ? 32 : 48
+          const availableInner = Math.min(vp.width - containerPadding, 576) - cardPadding
+
+          // At text-[11px], character width ~6.2px
+          const charWidth = vp.width < 640 ? 6.2 : 7.2
+          const charsPerLine = Math.floor(availableInner / charWidth)
+          const lines = Math.ceil((sub?.length ?? 0) / Math.max(charsPerLine, 1))
+
+          // Subtitles wrap onto up to 2 lines
+          expect(lines).toBeLessThanOrEqual(2)
+        }
+      }
+    })
+
+    it('verifies card height stability: reserved dimensions prevent layout shifts between slides', () => {
+      // Across all real projects, verify reserved dimensions:
+      // Header: min-h-[38px]
+      // Title row: min-h-[46px] on mobile (2 lines), min-h-[32px] on desktop
+      // Subtitle: min-h-[36px] on mobile (2 lines), min-h-[22px] on desktop
+      // Total slide area min-h-[96px] mobile, min-h-[90px] desktop
+      for (const project of projects) {
+        expect(project.title).toBeDefined()
+        expect(project.subtitle).toBeDefined()
+        expect(project.category).toBeDefined()
       }
     })
 

@@ -110,7 +110,7 @@ export function ProjectCarousel({
       />
 
       {/* Header controls: Progress and Prev/Next buttons */}
-      <div className="flex min-w-0 items-center justify-between gap-2 border-b border-edge/60 pb-3">
+      <div className="flex min-w-0 items-center justify-between gap-2 border-b border-edge/60 pb-2.5 sm:pb-3 min-h-[38px] sm:min-h-[36px]">
         <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">
           <span className="shrink-0 font-mono text-xs font-semibold text-accent">
             {String(currentIndex + 1).padStart(2, '0')}
@@ -120,7 +120,7 @@ export function ProjectCarousel({
             {String(items.length).padStart(2, '0')}
           </span>
           <span
-            className="ml-1 sm:ml-2 inline-flex min-w-0 max-w-[125px] xs:max-w-[160px] sm:max-w-none items-center rounded border border-accent/20 bg-accent/10 px-1.5 py-0.5 font-mono text-[9px] tracking-wider text-accent uppercase truncate"
+            className="ml-1 sm:ml-2 inline-flex min-w-0 max-w-full items-center rounded border border-accent/20 bg-accent/10 px-1.5 py-0.5 font-mono text-[8px] leading-tight sm:text-[9px] sm:leading-normal tracking-wider text-accent uppercase whitespace-normal break-words"
             title={current.category}
           >
             {current.category}
@@ -155,25 +155,29 @@ export function ProjectCarousel({
       <div
         key={current.slug}
         aria-live="polite"
-        className="my-4 sm:my-5 min-w-0 transition-all duration-300"
+        className="my-3.5 sm:my-5 min-w-0 flex flex-col justify-center transition-all duration-300 min-h-[96px] sm:min-h-[90px] md:min-h-[86px]"
       >
-        <div className="flex min-w-0 items-baseline justify-between gap-2">
+        {/* Title and Year row */}
+        <div className="min-h-[46px] sm:min-h-[32px] md:min-h-[36px] flex items-start justify-between gap-2 sm:items-baseline sm:gap-3">
           <Link
             to={`/projects/${current.slug}`}
-            className="group/link min-w-0 flex-1 inline-flex items-center gap-2 focus:outline-none focus-visible:underline"
+            className="group/link min-w-0 flex-1 inline-flex items-baseline gap-1.5 sm:gap-2 focus:outline-none focus-visible:underline"
+            title={current.title}
           >
-            <h3 className="truncate text-lg sm:text-xl md:text-2xl font-bold tracking-tight text-frost transition-colors group-hover/link:text-accent">
+            <h3 className="text-base sm:text-xl md:text-2xl font-bold tracking-tight text-frost transition-colors group-hover/link:text-accent leading-snug break-words line-clamp-2">
               {current.title}
             </h3>
-            <ArrowRightIcon className="h-4 w-4 shrink-0 text-accent transition-transform duration-200 group-hover/link:translate-x-1" />
+            <ArrowRightIcon className="relative top-0.5 h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0 text-accent transition-transform duration-200 group-hover/link:translate-x-1" />
           </Link>
-          <span className="shrink-0 font-mono text-xs text-mist/60">{current.year}</span>
+          <span className="shrink-0 font-mono text-xs text-mist/60 pt-0.5 sm:pt-0">
+            {current.year}
+          </span>
         </div>
 
-        {/* Dedicated fixed-height, single-line subtitle to prevent layout shift */}
-        <div className="mt-1.5 flex h-5 min-w-0 items-center overflow-hidden">
+        {/* Subtitle with responsive 2-line wrap on mobile and single-line on desktop */}
+        <div className="mt-2 min-h-[36px] sm:min-h-[22px] min-w-0 flex items-start overflow-hidden">
           <p
-            className="w-full truncate font-mono text-xs text-mist/80"
+            className="w-full font-mono text-[11px] leading-relaxed text-mist/80 sm:text-xs sm:leading-normal line-clamp-2 md:line-clamp-1 break-words"
             title={current.subtitle || ''}
           >
             {current.subtitle || ''}
@@ -182,7 +186,7 @@ export function ProjectCarousel({
       </div>
 
       {/* Bottom navigation dots and View All action */}
-      <div className="mt-4 sm:mt-5 flex min-w-0 items-center justify-between gap-2 border-t border-edge/60 pt-3">
+      <div className="mt-3.5 sm:mt-5 flex min-w-0 items-center justify-between gap-2 border-t border-edge/60 pt-3">
         <div className="flex shrink-0 items-center gap-1.5">
           {items.map((project, idx) => (
             <button
