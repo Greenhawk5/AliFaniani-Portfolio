@@ -43,7 +43,137 @@ The project is built around a dual-experience architecture:
 2. **An interactive 3D developer room at `/room`:** A fully realized 3D workspace powered by React Three Fiber, featuring interactive lighting, physical room objects, project showcase screens, day/night cycles, and mobile touch camera controls.
 3. **An integrated, private Admin Control Center at `/admin`:** A full-featured, zero-trust administrative suite managing dynamic content, Cloudflare R2 media storage, selective publishing, live system health diagnostics, first-party privacy-preserving analytics, and notifications.
 
-> **Philosophy:** Deliver an interactive experience that feels like a real digital product, while maintaining strict isolation, sub-second initial page loads, and enterprise-grade reliability.
+> **Philosophy:** Deliver an interactive experience that feels like a real digital product, while maintaining strict code isolation, sub-second initial page loads, and enterprise-grade reliability.
+
+---
+
+## ✦ Visual Gallery
+
+### Public Portfolio Experience
+
+<table>
+<tr>
+<td width="33%" align="center">
+<a href="docs/screenshots/Home.png"><img src="docs/screenshots/Home.png" alt="Portfolio Homepage" width="100%" /></a>
+<br /><sub><b>Homepage & Selected Work</b><br />Fluid typography, 3D portal, and carousel</sub>
+</td>
+<td width="33%" align="center">
+<a href="docs/screenshots/About.png"><img src="docs/screenshots/About.png" alt="About Page" width="100%" /></a>
+<br /><sub><b>About & Background</b><br />Developer profile, skills, and background</sub>
+</td>
+<td width="33%" align="center">
+<a href="docs/screenshots/Contact.png"><img src="docs/screenshots/Contact.png" alt="Contact Page" width="100%" /></a>
+<br /><sub><b>Contact & Inquiries</b><br />Turnstile-protected messaging and availability</sub>
+</td>
+</tr>
+</table>
+
+### Projects & Technical Case Studies
+
+<table>
+<tr>
+<td width="50%" align="center">
+<a href="docs/screenshots/Projects.png"><img src="docs/screenshots/Projects.png" alt="Projects Directory" width="100%" /></a>
+<br /><sub><b>Projects Directory</b><br />Searchable catalog with real-time category & tech filters</sub>
+</td>
+<td width="50%" align="center">
+<a href="docs/screenshots/Project%20Example.png"><img src="docs/screenshots/Project%20Example.png" alt="Project Case Study" width="100%" /></a>
+<br /><sub><b>Technical Case Study (HawkBucks)</b><br />Architecture breakdown, technical specs, and live actions</sub>
+</td>
+</tr>
+</table>
+
+### Interactive 3D Developer Room (`/room`)
+
+<table>
+<tr>
+<td colspan="2" align="center">
+<a href="docs/screenshots/3D-Room%20(1).png"><img src="docs/screenshots/3D-Room%20(1).png" alt="3D Developer Room Overview" width="100%" /></a>
+<br /><sub><b>Cinematic Isometric Room Perspective</b><br />Dynamic day/night cycle, neon signage, and mobile touch camera controls</sub>
+</td>
+</tr>
+<tr>
+<td width="50%" align="center">
+<a href="docs/screenshots/3D-Room%20(3).webp"><img src="docs/screenshots/3D-Room%20(3).webp" alt="Developer Workstation" width="100%" /></a>
+<br /><sub><b>Developer Workstation</b><br />Interactive monitor, RGB PC tower, and peripherals</sub>
+</td>
+<td width="50%" align="center">
+<a href="docs/screenshots/3D-Room%20(2).webp"><img src="docs/screenshots/3D-Room%20(2).webp" alt="Stylized Scene Details" width="100%" /></a>
+<br /><sub><b>Stylized Scene Elements</b><br />Custom 3D wall shelf, lighting, and ambient assets</sub>
+</td>
+</tr>
+</table>
+
+> 🧊 **Experience the room live:** [`alifaniani.ir/room`](https://alifaniani.ir/room)
+
+### Portfolio Control Center (`/admin`)
+
+<table>
+<tr>
+<td width="50%" align="center">
+<a href="docs/screenshots/Admin%20Login.png"><img src="docs/screenshots/Admin%20Login.png" alt="Zero-Trust Admin Login" width="100%" /></a>
+<br /><sub><b>Zero-Trust Sign-In</b><br />Digital rain backdrop with Turnstile challenge verification</sub>
+</td>
+<td width="50%" align="center">
+<a href="docs/screenshots/Admin%20Panel%20(1).png"><img src="docs/screenshots/Admin%20Panel%20(1).png" alt="Admin Dashboard Overview" width="100%" /></a>
+<br /><sub><b>Admin Dashboard & Live Insights</b><br />Live content tallies, deployment queue, and 14-day activity pulse</sub>
+</td>
+</tr>
+<tr>
+<td width="50%" align="center">
+<a href="docs/screenshots/Admin%20Panel%20(2).png"><img src="docs/screenshots/Admin%20Panel%20(2).png" alt="Cloudflare R2 Media Library" width="100%" /></a>
+<br /><sub><b>Cloudflare R2 Media Library</b><br />Direct R2 storage with drag-and-drop upload & MIME validation</sub>
+</td>
+<td width="50%" align="center">
+<a href="docs/screenshots/Admin%20Panel%20(3).png"><img src="docs/screenshots/Admin%20Panel%20(3).png" alt="System Activity & Audit Trail" width="100%" /></a>
+<br /><sub><b>System Activity & Audit Trail</b><br />EvilCharts event distribution donut and paginated edge audit log</sub>
+</td>
+</tr>
+</table>
+
+---
+
+## ✦ Tech Stack
+
+### Frontend
+
+<p>
+  <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black" alt="React 19" />
+  <img src="https://img.shields.io/badge/TypeScript-Strict-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript Strict" />
+  <img src="https://img.shields.io/badge/Vite-8-646CFF?style=flat-square&logo=vite&logoColor=white" alt="Vite 8" />
+  <img src="https://img.shields.io/badge/React_Router-7-CA4245?style=flat-square&logo=reactrouter&logoColor=white" alt="React Router 7" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white" alt="Tailwind CSS 4" />
+</p>
+
+### 3D & Motion
+
+<p>
+  <img src="https://img.shields.io/badge/Three.js-r185-000000?style=flat-square&logo=threedotjs&logoColor=white" alt="Three.js r185" />
+  <img src="https://img.shields.io/badge/React_Three_Fiber-9-20232A?style=flat-square&logo=react&logoColor=white" alt="React Three Fiber 9" />
+  <img src="https://img.shields.io/badge/Drei-10-20232A?style=flat-square&logo=react&logoColor=white" alt="Drei 10" />
+  <img src="https://img.shields.io/badge/GSAP-3-88CE02?style=flat-square&logo=greensock&logoColor=111111" alt="GSAP 3" />
+  <img src="https://img.shields.io/badge/Framer_Motion-13-111111?style=flat-square&logo=framer&logoColor=white" alt="Framer Motion 13" />
+</p>
+
+### State & Data
+
+<p>
+  <img src="https://img.shields.io/badge/Zustand-5-433D3D?style=flat-square&logo=zustand&logoColor=white" alt="Zustand 5" />
+  <img src="https://img.shields.io/badge/Zod-4-3C3C3D?style=flat-square&logo=zod&logoColor=white" alt="Zod 4" />
+  <img src="https://img.shields.io/badge/ECharts-6-AA344D?style=flat-square&logo=apacheecharts&logoColor=white" alt="ECharts 6" />
+  <img src="https://img.shields.io/badge/EvilCharts-Custom_Cyberpunk_SVG-39ff8b?style=flat-square&labelColor=05060a" alt="EvilCharts" />
+</p>
+
+### Cloud & Infrastructure
+
+<p>
+  <img src="https://img.shields.io/badge/Cloudflare_Pages-Edge_Hosting-F38020?style=flat-square&logo=cloudflarepages&logoColor=white" alt="Cloudflare Pages" />
+  <img src="https://img.shields.io/badge/Pages_Functions-Serverless_API-F38020?style=flat-square&logo=cloudflare&logoColor=white" alt="Cloudflare Pages Functions" />
+  <img src="https://img.shields.io/badge/Cloudflare_D1-Serverless_SQL-F38020?style=flat-square&logo=cloudflare&logoColor=white" alt="Cloudflare D1" />
+  <img src="https://img.shields.io/badge/Cloudflare_KV-State_%26_Limits-F38020?style=flat-square&logo=cloudflare&logoColor=white" alt="Cloudflare KV" />
+  <img src="https://img.shields.io/badge/Cloudflare_R2-Media_Storage-F38020?style=flat-square&logo=cloudflare&logoColor=white" alt="Cloudflare R2" />
+  <img src="https://img.shields.io/badge/Cloudflare_Turnstile-Bot_Defense-F38020?style=flat-square&logo=cloudflare&logoColor=white" alt="Cloudflare Turnstile" />
+</p>
 
 ---
 
@@ -51,47 +181,16 @@ The project is built around a dual-experience architecture:
 
 | Feature | Architecture & Implementation |
 |---|---|
-| ⚡ **Performance-First Isolation** | The landing page and public routes ship zero 3D overhead. Three.js, R3F, shaders, and GLB decoders are isolated to `/room`. |
+| ⚡ **Performance-First Isolation** | The landing page and public routes ship zero 3D overhead. Three.js, R3F, shaders, and GLB decoders are isolated exclusively to `/room`. |
 | 🧊 **Responsive 3D Room Camera** | Geometry-based dynamic object framing (`box.getSize()`), mobile touch orbit with momentum damping, two-finger pinch-to-zoom, and virtual joystick for freecam mode. |
 | 🚀 **Selective CMS Publishing** | Multi-item draft promotion interface allowing administrators to choose specific pending changes to deploy rather than forcing an all-or-nothing publish. |
-| 🛡️ **Zero-Trust Diagnostics** | Server-side health probe (`/api/admin/system/health`) measuring real D1 query latency, table counts, KV bindings, R2 accessibility, and secrets presence without leaking keys. |
+| 🛡️ **Zero-Trust Diagnostics** | Server-side health probe (`/api/admin/system/health`) measuring real D1 query latency, table counts, KV bindings, R2 accessibility, and secrets posture without leaking credentials. |
 | 📊 **First-Party Analytics** | Privacy-preserving traffic metrics powered by daily rotating salted SHA-256 session hashes (`sha256Hex(ip::ua::date::salt)`). Raw IPs are never stored. |
 | 🖼️ **Cloudflare R2 Media Storage** | Direct asset management with binary magic-byte MIME sniffing (WebP, PNG, JPEG, AVIF), dimension sniffing, atomic upload compensation, and safe deletion checks. |
-| 🔎 **Search & Social SEO Engine** | Verified Google Search Site Name branding (`Ali Faniani`), static SSR HTML shells, JSON-LD `@graph` entities, dynamic D1 edge fallbacks, and automated sitemap synchronization. |
+| 🔍 **Search & Social SEO Engine** | Verified Google Search Site Name branding (`Ali Faniani`), static SSR HTML shells, JSON-LD `@graph` entities, dynamic D1 edge fallbacks, and automated sitemap synchronization. |
 | 🔒 **Hardened Session Governance** | 15-minute idle inactivity timeout, 24-hour absolute session ceiling, sliding activity refresh, probe-mode verification, CSRF defense-in-depth, and fail-closed Turnstile. |
 | 📱 **Fluid Mobile Typography** | CSS `clamp(2.5rem, 8vw, 4.25rem)` hero typography, natural multi-line wrapping in the Selected Work carousel, and zero horizontal viewport overflows. |
 | ☁️ **Deterministic Sync Pipeline** | Atomic D1 updates trigger a dedicated GitHub Actions workflow that regenerates static snapshots on `main` before firing the Cloudflare Pages deploy hook. |
-
----
-
-## ✦ Technology Stack
-
-### Frontend & Core Application
-- **Framework:** [React 19](https://react.dev/) + [React DOM 19](https://react.dev/)
-- **Language:** [TypeScript](https://www.typescriptlang.org/) (Strict Mode)
-- **Build Tool:** [Vite 8](https://vitejs.dev/) + [Rollup](https://rollupjs.org/)
-- **Routing:** [React Router 7](https://reactrouter.com/) (Browser router for public pages; Hash router for `/admin`)
-- **Styling:** [Tailwind CSS 4](https://tailwindcss.com/) + Custom cyber-dark design tokens
-- **Animations:** [Framer Motion 13](https://www.framer.com/motion/) + [GSAP 3](https://greensock.com/gsap/)
-
-### 3D & Graphics Engine (Isolated Chunk)
-- **Engine:** [Three.js r185](https://threejs.org/)
-- **React Integration:** [React Three Fiber 9](https://docs.pmnd.rs/react-three-fiber/) + [@react-three/drei 10](https://github.com/pmndrs/drei)
-- **Post-Processing:** [@react-three/postprocessing 3](https://github.com/pmndrs/react-postprocessing) + [postprocessing 6](https://github.com/vanruesc/postprocessing)
-- **Asset Decoders:** Draco and Meshopt compressed GLB assets
-
-### Cloudflare Serverless Platform & Edge
-- **Hosting & CDN:** [Cloudflare Pages](https://pages.cloudflare.com/)
-- **Serverless API:** [Cloudflare Pages Functions](https://developers.cloudflare.com/pages/functions/)
-- **Database:** [Cloudflare D1](https://developers.cloudflare.com/d1/) (Serverless SQL database over SQLite)
-- **Key-Value Store:** [Cloudflare KV](https://developers.cloudflare.com/kv/) (Rate limiting & deployment state machine)
-- **Object Storage:** [Cloudflare R2](https://developers.cloudflare.com/r2/) (`ali-faniani-portfolio-media` bucket)
-- **Bot Defense:** [Cloudflare Turnstile](https://developers.cloudflare.com/turnstile/) (Client challenge + Server verification)
-
-### Administration, Schemas & Visualizations
-- **Data Schemas:** [Zod 4](https://zod.dev/) (Strict validation in build and server code; 0% shipped in public bundles)
-- **State Management:** [Zustand 5](https://github.com/pmndrs/zustand)
-- **Charts & Data Visualization:** [EvilCharts](https://github.com/Greenhawk5) (Custom cyberpunk SVG chart primitives) + [ECharts 6](https://echarts.apache.org/)
 
 ---
 
@@ -120,161 +219,97 @@ The project is built around a dual-experience architecture:
 <img src="docs/project/HawkBucks%20-%20Bot/banner-1280.webp" alt="HawkBucks Bot" width="100%" />
 </a>
 <h3>HawkBucks Bot</h3>
-<sub>Telegram automation bot</sub>
+<sub>Telegram V-Bucks assistant</sub>
 </td>
 </tr>
 </table>
 
 ---
 
-## ✦ Visual Gallery
+## ✦ System Architecture & Publishing Pipeline
 
-### General Experience
-
-<table>
-<tr>
-<td width="50%" align="center">
-<a href="docs/profile/home.webp"><img src="docs/profile/home.webp" alt="Portfolio home page" width="100%" /></a>
-<br /><sub><b>Home</b> · Dynamic selected work rotation & visitor analytics</sub>
-</td>
-<td width="50%" align="center">
-<a href="docs/profile/about.webp"><img src="docs/profile/about.webp" alt="About page" width="100%" /></a>
-<br /><sub><b>About</b> · Profile, skills, education, and certificates</sub>
-</td>
-</tr>
-<tr>
-<td width="50%" align="center">
-<a href="docs/profile/projects.webp"><img src="docs/profile/projects.webp" alt="Projects page" width="100%" /></a>
-<br /><sub><b>Projects</b> · Filterable responsive project showcase</sub>
-</td>
-<td width="50%" align="center">
-<a href="docs/profile/contact.webp"><img src="docs/profile/contact.webp" alt="Contact page" width="100%" /></a>
-<br /><sub><b>Contact</b> · Bot-protected contact experience</sub>
-</td>
-</tr>
-</table>
-
-### Interactive 3D Room
-
-<table>
-<tr>
-<td width="33%" align="center">
-<a href="docs/profile/3D-Room%20(1).webp"><img src="docs/profile/3D-Room%20(1).webp" alt="3D developer room view 1" width="100%" /></a>
-<br /><sub><b>Room Overview</b> · Cinematic angle</sub>
-</td>
-<td width="33%" align="center">
-<a href="docs/profile/3D-Room%20(2).webp"><img src="docs/profile/3D-Room%20(2).webp" alt="3D developer room view 2" width="100%" /></a>
-<br /><sub><b>Workstation</b> · Interactive monitor</sub>
-</td>
-<td width="33%" align="center">
-<a href="docs/profile/3D-Room%20(3).webp"><img src="docs/profile/3D-Room%20(3).webp" alt="3D developer room view 3" width="100%" /></a>
-<br /><sub><b>Showcase Board</b> · Project slides</sub>
-</td>
-</tr>
-</table>
-
-> 🧊 **Experience the room live:** [`alifaniani.ir/room`](https://alifaniani.ir/room)
-
----
-
-## ✦ System Architecture
+### Cloudflare Edge Architecture
 
 ```text
-                               ┌────────────────────────────────┐
-                               │       Client Web Browser       │
-                               └───────────────┬────────────────┘
-                                               │
-                                               ▼
-                               ┌────────────────────────────────┐
-                               │   Cloudflare Global Edge CDN   │
-                               ├────────────────────────────────┤
-                               │ • Edge SSR Fallback Middleware │
-                               │ • Security Headers & CSP       │
-                               │ • Static HTML Shell Delivery   │
-                               └───────────────┬────────────────┘
-                                               │
-                        ┌──────────────────────┼──────────────────────┐
-                        ▼                      ▼                      ▼
-              ┌──────────────────┐   ┌──────────────────┐   ┌──────────────────┐
-              │  Fast Public Web │   │  Lazy 3D Engine  │   │  Private Admin   │
-              │  • SEO Shells    │   │  • /room route   │   │  • /admin route  │
-              │  • Zero WebGL    │   │  • Three.js/R3F  │   │  • Zero-Trust    │
-              │  • Pure HTML/CSS │   │  • Touch Orbit   │   │  • Hash-routed   │
-              └─────────┬────────┘   └─────────┬────────┘   └─────────┬────────┘
-                        │                      │                      │
-                        └──────────────────────┼──────────────────────┘
-                                               ▼
-                               ┌────────────────────────────────┐
-                               │    Pages Functions Edge API    │
-                               │  /api/contact  /api/analytics  │
-                               │  /api/admin/*  /api/projects   │
-                               └───────────────┬────────────────┘
-                                               │
-                    ┌──────────────────────────┼──────────────────────────┐
-                    ▼                          ▼                          ▼
-         ┌─────────────────────┐    ┌─────────────────────┐    ┌─────────────────────┐
-         │   Cloudflare D1     │    │   Cloudflare KV     │    │   Cloudflare R2     │
-         │ • Content Store     │    │ • Rate Limiting     │    │ • Media Storage     │
-         │ • Session Hashes    │    │ • deploy:state      │    │ • Magic-Byte MIME   │
-         │ • Audit Trail       │    │ • Brute Lockouts    │    │ • Reference Safety  │
-         │ • Analytics Events  │    └─────────────────────┘    └─────────────────────┘
-         └─────────────────────┘
+                               ┌──────────────────────────────┐
+                               │       Client Web Browser     │
+                               └──────────────┬───────────────┘
+                                              │
+                                              ▼
+                               ┌──────────────────────────────┐
+                               │  Cloudflare Global Edge CDN  │
+                               ├──────────────────────────────┤
+                               │ • Edge SSR Fallback Gate     │
+                               │ • Security Headers & CSP     │
+                               │ • Static HTML Shell Delivery │
+                               └──────────────┬───────────────┘
+                                              │
+                        ┌─────────────────────┼─────────────────────┐
+                        ▼                     ▼                     ▼
+              ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐
+              │  Fast Public Web │  │  Lazy 3D Engine  │  │  Private Admin   │
+              │  • SEO Shells    │  │  • /room route   │  │  • /admin route  │
+              │  • Zero WebGL    │  │  • Three.js/R3F  │  │  • Zero-Trust    │
+              │  • Pure HTML/CSS │  │  • Touch Orbit   │  │  • Hash-routed   │
+              └─────────┬────────┘  └─────────┬────────┘  └─────────┬────────┘
+                        │                     │                     │
+                        └─────────────────────┼─────────────────────┘
+                                              ▼
+                               ┌──────────────────────────────┐
+                               │   Pages Functions Edge API   │
+                               │ /api/contact  /api/analytics │
+                               │ /api/admin/*  /api/projects  │
+                               └──────────────┬───────────────┘
+                                              │
+                    ┌─────────────────────────┼─────────────────────────┐
+                    ▼                         ▼                         ▼
+         ┌────────────────────┐    ┌────────────────────┐    ┌────────────────────┐
+         │   Cloudflare D1    │    │   Cloudflare KV    │    │   Cloudflare R2    │
+         │ • Content Store    │    │ • Rate Limiting    │    │ • Media Storage    │
+         │ • Session Hashes   │    │ • deploy:state     │    │ • Magic-Byte MIME  │
+         │ • Audit Trail      │    │ • Brute Lockouts   │    │ • Reference Safety │
+         │ • Analytics Events │    └────────────────────┘    └────────────────────┘
+         └────────────────────┘
 ```
 
----
-
-## ✦ Interactive 3D Room & Responsive Controls
-
-The `/room` route is an interactive 3D digital developer workstation built with React Three Fiber.
-
-### Dynamic Environment & Performance
-- **Time-of-Day Atmosphere:** Continuous day/night interpolation synchronized with the visitor's local system time (with manual override in settings). Custom GLSL shaders render dynamic skies, stars, and atmospheric haze.
-- **Showcase Board Optimization:** Pre-renders 52 grid lines and gradients to offscreen canvases; canvas re-draws and GPU texture uploads (`texture.needsUpdate = true`) execute **strictly during active slide transitions** (0% GPU texture overhead during idle states; instantaneous 350ms slide navigation).
-- **Verified Visitor Sign:** Renders real, verified visitor counts onto a branded 3D board beneath the digital clock, fetched from `/api/analytics/stats`.
-
-### Mobile Touch & Camera Architecture
-- **Geometry-Based Object Framing:** Calculates bounding boxes (`box.getSize()`) in real time, adapting focal distance and vertical offset dynamically based on device aspect ratio (portrait vs. landscape).
-- **Touch Gesture Controls:** Single-finger orbit with momentum damping; two-finger pinch-to-zoom; vertical pitch clamping preventing camera flipping or floor penetration.
-- **Virtual Joystick Freecam:** On mobile touch devices, free-camera mode equips an ergonomic on-screen thumb joystick alongside touch-look gestures.
-- **Ergonomic Controls Drawer:** Distinguishes camera viewpoints (Overview, Workstation, Shelf, Freecam) from environmental controls for comfortable one-thumb navigation.
-
----
-
-## ✦ Content Management & Selective Publishing Pipeline
-
-The Portfolio Control Center (`/admin`) delivers a production-grade content workflow decoupled from runtime databases.
+### Deterministic Publishing State Machine
 
 ```text
  1. CMS EDITING           2. ATOMIC PROMOTION         3. REPOSITORY SYNC
-┌──────────────────┐     ┌──────────────────────┐    ┌──────────────────────────┐
-│ Validate drafts  │ ──► │ Promote selected     │──► │ Dispatch GitHub Actions  │
-│ in Admin UI      │     │ records to D1        │    │ cms-snapshot-sync.yml    │
-└──────────────────┘     └──────────────────────┘    └─────────────┬────────────┘
-                                                                   │
+┌──────────────────┐      ┌────────────────────────┐  ┌──────────────────────────┐
+│ Validate drafts  │ ───► │ Promote selected       ├──►│ Dispatch GitHub Actions  │
+│ in Admin UI      │      │ records to D1          │   │ cms-snapshot-sync.yml    │
+└──────────────────┘      └────────────────────────┘   └────────────┬─────────────┘
+                                                                    │
  6. GLOBAL EDGE CDN       5. CLOUDFLARE BUILD         4. DETERMINISTIC EXPORT
-┌──────────────────┐     ┌──────────────────────┐    ┌──────────────────────────┐
-│ Serve immutable  │ ◄── │ Build static bundles │◄── │ Export D1 snapshot to    │
-│ static website   │     │ and route SSR shells │    │ content.json & sitemap   │
-└──────────────────┘     └──────────────────────┘    └──────────────────────────┘
+┌──────────────────┐      ┌────────────────────────┐  ┌─────────────┴────────────┐
+│ Serve immutable  │ ◄─── │ Build static bundles   │◄──│ Export D1 snapshot to    │
+│ static website   │      │ and route SSR shells   │   │ content.json & sitemap   │
+└──────────────────┘      └────────────────────────┘   └──────────────────────────┘
 ```
-
-### Deterministic Publishing Guarantees
-1. **Draft Overlays:** Edits to published content remain isolated in D1 drafts until explicitly promoted.
-2. **Selective Publishing:** Administrators check only the records they wish to promote; unrelated drafts remain safely in progress.
-3. **Loop Prevention:** The sync workflow triggers exclusively on `repository_dispatch` / `workflow_dispatch` — never on standard git pushes. Sync commits carry `[CI Skip]` to prevent deployment loops.
-4. **Idempotency:** Generators produce byte-identical JSON and XML outputs per D1 timestamp. Unchanged data results in zero empty commits.
-5. **Ordered Deployment:** The snapshot-sync workflow triggers the Cloudflare Pages deploy hook **only after** the generated snapshot is committed to `main`. Builds never start from stale snapshots.
-6. **Edge Dynamic Fallback:** If a visitor requests a project published seconds ago before a Pages rebuild finishes, `functions/_middleware.js` dynamically renders an edge SSR shell from D1 (`X-Content-Source: d1-edge-shell`), ensuring zero 404s for legitimate content.
 
 ---
 
-## ✦ Admin Control Center Modules
+## ✦ Interactive 3D Room Architecture
 
-The private administration suite (`/admin`) is accessible via key shortcut or direct URL (protected by `X-Robots-Tag: noindex, nofollow, noarchive` and `Cache-Control: no-store`):
+The `/room` route is an interactive 3D digital developer workstation built with React Three Fiber:
 
-- **Overview (`#/overview`):** High-level operational telemetry, active draft counters, notification cards, and EvilCharts visual activity distributions.
-- **Projects (`#/projects`):** Full CRUD for portfolio projects, tech stacks, links, metrics, media associations, and homepage featured flags.
-- **Profile (`#/profile`):** Management of biography paragraphs, skill groups, timeline milestones, education, and certificates.
+- **Dynamic Environment & Lighting:** Continuous day/night sky interpolation synchronized with visitor local time (with manual override in settings). Custom GLSL shaders render dynamic skies, stars, and atmospheric haze.
+- **Showcase Board Optimization:** Pre-renders 52 background grid lines and gradients to offscreen canvases; canvas re-draws and GPU texture uploads (`texture.needsUpdate = true`) execute **strictly during active slide transitions** (0% GPU texture overhead during idle states; instantaneous 350ms slide navigation).
+- **Verified Visitor Sign:** Renders real, verified visitor counts onto a branded 3D board beneath the digital clock, fetched from `/api/analytics/stats`.
+- **Geometry-Based Camera Framing:** Calculates bounding boxes (`box.getSize()`) in real time, adapting focal distance and vertical look offset dynamically based on device aspect ratio.
+- **Mobile Touch Orbit & Freecam:** Touch gesture orbit with momentum damping, two-finger pinch-to-zoom, and an ergonomic virtual joystick for free-camera navigation on touchscreens.
+
+---
+
+## ✦ Portfolio Control Center (`/admin`)
+
+A private, single-owner administration suite is built into the site at `/admin`. It is deliberately unlisted: the only intentional entry point is a subtle key icon inside the site's Settings panel, plus the direct URL. It does not appear in navigation, footer, sitemap, or robots.txt, and is served with `X-Robots-Tag: noindex, nofollow, noarchive` and `Cache-Control: no-store`.
+
+The console is hash-routed across nine specialized management surfaces:
+- **Overview (`#/overview`):** High-level operational metrics, live content counts, pending publish alerts, deployment status, and 14-day activity pulse.
+- **Projects (`#/projects`):** Full CRUD for project case studies, custom technology tags, repository links, live demos, and homepage showcase toggles.
+- **Profile (`#/profile`):** Management of biography paragraphs, skill groups, timeline milestones, education, and credentials.
 - **Links (`#/links`):** Management of public social links, external profiles, and contact channels.
 - **Media Library (`#/media`):** R2 asset browser with category organization, binary MIME validation, dimension sniffing, direct URL copying, and reference integrity protection.
 - **Publishing (`#/publishing`):** Selective publishing interface with item-by-item selection, visual draft/published diffing, sync status tracking, and manual sync retry.
@@ -287,18 +322,20 @@ The private administration suite (`/admin`) is accessible via key shortcut or di
 
 ## ✦ Security Architecture
 
-Security is implemented natively across all application layers:
+Security is implemented natively across every layer of the application:
 
-- **Single-Owner Authentication:** Password-only authentication with zero user registration surface. `ADMIN_PASSWORD` is an encrypted Cloudflare secret; comparison is crypto-grade timing-safe.
-- **Session Lifetime Governance:** Enforces a 15-minute idle inactivity timeout and a 24-hour absolute session ceiling. Expired sessions are rejected and purged opportunistically.
-- **Probe-Mode Protection:** Monitoring and health checks pass `isProbe: true` to prevent diagnostic polling from artificially extending session lifespans.
-- **CSRF Defense-in-Depth:** Every administrative mutation requires a timing-safe per-session `X-CSRF-Token` in addition to `SameSite=Strict` cookies.
-- **Bot Defense:** Cloudflare Turnstile verification is mandatory on login and contact endpoints (fail-closed).
-- **Layered Rate Limiting:** In-memory burst cap per Cloudflare isolate + KV-backed IP lockout counting Turnstile-passed password failures (5 attempts per 15 minutes).
-- **R2 Binary Magic-Byte Sniffing:** Strictly allows WebP, PNG, JPEG, and AVIF; SVG payloads, scripts, and executables are rejected at binary inspection.
-- **Zero-Trust Secrets Posture:** Sensitive credentials (`ADMIN_PASSWORD`, `TURNSTILE_SECRET`, `GITHUB_SYNC_TOKEN`, `RESEND_API_KEY`, `DEPLOY_HOOK_URL`) never touch client code or public bundles.
-- **Edge Security Headers:** Strict HSTS (`includeSubDomains`), restrictive Content Security Policy (CSP), `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `frame-ancestors 'none'`, and `Permissions-Policy`.
-- **Bundle Isolation Verified:** Automated build checks verify that no Zod runtime, admin markers, or server secret strings leak into public client bundles.
+| Security Domain | Implementation Details |
+|---|---|
+| **Single-Owner Authentication** | Password-only authentication with zero user registration surface. `ADMIN_PASSWORD` is an encrypted Cloudflare secret; comparison is crypto-grade timing-safe. |
+| **Session Lifetime Governance** | Enforces a 15-minute idle inactivity timeout and a 24-hour absolute session ceiling. Expired sessions are rejected and purged opportunistically. |
+| **Probe-Mode Protection** | Monitoring and health checks pass `isProbe: true` to prevent diagnostic polling from artificially extending session lifespans. |
+| **CSRF Defense-in-Depth** | Every administrative mutation requires a timing-safe per-session `X-CSRF-Token` in addition to `SameSite=Strict` cookies. |
+| **Cloudflare Turnstile** | Server-enforced, fail-closed Turnstile challenge validation on both admin login and public contact form submissions. |
+| **Layered Rate Limiting** | In-memory burst cap per Cloudflare isolate + KV-backed IP lockout counting Turnstile-passed password failures (5 attempts per 15 minutes). |
+| **R2 Binary Magic-Byte Sniffing** | Strictly allows WebP, PNG, JPEG, and AVIF; SVG payloads, scripts, and executables are rejected at binary inspection. |
+| **Zero-Trust Secrets Posture** | Sensitive credentials (`ADMIN_PASSWORD`, `TURNSTILE_SECRET`, `GITHUB_SYNC_TOKEN`, `RESEND_API_KEY`, `DEPLOY_HOOK_URL`) never touch client code or public bundles. |
+| **Edge Security Headers** | Strict HSTS (`includeSubDomains`), restrictive Content Security Policy (CSP), `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `frame-ancestors 'none'`, and `Permissions-Policy`. |
+| **Bundle Isolation Verified** | Automated build checks verify that no Zod runtime, admin markers, or server secret strings leak into public client bundles. |
 
 ---
 
@@ -424,7 +461,8 @@ AliFaniani-Portfolio/
 │   ├── certificates/              # Certificate scans
 │   ├── implementation/            # Engineering decision records & logs
 │   ├── profile/                   # Showcase visual assets
-│   └── project/                   # Project banners & screenshots
+│   ├── project/                   # Project banners & screenshots
+│   └── screenshots/               # High-resolution application screenshots
 ├── functions/                     # Cloudflare Pages Functions (Edge API)
 │   ├── _middleware.js             # Edge SSR shell fallback & header guard
 │   ├── api/                       # API endpoints
