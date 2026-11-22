@@ -86,6 +86,22 @@ export class FakeD1Database {
 
   private selectFirst(sql: string, params: unknown[]): Row | null {
     const rows = this.tableFor(sql)
+    const simpleCountMatch = /^SELECT\s+count\(\*\)\s+as\s+count\s+FROM\s+([a-zA-Z0-9_]+)$/i.exec(sql.trim())
+    if (simpleCountMatch) {
+      return { count: rows.length } as Row
+    }
+    if (/^SELECT\s+count\(\*\)\s+as\s+count\s+FROM\s+page_view_events\s+WHERE\s+created_at\s*>=\s*\?/i.test(sql.trim())) {
+      const cutoff = params[0] as string
+      const matched = rows.filter((r) => !cutoff || String(r.created_at ?? '') >= cutoff)
+      return { count: matched.length } as Row
+    }
+    if (/^SELECT\s+count\(\*\)\s+as\s+count\s+FROM\s+auth_log\s+WHERE\s+note\s+LIKE\s+'login_success%/i.test(sql.trim())) {
+      const matched = rows.filter((r) => {
+        const note = String(r.note ?? '')
+        return note.startsWith('login_success') || note.startsWith('login_turnstile_failed')
+      })
+      return { count: matched.length } as Row
+    }
     if (/SELECT token_hash/.test(sql)) {
       // Mirrors the real SQL (WHERE token_hash = ?) — no expiry filtering
       // here; expiry is enforced in application code so its delete path is
@@ -754,6 +770,11 @@ export function turnstileHandler(accept: boolean) {
 export interface TestEnv extends AdminEnv {
   ADMIN_PASSWORD: string
   TURNSTILE_SECRET: string
+  GITHUB_SYNC_TOKEN?: string
+  CLOUDFLARE_DEPLOY_HOOK_URL?: string
+  RESEND_API_KEY?: string
+  EMAIL_FROM?: string
+  EMAIL_TO?: string
 }
 
 export function makeEnv(db: FakeD1Database, kv: FakeKV, overrides: Partial<TestEnv> = {}): TestEnv {

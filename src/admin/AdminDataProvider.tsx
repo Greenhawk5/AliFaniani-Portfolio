@@ -39,6 +39,7 @@ import {
   createCustomNotification as createApi,
   type AdminNotification,
 } from './notificationsApi'
+import { fetchSystemHealth, type SystemHealthReport } from './systemApi'
 import type { SessionState } from './authApi'
 
 export interface AdminData {
@@ -49,11 +50,14 @@ export interface AdminData {
   activityError: string
   notifications: AdminNotification[] | null
   notificationsError: string
+  systemHealth: SystemHealthReport | null
+  systemHealthLoading: boolean
   session: SessionState | null
   refreshContent: () => Promise<void>
   refreshDeploy: () => Promise<void>
   refreshActivity: () => Promise<void>
   refreshNotifications: () => Promise<void>
+  refreshSystemHealth: () => Promise<void>
   acknowledgeNotification: (id: string) => Promise<boolean>
   resolveNotification: (id: string) => Promise<boolean>
   dismissNotification: (id: string) => Promise<boolean>
@@ -121,6 +125,8 @@ export function AdminDataProvider({
   const [activityError, setActivityError] = useState('')
   const [notifications, setNotifications] = useState<AdminNotification[] | null>(null)
   const [notificationsError, setNotificationsError] = useState('')
+  const [systemHealth, setSystemHealth] = useState<SystemHealthReport | null>(null)
+  const [systemHealthLoading, setSystemHealthLoading] = useState(false)
   const authLostRef = useRef(false)
 
   const guard = useCallback(
@@ -175,6 +181,18 @@ export function AdminDataProvider({
       setNotificationsError('')
     } catch (e) {
       guard(e, setNotificationsError)
+    }
+  }, [guard])
+
+  const refreshSystemHealth = useCallback(async () => {
+    setSystemHealthLoading(true)
+    try {
+      const report = await fetchSystemHealth()
+      setSystemHealth(report)
+    } catch (e) {
+      guard(e, () => setSystemHealth(null))
+    } finally {
+      setSystemHealthLoading(false)
     }
   }, [guard])
 
@@ -378,8 +396,9 @@ export function AdminDataProvider({
       refreshDeploy(),
       refreshActivity(),
       refreshNotifications(),
+      refreshSystemHealth(),
     ])
-  }, [refreshContent, refreshDeploy, refreshActivity, refreshNotifications])
+  }, [refreshContent, refreshDeploy, refreshActivity, refreshNotifications, refreshSystemHealth])
 
   // Initial load runs once; refresh functions are stable, but the effect
   // only triggers on mount (the refresh* fns only change identity if
@@ -406,11 +425,14 @@ export function AdminDataProvider({
       activityError,
       notifications,
       notificationsError,
+      systemHealth,
+      systemHealthLoading,
       session,
       refreshContent,
       refreshDeploy,
       refreshActivity,
       refreshNotifications,
+      refreshSystemHealth,
       acknowledgeNotification,
       resolveNotification,
       dismissNotification,
@@ -431,11 +453,14 @@ export function AdminDataProvider({
       activityError,
       notifications,
       notificationsError,
+      systemHealth,
+      systemHealthLoading,
       session,
       refreshContent,
       refreshDeploy,
       refreshActivity,
       refreshNotifications,
+      refreshSystemHealth,
       acknowledgeNotification,
       resolveNotification,
       dismissNotification,
